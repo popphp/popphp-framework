@@ -1,0 +1,60 @@
+{
+    "name": "popphp/popphp-framework",
+    "description": "The Pop PHP Framework - Full Installation",
+    "keywords": [
+        "framework",
+        "php framework",
+        "pop",
+        "pop php"
+    ],
+    "homepage": "http://www.popphp.org/",
+    "license": "New BSD",
+    "authors": [
+        {
+            "name": "Nick Sagona",
+            "email": "dev@nolainteractive.com",
+            "homepage": "http://www.nolainteractive.com/"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "popphp/pop-acl": "2.*@dev",
+        "popphp/pop-archive": "2.*@dev",
+        "popphp/pop-auth": "2.*@dev",
+        "popphp/pop-cache": "2.*@dev",
+        "popphp/pop-code": "2.*@dev",
+        "popphp/pop-config": "2.*@dev",
+        "popphp/pop-console": "2.*@dev",
+        "popphp/pop-crypt": "2.*@dev",
+        "popphp/pop-data": "2.*@dev",
+        "popphp/pop-db": "2.*@dev",
+        "popphp/pop-dom": "2.*@dev",
+        "popphp/pop-feed": "2.*@dev",
+        "popphp/pop-file": "2.*@dev",
+        "popphp/pop-filter": "2.*@dev",
+        "popphp/pop-form": "2.*@dev",
+        "popphp/pop-ftp": "2.*@dev",
+        "popphp/pop-geo": "2.*@dev",
+        "popphp/pop-http": "2.*@dev",
+        "popphp/pop-i18n": "2.*@dev",
+        "popphp/pop-image": "2.*@dev",
+        "popphp/pop-log": "2.*@dev",
+        "popphp/pop-mail": "2.*@dev",
+        "popphp/pop-nav": "2.*@dev",
+        "popphp/pop-paginator": "2.*@dev",
+        "popphp/pop-payment": "2.*@dev",
+        "popphp/pop-pdf": "2.*@dev",
+        "popphp/popphp": "2.*@dev",
+        "popphp/pop-shipping": "2.*@dev",
+        "popphp/pop-validator": "2.*@dev",
+        "popphp/pop-version": "2.*@dev",
+        "popphp/pop-view": "2.*@dev",
+        "popphp/pop-web": "2.*@dev"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.0.x-dev"
+        }
+    },
+    "minimum-stability": "dev"
+}
