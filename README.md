@@ -3,7 +3,7 @@ The Pop PHP Framework (Full)
 
 This repository contains the composer.json file to install the full Pop PHP Framework.
 
-To install it directly wihtin the repository, run:
+To install it directly within this repository, run:
 
 ```
 composer install
