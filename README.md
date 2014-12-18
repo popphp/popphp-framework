@@ -9,4 +9,4 @@ Simply run:
 composer install
 ```
 
-and the Pop PHP core and the additional 31 components will be installed.
+and the core Pop PHP components and the additional 31 components will be installed.
