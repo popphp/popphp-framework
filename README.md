@@ -21,4 +21,4 @@ To create a new project and install it to that project, run:
 composer create-project popphp/popphp-framework your-project-folder
 ```
 
-The core Pop PHP components and the additional 31 components will be installed.
+The core Pop PHP components and the additional 32 components will be installed.

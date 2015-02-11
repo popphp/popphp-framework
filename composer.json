@@ -38,6 +38,7 @@
         "popphp/pop-http": "2.*@dev",
         "popphp/pop-i18n": "2.*@dev",
         "popphp/pop-image": "2.*@dev",
+        "popphp/pop-loader": "2.*@dev",
         "popphp/pop-log": "2.*@dev",
         "popphp/pop-mail": "2.*@dev",
         "popphp/pop-nav": "2.*@dev",
