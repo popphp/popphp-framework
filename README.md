@@ -1,7 +1,7 @@
 Pop PHP Framework
 =================
 
-<img style="float: right; width: 180px; height: 180px; margin: 30px 0 30px 30px;" src="http://www.popphp.org/img/pop-php-logo.png" />
+<img style="float: right; width: 180px; height: 180px;" src="http://www.popphp.org/img/pop-php-logo.png" />
 
 RELEASE INFORMATION
 -------------------
