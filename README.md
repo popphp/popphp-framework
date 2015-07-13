@@ -1,12 +1,12 @@
 Pop PHP Framework
 =================
 
-<img width="180" height="180" src="http://www.popphp.org/img/pop-php-logo.png" />
+![Logo](http://www.popphp.org/img/pop-php-logo.png =180x180)
 
 RELEASE INFORMATION
 -------------------
 Pop PHP Framework 2.0.0  
-Release July 11, 2015
+Released July 11, 2015
 
 OVERVIEW
 --------
@@ -31,12 +31,6 @@ INSTALL
 -------
 There are multiple ways you can get Pop PHP Framework into your project.
 
-You can clone this repository and install it directly:
-
-```console
-$ composer install
-```
-
 You can add it to an existing project:
 
 ```console
@@ -49,10 +43,16 @@ You can add it your project's `composer.json` file:
         "popphp/popphp-framework": "2.0.*"
     }
 
-Or, you can create a new project and install it into that project:
+You can create a new project and install it into that project:
 
 ```console
 $ composer create-project popphp/popphp-framework project-folder
+```
+
+Or, you can clone this repository and install it directly:
+
+```console
+$ composer install
 ```
 
 
