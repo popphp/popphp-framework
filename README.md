@@ -1,7 +1,7 @@
 Pop PHP Framework
 =================
 
-<img align="right" width="180" height="180" src="http://www.popphp.org/img/pop-php-logo.png" />
+<img width="180" height="180" src="http://www.popphp.org/img/pop-php-logo.png" />
 
 RELEASE INFORMATION
 -------------------
@@ -13,7 +13,7 @@ OVERVIEW
 This repository contains the composer.json file to install the full Pop PHP Framework.
 The core Pop PHP components and the additional 32 components will be installed:
 
-|                                                      | Pop PHP Framework Core Components                  |                                                          |
+|                                                      | Components                                         |                                                          |
 |------------------------------------------------------|----------------------------------------------------|----------------------------------------------------------|
 | [pop-acl](https://github.com/popphp/pop-acl)         | [pop-feed](https://github.com/popphp/pop-feed)     | [pop-mail](https://github.com/popphp/pop-mail)           |
 | [pop-archive](https://github.com/popphp/pop-archive) | [pop-file](https://github.com/popphp/pop-file)     | [pop-nav](https://github.com/popphp/pop-nav)             |
