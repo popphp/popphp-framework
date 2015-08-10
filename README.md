@@ -55,4 +55,6 @@ Or, you can clone this repository and install it directly:
 $ composer install
 ```
 
+## DISCUSSION
 
+There is an IRC channel for Pop PHP over at irc://freenode/popphp.
