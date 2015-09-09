@@ -3,6 +3,8 @@ Pop PHP Framework
 
 <img src="http://www.popphp.org/img/pop-php-logo.png" width="180" height="180" />
 
+[![Join the chat at https://gitter.im/popphp/2](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/popphp/2?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 RELEASE INFORMATION
 -------------------
 Pop PHP Framework 2.0.0  
