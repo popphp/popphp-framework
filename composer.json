@@ -39,7 +39,7 @@
         "popphp/pop-i18n": "2.0.*",
         "popphp/pop-image": "2.0.*",
         "popphp/pop-loader": "2.0.*",
-        "popphp/pop-log": "2.0.*",
+        "popphp/pop-log": "2.1.*",
         "popphp/pop-mail": "2.0.*",
         "popphp/pop-nav": "2.0.*",
         "popphp/pop-paginator": "2.0.*",
