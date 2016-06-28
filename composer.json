@@ -27,7 +27,7 @@
         "popphp/pop-console": "2.0.*",
         "popphp/pop-crypt": "2.0.*",
         "popphp/pop-data": "2.0.*",
-        "popphp/pop-db": "2.0.*",
+        "popphp/pop-db": "2.1.*",
         "popphp/pop-dom": "2.0.*",
         "popphp/pop-feed": "2.0.*",
         "popphp/pop-file": "2.0.*",
