@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 2.0.0  
-Released July 11, 2015
+Pop PHP Framework 2.0.2  
+Released June 27, 2016
 
 OVERVIEW
 --------
