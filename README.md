@@ -29,6 +29,26 @@ The core Pop PHP components and the additional 32 components will be installed:
 | [pop-db](https://github.com/popphp/pop-db)           | [pop-loader](https://github.com/popphp/pop-loader) | [pop-view](https://github.com/popphp/pop-view)           |
 | [pop-dom](https://github.com/popphp/pop-dom)         | [pop-log](https://github.com/popphp/pop-log)       | [pop-web](https://github.com/popphp/pop-web)             |
 
+PHP 7
+-----
+
+The Pop PHP Framework has been fully tested for and works with PHP 7. However, as of July 1, 2016, due to
+instability or deprecation of a few PHP extensions, the following components will have some sub-components
+that are either not available or will not function properly in a PHP 7 environment:
+
+#### pop-archive
+
+- Due to the unavailability of the **rar** extension, the Rar class adapter will not function properly in PHP 7.
+
+#### pop-cache
+
+- Due to the current instability of the **apc/apcu/apc_bc** extenstions, the APC class adapter will not function properly in PHP 7.
+- Due to the unavailability of the **memcache** extension, the Memcached class adapter will not function properly in PHP 7.
+
+#### pop-geo
+
+- Due to the unavailability of the **geoip** extension, the pop-geo component will not fully function in PHP 7.
+
 INSTALL
 -------
 There are multiple ways you can get Pop PHP Framework into your project.
