@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 2.0.2  
-Released June 27, 2016
+Pop PHP Framework 2.1.0  
+Released July 1, 2016
 
 OVERVIEW
 --------
@@ -42,7 +42,7 @@ $ composer require popphp/popphp-framework
 You can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "2.0.*"
+        "popphp/popphp-framework": "2.1.*"
     }
 
 You can create a new project and install it into that project:
