@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 2.1.0  
-Released July 1, 2016
+Pop PHP Framework 2.1.1  
+Released July 8, 2016
 
 OVERVIEW
 --------
@@ -42,7 +42,7 @@ that are either not available or will not function properly in a PHP 7 environme
 
 #### pop-cache
 
-- Due to the current instability of the **apc/apcu/apc_bc** extenstions, the APC class adapter will not function properly in PHP 7.
+- Due to the current instability of the **apc/apcu/apc_bc** extensions, the APC class adapter may not function properly in PHP 7.
 - Due to the unavailability of the **memcache** extension, the Memcached class adapter will not function properly in PHP 7.
 
 #### pop-geo
@@ -79,4 +79,4 @@ $ composer install
 
 ## DISCUSSION
 
-There is an IRC channel for Pop PHP over at irc://freenode/popphp.
+There is a Gitter chat room for Pop PHP over at https://gitter.im/popphp/2
