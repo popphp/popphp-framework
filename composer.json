@@ -21,20 +21,19 @@
         "popphp/pop-acl": "2.1.*",
         "popphp/pop-archive": "2.1.*",
         "popphp/pop-auth": "2.1.*",
-        "popphp/pop-cache": "2.1.*",
+        "popphp/pop-cache": "3.0.*",
         "popphp/pop-code": "2.1.*",
         "popphp/pop-config": "2.1.*",
         "popphp/pop-console": "2.1.*",
+        "popphp/pop-cookie": "3.0.*",
         "popphp/pop-crypt": "2.1.*",
         "popphp/pop-data": "2.1.*",
-        "popphp/pop-db": "2.1.*",
+        "popphp/pop-db": "3.0.*",
         "popphp/pop-dom": "2.1.*",
         "popphp/pop-feed": "2.1.*",
         "popphp/pop-file": "2.1.*",
-        "popphp/pop-filter": "2.1.*",
         "popphp/pop-form": "2.1.*",
         "popphp/pop-ftp": "2.1.*",
-        "popphp/pop-geo": "2.1.*",
         "popphp/pop-http": "2.1.*",
         "popphp/pop-i18n": "2.1.*",
         "popphp/pop-image": "2.1.*",
@@ -46,15 +45,15 @@
         "popphp/pop-payment": "2.1.*",
         "popphp/pop-pdf": "2.1.*",
         "popphp/popphp": "2.1.*",
+        "popphp/pop-session": "3.0.*",
         "popphp/pop-shipping": "2.1.*",
         "popphp/pop-validator": "2.1.*",
-        "popphp/pop-version": "2.1.*",
-        "popphp/pop-view": "2.1.*",
-        "popphp/pop-web": "2.1.*"
+        "popphp/pop-version": "3.0.*",
+        "popphp/pop-view": "2.1.*"
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "2.1.x-dev"
+            "dev-master": "3.0.x-dev"
         }
     }
 }
