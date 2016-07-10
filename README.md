@@ -55,7 +55,7 @@ that are either not available or will not function properly in a PHP 7 environme
 #### pop-cache
 
 - Due to the unavailability or instability of the **apc/apcu/apc_bc** extensions, the APC class adapter may not function properly in PHP 7.
-- Due to the unavailability or instability of the **memcache** extension, the Memcached class adapter will not function properly in PHP 7.
+- Due to the unavailability or instability of the **memcache/memcached** extensions, the Memcache & Memcached class adapter may not function properly in PHP 7
 
 INSTALL
 -------
