@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 3.5.0
-Released February 22, 2017
+Pop PHP Framework 3.5.1  
+Released May 18, 2017
 
 OVERVIEW
 --------
