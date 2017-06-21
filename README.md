@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 3.5.1  
-Released May 18, 2017
+Pop PHP Framework 3.5.2
+Released June 20, 2017
 
 OVERVIEW
 --------
@@ -82,7 +82,7 @@ $ composer require popphp/popphp-framework
 You can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "3.5.*"
+        "popphp/popphp-framework": ">=3.5.0"
     }
 
 You can create a new project and install it into that project:
