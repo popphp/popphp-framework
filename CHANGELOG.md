@@ -1,6 +1,22 @@
 CHANGELOG
 =========
 
+## 3.5.2
+
+* Updated pop-config
+* Updated pop-image
+* Updated pop-pdf
+* Updated pop-session
+* Updated popphp
+* Updated popcorn
+
+## 3.5.1
+
+* Updated pop-auth
+* Updated popcorn
+* Updated pop-http
+* Updated pop-db
+
 ## 3.5.0
 
 ### New or Changed Features
