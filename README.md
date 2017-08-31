@@ -7,31 +7,32 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 3.5.2
-Released June 20, 2017
+Pop PHP Framework 3.6.0
+Released August 31, 2017
 
 OVERVIEW
 --------
 This repository contains the composer.json file to install the full Pop PHP Framework.
-The core Pop PHP components and the additional 25 components will be installed:
+The core Pop PHP components and the additional 26 components will be installed:
 
 |                                                      | Components                                               |                                                          |
 |------------------------------------------------------|----------------------------------------------------------|----------------------------------------------------------|
-| [pop-acl](https://github.com/popphp/pop-acl)         | [pop-dom](https://github.com/popphp/pop-dom)             | [pop-pdf](https://github.com/popphp/pop-pdf)             |
-| [pop-auth](https://github.com/popphp/pop-auth)       | [pop-form](https://github.com/popphp/pop-form)           | [popcorn](https://github.com/popphp/popcorn)             |
-| [pop-cache](https://github.com/popphp/pop-cache)     | [pop-ftp](https://github.com/popphp/pop-ftp)             | [popphp](https://github.com/popphp/popphp)               |
-| [pop-code](https://github.com/popphp/pop-code)       | [pop-http](https://github.com/popphp/pop-http)           | [pop-session](https://github.com/popphp/pop-session)     |
-| [pop-config](https://github.com/popphp/pop-config)   | [pop-image](https://github.com/popphp/pop-image)         | [pop-validator](https://github.com/popphp/pop-validator) |
-| [pop-console](https://github.com/popphp/pop-console) | [pop-loader](https://github.com/popphp/pop-loader)       | [pop-view](https://github.com/popphp/pop-view)           |
-| [pop-cookie](https://github.com/popphp/pop-cookie)   | [pop-log](https://github.com/popphp/pop-log)             |                                                          |
-| [pop-csv](https://github.com/popphp/pop-csv)         | [pop-mail](https://github.com/popphp/pop-mail)           |                                                          |
-| [pop-db](https://github.com/popphp/pop-db)           | [pop-nav](https://github.com/popphp/pop-nav)             |                                                          |
-| [pop-dir](https://github.com/popphp/pop-dir)         | [pop-paginator](https://github.com/popphp/pop-paginator) |                                                          |
+| [pop-acl](https://github.com/popphp/pop-acl)         | [pop-dir](https://github.com/popphp/pop-dir)             | [pop-paginator](https://github.com/popphp/pop-paginator) |
+| [pop-auth](https://github.com/popphp/pop-auth)       | [pop-dom](https://github.com/popphp/pop-dom)             | [pop-pdf](https://github.com/popphp/pop-pdf)             |
+| [pop-cache](https://github.com/popphp/pop-cache)     | [pop-form](https://github.com/popphp/pop-form)           | [popcorn](https://github.com/popphp/popcorn)             |
+| [pop-code](https://github.com/popphp/pop-code)       | [pop-ftp](https://github.com/popphp/pop-ftp)             | [popphp](https://github.com/popphp/popphp)               |
+| [pop-config](https://github.com/popphp/pop-config)   | [pop-http](https://github.com/popphp/pop-http)           | [pop-session](https://github.com/popphp/pop-session)     |
+| [pop-console](https://github.com/popphp/pop-console) | [pop-image](https://github.com/popphp/pop-image)         | [pop-validator](https://github.com/popphp/pop-validator) |
+| [pop-cookie](https://github.com/popphp/pop-cookie)   | [pop-loader](https://github.com/popphp/pop-loader)       | [pop-view](https://github.com/popphp/pop-view)           |
+| [pop-csv](https://github.com/popphp/pop-csv)         | [pop-log](https://github.com/popphp/pop-log)             |                                                          |
+| [pop-db](https://github.com/popphp/pop-db)           | [pop-mail](https://github.com/popphp/pop-mail)           |                                                          |
+| [pop-debug](https://github.com/popphp/pop-debug)     | [pop-nav](https://github.com/popphp/pop-nav)             |                                                          |
 
 
 NEW FEATURES
 ------------
 
+* The new Debug component has been added to the framework.
 * The Database component has been significantly refactored for v4.
 * The Cache component now supports Redis and Session adapters.
 * The Data component has been deprecated and the CSV functionality has been moved into its own component, `pop-csv`.
@@ -82,7 +83,7 @@ $ composer require popphp/popphp-framework
 You can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": ">=3.5.0"
+        "popphp/popphp-framework": ">=3.6.0"
     }
 
 You can create a new project and install it into that project:

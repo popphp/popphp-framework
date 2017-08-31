@@ -26,7 +26,8 @@
         "popphp/pop-console": ">=3.0.0",
         "popphp/pop-cookie": ">=3.1.0",
         "popphp/pop-csv": ">=3.0.0",
-        "popphp/pop-db": ">=4.0.0",
+        "popphp/pop-db": ">=4.1.0",
+        "popphp/pop-debug": ">=1.0.0",
         "popphp/pop-dir": ">=3.0.0",
         "popphp/pop-dom": ">=3.0.0",
         "popphp/pop-form": ">=3.0.0",
@@ -47,7 +48,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "3.5.x-dev"
+            "dev-master": "3.6.x-dev"
         }
     }
 }

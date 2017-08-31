@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## 3.6.0
+
+* Updated pop-db
+* Added pop-debug
+
 ## 3.5.2
 
 * Updated pop-config
