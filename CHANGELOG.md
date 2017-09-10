@@ -4,6 +4,7 @@ CHANGELOG
 ## 3.6.0
 
 * Updated pop-db
+* Updated pop-cache
 * Added pop-debug
 
 ## 3.5.2

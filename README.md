@@ -7,7 +7,7 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 3.6.0
+Pop PHP Framework 3.6.0  
 Released August 31, 2017
 
 OVERVIEW
@@ -57,18 +57,6 @@ DEPRECATED FEATURES
 * The `pop-version` component has been removed.
 * The `pop-web` component has been removed (see above.)
 
-
-PHP 7
------
-
-The Pop PHP Framework has been fully tested for and works with PHP 7. However, as of January 1, 2017, due to
-instability or deprecation of a few PHP extensions, the following components will have some sub-components
-that are either not available or will not function properly in a PHP 7 environment:
-
-#### pop-cache
-
-- Due to the unavailability or instability of the **apc/apcu/apc_bc** extensions, the APC class adapter may not function properly in PHP 7.
-- Due to the unavailability or instability of the **memcache/memcached** extensions, the Memcache & Memcached class adapter may not function properly in PHP 7
 
 INSTALL
 -------
