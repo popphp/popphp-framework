@@ -1,7 +1,7 @@
 Pop PHP Framework
 =================
 
-<img src="http://www.popphp.org/img/pop-php-logo.png" width="180" height="180" />
+<img src="http://www.popphp.org/assets/img/pop-php-logo.png" width="180" height="180" />
 
 [![Join the chat at https://gitter.im/pop-php-framework/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pop-php-framework/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
