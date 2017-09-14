@@ -33,6 +33,7 @@
         "popphp/pop-form": ">=3.0.0",
         "popphp/pop-ftp": ">=3.0.0",
         "popphp/pop-http": ">=3.0.0",
+        "popphp/pop-i18n": ">=3.0.0",
         "popphp/pop-image": ">=3.1.0",
         "popphp/pop-loader": ">=3.0.0",
         "popphp/pop-log": ">=3.0.0",

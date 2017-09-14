@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## 3.6.1
+
+* Reinstated pop-i18n
+
 ## 3.6.0
 
 * Updated pop-db
