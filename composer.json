@@ -18,7 +18,7 @@
     ],
     "require": {
         "php": ">=5.6.0",
-        "popphp/pop-acl": ">=3.0.0",
+        "popphp/pop-acl": ">=3.1.0",
         "popphp/pop-auth": ">=3.0.0",
         "popphp/pop-cache": ">=3.1.0",
         "popphp/pop-code": ">=3.0.0",
