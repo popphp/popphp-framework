@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## 3.6.2
+
+* Added pop-css
+
 ## 3.6.1
 
 * Reinstated pop-i18n
