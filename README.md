@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 3.6.2  
-Released November 1, 2017
+Pop PHP Framework 3.6.3  
+Released November 9, 2017
 
 OVERVIEW
 --------
@@ -33,6 +33,7 @@ NEW FEATURES
 ------------
 
 * The new CSS component has been added to the framework.
+* The DOM component has been updated to include parsing capabilities.
 * The new Debug component has been added to the framework.
 * The Database component has been significantly refactored for v4.
 * The Cache component now supports Redis and Session adapters.

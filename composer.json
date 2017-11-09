@@ -30,7 +30,7 @@
         "popphp/pop-db": ">=4.1.0",
         "popphp/pop-debug": ">=1.0.0",
         "popphp/pop-dir": ">=3.0.0",
-        "popphp/pop-dom": ">=3.0.0",
+        "popphp/pop-dom": ">=3.2.0",
         "popphp/pop-form": ">=3.0.0",
         "popphp/pop-ftp": ">=3.0.0",
         "popphp/pop-http": ">=3.0.0",

@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## 3.6.3
+
+* Updated pop-dom
+
 ## 3.6.2
 
 * Added pop-css
