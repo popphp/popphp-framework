@@ -72,7 +72,7 @@ $ composer require popphp/popphp-framework
 You can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": ">=3.6.2"
+        "popphp/popphp-framework": "^3.6.3"
     }
 
 You can create a new project and install it into that project:
