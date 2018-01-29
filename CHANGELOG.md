@@ -3,7 +3,7 @@ CHANGELOG
 
 ## 3.6.4
 
-* Updated license
+* Updated license & copyright
 * Updated composer.json
 
 ## 3.6.3
