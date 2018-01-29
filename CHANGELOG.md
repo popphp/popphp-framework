@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## 3.6.4
+
+* Updated license
+* Updated composer.json
+
 ## 3.6.3
 
 * Updated pop-dom
