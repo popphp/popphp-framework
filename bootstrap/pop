@@ -1,0 +1,18 @@
+#!/usr/bin/php
+<?php
+/**
+ * Pop PHP Bootstrap Console Application
+ */
+
+$autoloader = include __DIR__ . '/../vendor/autoload.php';
+$autoloader->addPsr4('Pop\Bootstrap\\', __DIR__ . '/src');
+
+try {
+    $app = new Pop\Application($autoloader, include __DIR__ . '/config/app.console.php');
+    $app->register(new Pop\Bootstrap\Module());
+    $app->run();
+} catch (\Exception $exception) {
+    $app = new Pop\Bootstrap\Module();
+    $app->cliError($exception);
+}
+
