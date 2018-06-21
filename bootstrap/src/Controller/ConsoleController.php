@@ -89,12 +89,18 @@ class ConsoleController extends \Pop\Controller\AbstractController
 
         $location = realpath(__DIR__ . '/../../../');
 
-        print_r($options);
         $this->console->append("Installing '" . $namespace . "' in '" . $location . "'...");
         $this->console->append();
 
         $bootstrap = new Model\Bootstrap();
-        $bootstrap->install($location, $namespace, $options);
+
+        if ($options['full']) {
+            $bootstrap->installFull($location, $namespace);
+        } else if ($options['cli']) {
+            $bootstrap->installCli($location, $namespace);
+        } else {
+            $bootstrap->install($location, $namespace);
+        }
 
         $this->console->append('Done!');
         $this->console->send();

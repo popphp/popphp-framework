@@ -5,7 +5,7 @@
 
 return [
     'routes' => [
-        'install [--simple] [--api] [<namespace>]' => [
+        'install [--cli] [<namespace>]' => [
             'controller' => 'Pop\Bootstrap\Controller\ConsoleController',
             'action'     => 'install'
         ],
