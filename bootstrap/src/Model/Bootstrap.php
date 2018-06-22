@@ -147,7 +147,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $index = new Code\Generator($location . '/public/index.php', Code\Generator::CREATE_EMPTY);
 
         $index->appendToBody("\$autoloader = include __DIR__ . '/../vendor/autoload.php';");
-        $index->appendToBody("\$autoloader->addPsr4('" . $namespace . "\\', __DIR__ . '/../app/src');");
+        $index->appendToBody("\$autoloader->addPsr4('" . $namespace . "\\\\', __DIR__ . '/../app/src');");
         $index->appendToBody("");
         $index->appendToBody("try {");
         $index->appendToBody("    \$app = new Pop\\Application(\$autoloader, include __DIR__ . '/../app/config/app.http.php');");
@@ -173,9 +173,9 @@ class Bootstrap extends \Pop\Model\AbstractModel
     protected function createHttpController($location, $namespace)
     {
         if (strpos($namespace, '\\Http') !== false) {
-            $ctrl = new Code\Generator($location . '/app/src/Http/Controller', Code\Generator::CREATE_CLASS);
+            $ctrl = new Code\Generator($location . '/app/src/Http/Controller/IndexController.php', Code\Generator::CREATE_CLASS);
         } else {
-            $ctrl = new Code\Generator($location . '/app/src/Controller', Code\Generator::CREATE_CLASS);
+            $ctrl = new Code\Generator($location . '/app/src/Controller/IndexController.php', Code\Generator::CREATE_CLASS);
         }
 
         $ctrl->code()->setName('IndexController')
@@ -184,7 +184,10 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $namespaceObject = new Code\Generator\NamespaceGenerator($namespace . '\Controller');
         $namespaceObject->setUse('Pop\Application')
             ->setUse('Pop\Http\Request')
-            ->setUse('Pop\Http\Response');
+            ->setUse('Pop\Http\Response')
+            ->setUse('Pop\View\View');
+
+        $ctrl->code()->setNamespace($namespaceObject);
 
         $ctrl->code()->addProperty(new Code\Generator\PropertyGenerator('application', 'Application'));
         $ctrl->code()->addProperty(new Code\Generator\PropertyGenerator('request', 'Request'));
@@ -214,7 +217,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
         } else {
             $indexMethod->appendToBody("\$view        = new View(__DIR__ . '/../../view/index.phtml');");
         }
-        $indexMethod->appendToBody("\$view->title = '" . $namespace . "';");
+        $indexMethod->appendToBody("\$view->title = '" . str_replace('\\Http', '', $namespace) . "';");
         $indexMethod->appendToBody("\$this->response->setBody(\$view->render());");
         $indexMethod->appendToBody("\$this->response->send();");
 
@@ -234,6 +237,8 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $ctrl->code()->addMethod($responseMethod);
         $ctrl->code()->addMethod($indexMethod);
         $ctrl->code()->addMethod($errorMethod);
+
+        $ctrl->save();
     }
 
     /**
@@ -248,7 +253,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $app = new Code\Generator($location . '/script/app', Code\Generator::CREATE_EMPTY);
         $app->setEnv('#!/usr/bin/php');
         $app->appendToBody("\$autoloader = include __DIR__ . '/../vendor/autoload.php';");
-        $index->appendToBody("\$autoloader->addPsr4('" . $namespace . "\\', __DIR__ . '/../app/src');");
+        $app->appendToBody("\$autoloader->addPsr4('" . $namespace . "\\\\', __DIR__ . '/../app/src');");
         $app->appendToBody("");
         $app->appendToBody("try {");
         $app->appendToBody("    \$app = new Pop\\Application(\$autoloader, include __DIR__ . '/../app/config/app.console.php');");
@@ -260,6 +265,8 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $app->appendToBody("}");
 
         $app->save();
+
+        chmod($location . '/script/app', 0755);
     }
 
     /**
@@ -271,13 +278,15 @@ class Bootstrap extends \Pop\Model\AbstractModel
      */
     protected function createConsoleController($location, $namespace)
     {
-        $ctrl = new Code\Generator($location . '/app/src/Console/Controller', Code\Generator::CREATE_CLASS);
+        $ctrl = new Code\Generator($location . '/app/src/Console/Controller/ConsoleController.php', Code\Generator::CREATE_CLASS);
         $ctrl->code()->setName('ConsoleController')
             ->setParent('\Pop\Controller\AbstractController');
 
         $namespaceObject = new Code\Generator\NamespaceGenerator($namespace . '\Controller');
         $namespaceObject->setUse('Pop\Application')
             ->setUse('Pop\Console\Console');
+
+        $ctrl->code()->setNamespace($namespaceObject);
 
         $ctrl->code()->addProperty(new Code\Generator\PropertyGenerator('application', 'Application'));
         $ctrl->code()->addProperty(new Code\Generator\PropertyGenerator('console', 'Console'));
@@ -296,9 +305,13 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $consoleMethod->appendToBody('return $this->console;');
 
         $helpMethod = new Code\Generator\MethodGenerator('help');
+        $helpMethod->appendToBody("\$this->console->append();");
+        $helpMethod->appendToBody("");
         $helpMethod->appendToBody("\$command = \$this->console->colorize(\"./app\", Console::BOLD_CYAN) . ' ' .");
         $helpMethod->appendToBody("    \$this->console->colorize(\"help\", Console::BOLD_YELLOW);");
         $helpMethod->appendToBody("\$this->console->append(\$command . \"\\t\\t Show the help screen\");");
+        $helpMethod->appendToBody("");
+        $helpMethod->appendToBody("\$this->console->append();");
         $helpMethod->appendToBody("");
         $helpMethod->appendToBody("\$this->console->send();");
 
@@ -310,6 +323,8 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $ctrl->code()->addMethod($consoleMethod);
         $ctrl->code()->addMethod($helpMethod);
         $ctrl->code()->addMethod($errorMethod);
+
+        $ctrl->save();
     }
 
     /**
