@@ -45,6 +45,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
         mkdir($location . '/public');
 
         $this->createHttpConfig($location, $namespace);
+        $this->createHttpFrontController($location, $namespace);
         $this->createHttpController($location, $namespace);
         $this->createModule($location, $namespace);
         $this->createViews($location);
@@ -72,9 +73,11 @@ class Bootstrap extends \Pop\Model\AbstractModel
 
         $this->createHttpConfig($location, $namespace . '\\Http');
         $this->createConsoleConfig($location, $namespace);
-        $this->createHttpController($location, $namespace);
+        $this->createHttpFrontController($location, $namespace);
+        $this->createHttpController($location, $namespace . '\\Http');
         $this->createModule($location, $namespace, true);
-        $this->createConsoleController($location, $namespace);
+        $this->createConsoleFrontController($location, $namespace);
+        $this->createConsoleController($location, $namespace . '\\Console');
         $this->createViews($location);
     }
 
@@ -133,13 +136,13 @@ class Bootstrap extends \Pop\Model\AbstractModel
     }
 
     /**
-     * Create HTTP controller method
+     * Create HTTP front controller method
      *
      * @param  string $location
      * @param  string $namespace
      * @return void
      */
-    protected function createHttpController($location, $namespace)
+    protected function createHttpFrontController($location, $namespace)
     {
         $index = new Code\Generator($location . '/public/index.php', Code\Generator::CREATE_EMPTY);
 
@@ -160,13 +163,86 @@ class Bootstrap extends \Pop\Model\AbstractModel
     }
 
     /**
-     * Create console controller method
+     * Create HTTP controller method
      *
      * @param  string $location
      * @param  string $namespace
      * @return void
      */
-    protected function createConsoleController($location, $namespace)
+    protected function createHttpController($location, $namespace)
+    {
+        if (strpos($namespace, '\\Http') !== false) {
+            $ctrl = new Code\Generator($location . '/app/src/Http/Controller', Code\Generator::CREATE_CLASS);
+        } else {
+            $ctrl = new Code\Generator($location . '/app/src/Controller', Code\Generator::CREATE_CLASS);
+        }
+
+        $ctrl->code()->setName('IndexController')
+            ->setParent('\Pop\Controller\AbstractController');
+
+        $namespaceObject = new Code\Generator\NamespaceGenerator($namespace . '\Controller');
+        $namespaceObject->setUse('Pop\Application')
+            ->setUse('Pop\Http\Request')
+            ->setUse('Pop\Http\Response');
+
+        $ctrl->code()->addProperty(new Code\Generator\PropertyGenerator('application', 'Application'));
+        $ctrl->code()->addProperty(new Code\Generator\PropertyGenerator('request', 'Request'));
+        $ctrl->code()->addProperty(new Code\Generator\PropertyGenerator('response', 'Response'));
+
+        $constructMethod = new Code\Generator\MethodGenerator('__construct');
+        $constructMethod->addArgument('application', null, 'Application')
+            ->addArgument('request', null, 'Request')
+            ->addArgument('response', null, 'Response');
+
+        $constructMethod->appendToBody('$this->application = $application;');
+        $constructMethod->appendToBody('$this->request     = $request;');
+        $constructMethod->appendToBody('$this->response    = $response;');
+
+        $applicationMethod = new Code\Generator\MethodGenerator('application');
+        $applicationMethod->appendToBody('return $this->application;');
+
+        $requestMethod = new Code\Generator\MethodGenerator('request');
+        $requestMethod->appendToBody('return $this->request;');
+
+        $responseMethod = new Code\Generator\MethodGenerator('response');
+        $responseMethod->appendToBody('return $this->response;');
+
+        $indexMethod = new Code\Generator\MethodGenerator('index');
+        if (strpos($namespace, '\\Http') !== false) {
+            $indexMethod->appendToBody("\$view        = new View(__DIR__ . '/../../../view/index.phtml');");
+        } else {
+            $indexMethod->appendToBody("\$view        = new View(__DIR__ . '/../../view/index.phtml');");
+        }
+        $indexMethod->appendToBody("\$view->title = '" . $namespace . "';");
+        $indexMethod->appendToBody("\$this->response->setBody(\$view->render());");
+        $indexMethod->appendToBody("\$this->response->send();");
+
+        $errorMethod = new Code\Generator\MethodGenerator('error');
+        if (strpos($namespace, '\\Http') !== false) {
+            $errorMethod->appendToBody("\$view        = new View(__DIR__ . '/../../../view/error.phtml');");
+        } else {
+            $errorMethod->appendToBody("\$view        = new View(__DIR__ . '/../../view/error.phtml');");
+        }
+        $errorMethod->appendToBody("\$view->title = 'Error';");
+        $errorMethod->appendToBody("\$this->response->setBody(\$view->render());");
+        $errorMethod->appendToBody("\$this->response->send(404);");
+
+        $ctrl->code()->addMethod($constructMethod);
+        $ctrl->code()->addMethod($applicationMethod);
+        $ctrl->code()->addMethod($requestMethod);
+        $ctrl->code()->addMethod($responseMethod);
+        $ctrl->code()->addMethod($indexMethod);
+        $ctrl->code()->addMethod($errorMethod);
+    }
+
+    /**
+     * Create console front controller method
+     *
+     * @param  string $location
+     * @param  string $namespace
+     * @return void
+     */
+    protected function createConsoleFrontController($location, $namespace)
     {
         $app = new Code\Generator($location . '/script/app', Code\Generator::CREATE_EMPTY);
         $app->setEnv('#!/usr/bin/php');
@@ -182,6 +258,56 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $app->appendToBody("}");
 
         $app->save();
+    }
+
+    /**
+     * Create console controller method
+     *
+     * @param  string $location
+     * @param  string $namespace
+     * @return void
+     */
+    protected function createConsoleController($location, $namespace)
+    {
+        $ctrl = new Code\Generator($location . '/app/src/Console/Controller', Code\Generator::CREATE_CLASS);
+        $ctrl->code()->setName('ConsoleController')
+            ->setParent('\Pop\Controller\AbstractController');
+
+        $namespaceObject = new Code\Generator\NamespaceGenerator($namespace . '\Controller');
+        $namespaceObject->setUse('Pop\Application')
+            ->setUse('Pop\Console\Console');
+
+        $ctrl->code()->addProperty(new Code\Generator\PropertyGenerator('application', 'Application'));
+        $ctrl->code()->addProperty(new Code\Generator\PropertyGenerator('console', 'Console'));
+
+        $constructMethod = new Code\Generator\MethodGenerator('__construct');
+        $constructMethod->addArgument('application', null, 'Application')
+            ->addArgument('console', null, 'Console');
+
+        $constructMethod->appendToBody('$this->application = $application;');
+        $constructMethod->appendToBody('$this->console     = $console;');
+
+        $applicationMethod = new Code\Generator\MethodGenerator('application');
+        $applicationMethod->appendToBody('return $this->application;');
+
+        $consoleMethod = new Code\Generator\MethodGenerator('console');
+        $consoleMethod->appendToBody('return $this->console;');
+
+        $helpMethod = new Code\Generator\MethodGenerator('help');
+        $helpMethod->appendToBody("\$command = \$this->console->colorize(\"./app\", Console::BOLD_CYAN) . ' ' .");
+        $helpMethod->appendToBody("    \$this->console->colorize(\"help\", Console::BOLD_YELLOW);");
+        $helpMethod->appendToBody("\$this->console->append(\$command . \"\\t\\t Show the help screen\");");
+        $helpMethod->appendToBody("");
+        $helpMethod->appendToBody("\$this->console->send();");
+
+        $errorMethod = new Code\Generator\MethodGenerator('error');
+        $errorMethod->appendToBody("throw new \\" . str_replace('\\Console', '', $namespace) . "\\Exception('Invalid Command');");
+
+        $ctrl->code()->addMethod($constructMethod);
+        $ctrl->code()->addMethod($applicationMethod);
+        $ctrl->code()->addMethod($consoleMethod);
+        $ctrl->code()->addMethod($helpMethod);
+        $ctrl->code()->addMethod($errorMethod);
     }
 
     /**
