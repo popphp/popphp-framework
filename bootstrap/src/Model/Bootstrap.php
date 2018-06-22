@@ -147,6 +147,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $index = new Code\Generator($location . '/public/index.php', Code\Generator::CREATE_EMPTY);
 
         $index->appendToBody("\$autoloader = include __DIR__ . '/../vendor/autoload.php';");
+        $index->appendToBody("\$autoloader->addPsr4('" . $namespace . "\\', __DIR__ . '/../app/src');");
         $index->appendToBody("");
         $index->appendToBody("try {");
         $index->appendToBody("    \$app = new Pop\\Application(\$autoloader, include __DIR__ . '/../app/config/app.http.php');");
@@ -154,7 +155,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $index->appendToBody("    \$app->run();");
         $index->appendToBody("} catch (\\Exception \$exception) {");
         $index->appendToBody("    \$app = new " .  $namespace . "\\Module();");
-        $index->appendToBody("    \$app->httpError(new Pop\\Application(include __DIR__ . '/../app/config/app.http.php'), \$exception);");
+        $index->appendToBody("    \$app->httpError(\$exception);");
         $index->appendToBody("}");
 
         $index->save();
@@ -247,6 +248,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $app = new Code\Generator($location . '/script/app', Code\Generator::CREATE_EMPTY);
         $app->setEnv('#!/usr/bin/php');
         $app->appendToBody("\$autoloader = include __DIR__ . '/../vendor/autoload.php';");
+        $index->appendToBody("\$autoloader->addPsr4('" . $namespace . "\\', __DIR__ . '/../app/src');");
         $app->appendToBody("");
         $app->appendToBody("try {");
         $app->appendToBody("    \$app = new Pop\\Application(\$autoloader, include __DIR__ . '/../app/config/app.console.php');");
