@@ -46,6 +46,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
 
         $this->createHttpConfig($location, $namespace);
         $this->createHttpController($location, $namespace);
+        $this->createModule($location, $namespace);
         $this->createViews($location);
     }
 
@@ -72,6 +73,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $this->createHttpConfig($location, $namespace . '\\Http');
         $this->createConsoleConfig($location, $namespace);
         $this->createHttpController($location, $namespace);
+        $this->createModule($location, $namespace, true);
         $this->createConsoleController($location, $namespace);
         $this->createViews($location);
     }
@@ -154,17 +156,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
 
         $index->save();
 
-        $htaccess  = "<IfModule mod_rewrite.c>" . PHP_EOL;
-        $htaccess .= "    RewriteEngine On" . PHP_EOL . PHP_EOL;
-        $htaccess .= "    RewriteCond %{REQUEST_FILENAME} -s [OR]" . PHP_EOL;
-        $htaccess .= "    RewriteCond %{REQUEST_FILENAME} -l [OR]" . PHP_EOL;
-        $htaccess .= "    RewriteCond %{REQUEST_FILENAME} -f [OR]" . PHP_EOL;
-        $htaccess .= "    RewriteCond %{REQUEST_FILENAME} -d" . PHP_EOL . PHP_EOL;
-        $htaccess .= "    RewriteRule ^.*$ - [NC,L]" . PHP_EOL;
-        $htaccess .= "    RewriteRule ^.*$ index.php [NC,L]" . PHP_EOL;
-        $htaccess .= "</IfModule>" . PHP_EOL;
-
-        file_put_contents($location . '/public/.htaccess', $htaccess);
+        copy(__DIR__ . '/../../config/resources/.htaccess', $location . '/public/.htaccess');
     }
 
     /**
@@ -177,7 +169,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
     protected function createConsoleController($location, $namespace)
     {
         $app = new Code\Generator($location . '/script/app', Code\Generator::CREATE_EMPTY);
-
+        $app->setEnv('#!/usr/bin/php');
         $app->appendToBody("\$autoloader = include __DIR__ . '/../vendor/autoload.php';");
         $app->appendToBody("");
         $app->appendToBody("try {");
@@ -193,6 +185,118 @@ class Bootstrap extends \Pop\Model\AbstractModel
     }
 
     /**
+     * Create module method
+     *
+     * @param  string  $location
+     * @param  string  $namespace
+     * @param  boolean $cli
+     * @return void
+     */
+    protected function createModule($location, $namespace, $cli = false)
+    {
+        $module          = new Code\Generator($location . '/app/src/Module.php', Code\Generator::CREATE_CLASS);
+        $namespaceObject = new Code\Generator\NamespaceGenerator($namespace);
+        $namespaceObject->setUse('Pop\Application')
+            ->setUse('Pop\Http\Request')
+            ->setUse('Pop\Http\Response')
+            ->setUse('Pop\View\View');
+
+        $module->code()->setNamespace($namespaceObject)
+            ->setName('Module')
+            ->setParent('\Pop\Module\Module');
+
+        $name = new Code\Generator\PropertyGenerator('name', 'string', str_replace('\\', '-', strtolower($namespace)));
+
+        $registerMethod = new Code\Generator\MethodGenerator('register');
+        $registerMethod->addArgument('application', null, 'Application');
+        $registerMethod->appendToBody('parent::register($application);');
+        $registerMethod->appendToBody('');
+
+        $registerHttpMethod = new Code\Generator\MethodGenerator('registerHttp');
+        $registerHttpMethod->appendToBody("if (null !== \$this->application->router()) {");
+        $registerHttpMethod->appendToBody("    \$this->application->router()->addControllerParams(");
+        $registerHttpMethod->appendToBody("        '*', [");
+        $registerHttpMethod->appendToBody("            'application' => \$this->application,");
+        $registerHttpMethod->appendToBody("            'request'     => new Request(),");
+        $registerHttpMethod->appendToBody("            'response'    => new Response()");
+        $registerHttpMethod->appendToBody("        ]");
+        $registerHttpMethod->appendToBody("    );");
+        $registerHttpMethod->appendToBody("}");
+
+        $module->code()->addMethod($registerMethod);
+        $module->code()->addMethod($registerHttpMethod);
+
+        if ($cli) {
+            $registerMethod->appendToBody('if ($this->application->router()->isCli()) {');
+            $registerMethod->appendToBody('    $this->registerCli();');
+            $registerMethod->appendToBody('} else {');
+            $registerMethod->appendToBody('    $this->registerHttp();');
+            $registerMethod->appendToBody('}');
+
+            $registerCliMethod = new Code\Generator\MethodGenerator('registerCli');
+            $registerCliMethod->appendToBody("if (null !== \$this->application->router()) {");
+            $registerCliMethod->appendToBody("    \$this->application->router()->addControllerParams(");
+            $registerCliMethod->appendToBody("        '*', [");
+            $registerCliMethod->appendToBody("            'application' => \$this->application,");
+            $registerCliMethod->appendToBody("            'console'     => new \\Pop\\Console\\Console(120, '    ')");
+            $registerCliMethod->appendToBody("        ]");
+            $registerCliMethod->appendToBody("    );");
+            $registerCliMethod->appendToBody("}");
+
+            $module->code()->addMethod($registerCliMethod);
+        } else {
+            $registerMethod->appendToBody('$this->registerHttp();');
+        }
+        $registerMethod->appendToBody('');
+        $registerMethod->appendToBody('return $this;');
+
+        $httpErrorMethod = new Code\Generator\MethodGenerator('httpError');
+        $httpErrorMethod->addArgument('application', null, 'Application');
+        $httpErrorMethod->addArgument('exception', null, '\Exception');
+        $httpErrorMethod->appendToBody("\$response    = new Response();");
+        $httpErrorMethod->appendToBody("\$view        = new View(__DIR__ . '/../view/exception.phtml');");
+        $httpErrorMethod->appendToBody("\$view->title = \$exception->getMessage();");
+        $httpErrorMethod->appendToBody("\$response->setBody(\$view->render());");
+        $httpErrorMethod->appendToBody("\$response->send(500);");
+
+        $module->code()->addMethod($httpErrorMethod);
+
+        if ($cli) {
+            $cliErrorMethod = new Code\Generator\MethodGenerator('cliError');
+            $cliErrorMethod->addArgument('exception', null, '\Exception');
+            $cliErrorMethod->appendToBody("\$message = strip_tags(\$exception->getMessage());");
+            $cliErrorMethod->appendToBody("");
+            $cliErrorMethod->appendToBody("if (stripos(PHP_OS, 'win') === false) {");
+            $cliErrorMethod->appendToBody("    \$string  = \"    \\x1b[1;37m\\x1b[41m    \" . str_repeat(' ', strlen(\$message)) . \"    \\x1b[0m\" . PHP_EOL;");
+            $cliErrorMethod->appendToBody("    \$string .= \"    \\x1b[1;37m\\x1b[41m    \" . \$message . \"    \\x1b[0m\" . PHP_EOL;");
+            $cliErrorMethod->appendToBody("    \$string .= \"    \\x1b[1;37m\\x1b[41m    \" . str_repeat(' ', strlen(\$message)) . \"    \\x1b[0m\" . PHP_EOL . PHP_EOL;");
+            $cliErrorMethod->appendToBody("    \$string .= \"    Try \\x1b[1;33m./nova help\\x1b[0m for help\" . PHP_EOL . PHP_EOL;");
+            $cliErrorMethod->appendToBody("} else {");
+            $cliErrorMethod->appendToBody("    \$string  = \$message . PHP_EOL . PHP_EOL;");
+            $cliErrorMethod->appendToBody("    \$string .= '    Try \'./app help\' for help' . PHP_EOL . PHP_EOL;");
+            $cliErrorMethod->appendToBody("}");
+            $cliErrorMethod->appendToBody("");
+            $cliErrorMethod->appendToBody("echo \$string;");
+            $cliErrorMethod->appendToBody("echo PHP_EOL;");
+            $cliErrorMethod->appendToBody("");
+            $cliErrorMethod->appendToBody("exit(127);");
+
+            $module->code()->addMethod($cliErrorMethod);
+        }
+
+        $module->code()->addProperty($name);
+
+        $module->save();
+
+        $exception = new Code\Generator($location . '/app/src/Exception.php', Code\Generator::CREATE_CLASS);
+        $exception->code()->setNamespace(new Code\Generator\NamespaceGenerator($namespace))
+            ->setName('Exception')
+            ->setParent('\Exception');
+
+        $exception->save();
+    }
+
+    /**
      * Create views method
      *
      * @param  string $location
@@ -200,28 +304,8 @@ class Bootstrap extends \Pop\Model\AbstractModel
      */
     protected function createViews($location)
     {
-        $index  = "<!DOCTYPE html>" . PHP_EOL;
-        $index .= "<html>" . PHP_EOL;
-        $index .= "<head>" . PHP_EOL;
-        $index .= "    <title><?=\$title; ?></title>" . PHP_EOL;
-        $index .= "</head>" . PHP_EOL;
-        $index .= "<body>" . PHP_EOL;
-        $index .= "    <h1><?=\$title; ?></h1>" . PHP_EOL;
-        $index .= "</body>" . PHP_EOL;
-        $index .= "</html>" . PHP_EOL;
-
-        file_put_contents($location . '/view/index.phtml', $index);
-
-        $error  = "<!DOCTYPE html>" . PHP_EOL;
-        $error .= "<html>" . PHP_EOL;
-        $error .= "<head>" . PHP_EOL;
-        $error .= "    <title><?=\$title; ?></title>" . PHP_EOL;
-        $error .= "</head>" . PHP_EOL;
-        $error .= "<body>" . PHP_EOL;
-        $error .= "    <h1 style=\"color: #f00;\"><?=\$title; ?></h1>" . PHP_EOL;
-        $error .= "</body>" . PHP_EOL;
-        $error .= "</html>" . PHP_EOL;
-
-        file_put_contents($location . '/view/error.phtml', $error);
+        copy(__DIR__ . '/../../config/resources/index.phtml', $location . '/view/index.phtml');
+        copy(__DIR__ . '/../../config/resources/error.phtml', $location . '/view/error.phtml');
+        copy(__DIR__ . '/../../config/resources/error.phtml', $location . '/view/exception.phtml');
     }
 }
