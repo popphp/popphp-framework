@@ -92,11 +92,11 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $httpConfig->appendToBody('return [');
         $httpConfig->appendToBody("    'routes' => [");
         $httpConfig->appendToBody("        '[/]' => [");
-        $httpConfig->appendToBody("            'controller' => '" . $namespace . "\\Controller\\IndexController'");
+        $httpConfig->appendToBody("            'controller' => '" . $namespace . "\\Controller\\IndexController',");
         $httpConfig->appendToBody("            'action'     => 'index'");
         $httpConfig->appendToBody('        ],');
         $httpConfig->appendToBody("        '*' => [");
-        $httpConfig->appendToBody("            'controller' => '" . $namespace . "\\Controller\\IndexController'");
+        $httpConfig->appendToBody("            'controller' => '" . $namespace . "\\Controller\\IndexController',");
         $httpConfig->appendToBody("            'action'     => 'error'");
         $httpConfig->appendToBody('        ]');
         $httpConfig->appendToBody('    ]');
@@ -119,11 +119,11 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $consoleConfig->appendToBody('return [');
         $consoleConfig->appendToBody("    'routes' => [");
         $consoleConfig->appendToBody("        'help' => [");
-        $consoleConfig->appendToBody("            'controller' => '" . $namespace . "\\Console\\Controller\\ConsoleController'");
+        $consoleConfig->appendToBody("            'controller' => '" . $namespace . "\\Console\\Controller\\ConsoleController',");
         $consoleConfig->appendToBody("            'action'     => 'help'");
         $consoleConfig->appendToBody('        ],');
         $consoleConfig->appendToBody("        '*' => [");
-        $consoleConfig->appendToBody("            'controller' => '" . $namespace . "\\Console\\Controller\\ConsoleController'");
+        $consoleConfig->appendToBody("            'controller' => '" . $namespace . "\\Console\\Controller\\ConsoleController',");
         $consoleConfig->appendToBody("            'action'     => 'error'");
         $consoleConfig->appendToBody('        ]');
         $consoleConfig->appendToBody('    ]');
@@ -251,7 +251,6 @@ class Bootstrap extends \Pop\Model\AbstractModel
         $registerMethod->appendToBody('return $this;');
 
         $httpErrorMethod = new Code\Generator\MethodGenerator('httpError');
-        $httpErrorMethod->addArgument('application', null, 'Application');
         $httpErrorMethod->addArgument('exception', null, '\Exception');
         $httpErrorMethod->appendToBody("\$response    = new Response();");
         $httpErrorMethod->appendToBody("\$view        = new View(__DIR__ . '/../view/exception.phtml');");
@@ -270,7 +269,7 @@ class Bootstrap extends \Pop\Model\AbstractModel
             $cliErrorMethod->appendToBody("    \$string  = \"    \\x1b[1;37m\\x1b[41m    \" . str_repeat(' ', strlen(\$message)) . \"    \\x1b[0m\" . PHP_EOL;");
             $cliErrorMethod->appendToBody("    \$string .= \"    \\x1b[1;37m\\x1b[41m    \" . \$message . \"    \\x1b[0m\" . PHP_EOL;");
             $cliErrorMethod->appendToBody("    \$string .= \"    \\x1b[1;37m\\x1b[41m    \" . str_repeat(' ', strlen(\$message)) . \"    \\x1b[0m\" . PHP_EOL . PHP_EOL;");
-            $cliErrorMethod->appendToBody("    \$string .= \"    Try \\x1b[1;33m./nova help\\x1b[0m for help\" . PHP_EOL . PHP_EOL;");
+            $cliErrorMethod->appendToBody("    \$string .= \"    Try \\x1b[1;33m./app help\\x1b[0m for help\" . PHP_EOL . PHP_EOL;");
             $cliErrorMethod->appendToBody("} else {");
             $cliErrorMethod->appendToBody("    \$string  = \$message . PHP_EOL . PHP_EOL;");
             $cliErrorMethod->appendToBody("    \$string .= '    Try \'./app help\' for help' . PHP_EOL . PHP_EOL;");
@@ -304,8 +303,8 @@ class Bootstrap extends \Pop\Model\AbstractModel
      */
     protected function createViews($location)
     {
-        copy(__DIR__ . '/../../config/resources/index.phtml', $location . '/view/index.phtml');
-        copy(__DIR__ . '/../../config/resources/error.phtml', $location . '/view/error.phtml');
-        copy(__DIR__ . '/../../config/resources/error.phtml', $location . '/view/exception.phtml');
+        copy(__DIR__ . '/../../config/resources/index.phtml', $location . '/app/view/index.phtml');
+        copy(__DIR__ . '/../../config/resources/error.phtml', $location . '/app/view/error.phtml');
+        copy(__DIR__ . '/../../config/resources/error.phtml', $location . '/app/view/exception.phtml');
     }
 }

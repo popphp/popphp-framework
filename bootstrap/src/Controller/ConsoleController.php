@@ -94,9 +94,7 @@ class ConsoleController extends \Pop\Controller\AbstractController
 
         $bootstrap = new Model\Bootstrap();
 
-        if ($options['full']) {
-            $bootstrap->installFull($location, $namespace);
-        } else if ($options['cli']) {
+        if (isset($options['cli'])) {
             $bootstrap->installCli($location, $namespace);
         } else {
             $bootstrap->install($location, $namespace);
