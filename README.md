@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 3.6.5  
-Released May 15, 2018
+Pop PHP Framework 3.7.0  
+Released June 26, 2018
 
 OVERVIEW
 --------
@@ -32,6 +32,7 @@ The core Pop PHP components and the additional 28 components will be installed:
 NEW FEATURES
 ------------
 
+* Bootstrap functionality has been added to provide basic application scaffolding.
 * The new CSS component has been added to the framework.
 * The DOM component has been updated to include parsing capabilities.
 * The new Debug component has been added to the framework.
@@ -86,6 +87,39 @@ Or, you can clone this repository and install it directly:
 ```console
 $ composer install
 ```
+
+BOOTSTRAPPING
+-------------
+You can quickly bootstrap a small application project by running the following command:
+
+```console
+$ boostrap/pop install MyApp
+```
+
+The above command will create the necessary basic application scaffolding to run a simple
+web application. You will see an `app` folder with your namespaced codebase in it and a
+`public` folder with the application's front controller in it. If you point a web server
+at the public folder, you will see a basic index page.
+
+ ```console
+ $ php -S localhost:8000 -t public
+ ```
+
+#### Console Support
+
+You can also bootstrap an application with console support as well. If you run the
+following command:
+
+```console
+$ boostrap/pop install --cli MyApp
+```
+
+The codebase created will also include a `script` folder with the CLI application script.
+A default `help` command is set up be default:
+
+ ```console
+ $ script/app help
+ ```
 
 ## DISCUSSION
 
