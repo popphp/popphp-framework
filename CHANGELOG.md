@@ -51,7 +51,7 @@ CHANGELOG
 ### New or Changed Features
 
 * The Database component has been significantly refactored for v4.
-* The Data compoenent has been deprecated and the CSV functionality has been moved into its own component, `pop-csv`.
+* The Data component has been deprecated and the CSV functionality has been moved into its own component, `pop-csv`.
 * The File Component has been deprecated and the upload functionality has been moved to the Http component and the directory
   functionality has been moved into its own component, `pop-dir`.
 
