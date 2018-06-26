@@ -112,12 +112,14 @@ class ConsoleController extends \Pop\Controller\AbstractController
     public function help()
     {
         $command = $this->console->colorize("./pop", Console::BOLD_CYAN) . ' ' .
-            $this->console->colorize("install", Console::BOLD_YELLOW);
+            $this->console->colorize("install", Console::BOLD_YELLOW) . ' ' .
+            $this->console->colorize("[--cli]", Console::BOLD_GREEN) . ' ' .
+            $this->console->colorize("<namespace>", Console::BOLD_MAGENTA);
         $this->console->append($command . "\t Install application scaffolding");
 
         $command = $this->console->colorize("./pop", Console::BOLD_CYAN) . ' ' .
             $this->console->colorize("help", Console::BOLD_YELLOW);
-        $this->console->append($command . "\t\t Show the help screen");
+        $this->console->append($command . "\t\t\t\t Show the help screen");
 
         $this->console->append();
 
