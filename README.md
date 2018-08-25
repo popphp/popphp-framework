@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 3.7.0  
-Released June 26, 2018
+Pop PHP Framework 3.8.0  
+Released August 25, 2018
 
 OVERVIEW
 --------
@@ -17,7 +17,8 @@ The core Pop PHP components and the additional 28 components will be installed:
 
 |                                                      | Components                                               |                                                          |
 |------------------------------------------------------|----------------------------------------------------------|----------------------------------------------------------|
-| [pop-acl](https://github.com/popphp/pop-acl)         | [pop-debug](https://github.com/popphp/pop-debug)         | [pop-mail](https://github.com/popphp/pop-mail)           |
+| [pop-acl](https://github.com/popphp/pop-acl)         | [pop-db](https://github.com/popphp/pop-db)               | [pop-log](https://github.com/popphp/pop-log)             |
+| [pop-auth](https://github.com/popphp/pop-auth)       | [pop-debug](https://github.com/popphp/pop-debug)         | [pop-mail](https://github.com/popphp/pop-mail)           |
 | [pop-auth](https://github.com/popphp/pop-auth)       | [pop-dir](https://github.com/popphp/pop-dir)             | [pop-nav](https://github.com/popphp/pop-nav)             |
 | [pop-cache](https://github.com/popphp/pop-cache)     | [pop-dom](https://github.com/popphp/pop-dom)             | [pop-paginator](https://github.com/popphp/pop-paginator) |
 | [pop-code](https://github.com/popphp/pop-code)       | [pop-form](https://github.com/popphp/pop-form)           | [pop-pdf](https://github.com/popphp/pop-pdf)             |
@@ -26,7 +27,6 @@ The core Pop PHP components and the additional 28 components will be installed:
 | [pop-cookie](https://github.com/popphp/pop-cookie)   | [pop-i18n](https://github.com/popphp/pop-i18n)           | [pop-session](https://github.com/popphp/pop-session)     |
 | [pop-css](https://github.com/popphp/pop-css)         | [pop-image](https://github.com/popphp/pop-image)         | [pop-validator](https://github.com/popphp/pop-validator) |
 | [pop-csv](https://github.com/popphp/pop-csv)         | [pop-loader](https://github.com/popphp/pop-loader)       | [pop-view](https://github.com/popphp/pop-view)           |
-| [pop-db](https://github.com/popphp/pop-db)           | [pop-log](https://github.com/popphp/pop-log)             |                                                          |
 
 
 NEW FEATURES
@@ -35,6 +35,7 @@ NEW FEATURES
 * Bootstrap functionality has been added to provide basic application scaffolding.
 * The new CSS component has been added to the framework.
 * The DOM component has been updated to include parsing capabilities.
+* The new Audit component has been added to the framework.
 * The new Debug component has been added to the framework.
 * The Database component has been significantly refactored for v4.
 * The Cache component now supports Redis and Session adapters.

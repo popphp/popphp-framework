@@ -3,7 +3,7 @@ CHANGELOG
 
 ## 3.8.0
 * Added pop-audit
-* Added audit support to pop-db
+* Added the ability to track dirty attributes in pop-db
 
 ## 3.7.0
 * Added bootstrap functionality to provide basic application scaffolding
