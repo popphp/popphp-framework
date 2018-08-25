@@ -5,7 +5,7 @@ CHANGELOG
 * Added pop-audit
 * Added the ability to track dirty attributes in pop-db
 
-## 3.7.0
+## 3.8.0
 * Added bootstrap functionality to provide basic application scaffolding
 
 ## 3.6.5

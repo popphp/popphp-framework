@@ -21,7 +21,7 @@ namespace Pop\Bootstrap;
  * @author     Nick Sagona, III <dev@nolainteractive.com>
  * @copyright  Copyright (c) 2009-2018 NOLA Interactive, LLC. (http://www.nolainteractive.com)
  * @license    http://www.popphp.org/license     New BSD License
- * @version    3.7.0
+ * @version    3.8.0
  */
 class Exception extends \Exception
 {
