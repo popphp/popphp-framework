@@ -18,7 +18,7 @@ The core Pop PHP components and the additional 28 components will be installed:
 |                                                      | Components                                               |                                                          |
 |------------------------------------------------------|----------------------------------------------------------|----------------------------------------------------------|
 | [pop-acl](https://github.com/popphp/pop-acl)         | [pop-db](https://github.com/popphp/pop-db)               | [pop-log](https://github.com/popphp/pop-log)             |
-| [pop-auth](https://github.com/popphp/pop-auth)       | [pop-debug](https://github.com/popphp/pop-debug)         | [pop-mail](https://github.com/popphp/pop-mail)           |
+| [pop-audit](https://github.com/popphp/pop-audit)     | [pop-debug](https://github.com/popphp/pop-debug)         | [pop-mail](https://github.com/popphp/pop-mail)           |
 | [pop-auth](https://github.com/popphp/pop-auth)       | [pop-dir](https://github.com/popphp/pop-dir)             | [pop-nav](https://github.com/popphp/pop-nav)             |
 | [pop-cache](https://github.com/popphp/pop-cache)     | [pop-dom](https://github.com/popphp/pop-dom)             | [pop-paginator](https://github.com/popphp/pop-paginator) |
 | [pop-code](https://github.com/popphp/pop-code)       | [pop-form](https://github.com/popphp/pop-form)           | [pop-pdf](https://github.com/popphp/pop-pdf)             |
