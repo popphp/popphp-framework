@@ -17,6 +17,8 @@ CHANGELOG
 * Refactored pop-pdf, improved text wrap & alignment functionality
 * Refactored pop-view, added separate stream parser class
 * Refactored popphp, improved Application and Module class relationships
+* Removed bootstrap feature from main framework repository
+* Added pop-kernel repository to handle application bootstrapping and scaffolding
 
 ## 3.8.0
 * Added pop-audit
