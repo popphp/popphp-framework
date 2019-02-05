@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 3.8.0  
-Released August 25, 2018
+Pop PHP Framework 4.0.0  
+Released February 5, 2019
 
 OVERVIEW
 --------
@@ -31,34 +31,10 @@ The core Pop PHP components and the additional 28 components will be installed:
 
 NEW FEATURES
 ------------
-
-* Bootstrap functionality has been added to provide basic application scaffolding.
-* The new CSS component has been added to the framework.
-* The DOM component has been updated to include parsing capabilities.
-* The new Audit component has been added to the framework.
-* The new Debug component has been added to the framework.
-* The Database component has been significantly refactored for v4.
-* The Cache component now supports Redis and Session adapters.
-* The Data component has been deprecated and the CSV functionality has been moved into its own component, `pop-csv`.
-* The Session and Cookie classes of the deprecated `pop-web` component have been broken out into their own individual components.
-* The File Component has been deprecated and the upload functionality has been moved to the Http component and the directory
-  functionality has been moved into its own component, `pop-dir`.
-
-
-DEPRECATED FEATURES
--------------------
-
-* The `pop-archive` component has been removed.
-* The `pop-crypt` component has been removed.
-* The `pop-data` component has been removed (see above.)
-* The `pop-feed` component has been removed.
-* The `pop-file` component has been removed (see above.)
-* The `pop-filter` component has been removed.
-* The `pop-geo` component has been removed.
-* The `pop-payment` component has been removed.
-* The `pop-shipping` component has been removed.
-* The `pop-version` component has been removed.
-* The `pop-web` component has been removed (see above.)
+* A number of components have been improved and refactored. 
+* Support for PHP 7.1+ only.
+* PHPUnit test refactored for PHPUnit 7.0+.
+* Reference the `CHANGELOG.md` for further details.
 
 
 INSTALL
@@ -74,7 +50,7 @@ $ composer require popphp/popphp-framework
 You can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "^3.8.0"
+        "popphp/popphp-framework": "^4.0.0"
     }
 
 You can create a new project and install it into that project:

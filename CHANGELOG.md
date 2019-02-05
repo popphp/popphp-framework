@@ -1,6 +1,23 @@
 CHANGELOG
 =========
 
+## 4.0.0
+* Support for PHP 7.1+ only
+* PHPUnit test refactored for PHPUnit 7.0+
+* Refactored pop-auth
+* Refactored pop-console, added better support for help command display
+* Refactored pop-db, improved relationship functionality 
+* Updated pop-debug, improved ExceptionHandler and QueryHandler
+* Refactored pop-form:
+    + Added ACL-enabled form capabilities
+    + Moved filter functionality into separate set of classes
+* Refactored pop-http, added separate HTTP response parser class
+* Refactored pop-log, added HTTP log writer
+* Refactored pop-nav, added NavBuilder class
+* Refactored pop-pdf, improved text wrap & alignment functionality
+* Refactored pop-view, added separate stream parser class
+* Refactored popphp, improved Application and Module class relationships
+
 ## 3.8.0
 * Added pop-audit
 * Added the ability to track dirty attributes in pop-db
