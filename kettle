@@ -1,0 +1,16 @@
+#!/usr/bin/php
+<?php
+/**
+ * Pop PHP Kettle Console Application
+ */
+
+$autoloader = include __DIR__ . '/vendor/autoload.php';
+
+try {
+    $app = new Pop\Application($autoloader, include __DIR__ . '/vendor/popphp/pop-kettle/config/app.console.php');
+    $app->register(new Pop\Kettle\Module());
+    $app->run();
+} catch (\Exception $exception) {
+    $app = new Pop\Kettle\Module();
+    $app->cliError($exception);
+}
