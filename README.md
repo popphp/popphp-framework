@@ -65,39 +65,6 @@ Or, you can clone this repository and install it directly:
 $ composer install
 ```
 
-BOOTSTRAPPING
--------------
-You can quickly bootstrap a small application project by running the following command:
-
-```console
-$ boostrap/pop install MyApp
-```
-
-The above command will create the necessary basic application scaffolding to run a simple
-web application. You will see an `app` folder with your namespaced codebase in it and a
-`public` folder with the application's front controller in it. If you point a web server
-at the public folder, you will see a basic index page.
-
- ```console
- $ php -S localhost:8000 -t public
- ```
-
-#### Console Support
-
-You can also bootstrap an application with console support as well. If you run the
-following command:
-
-```console
-$ boostrap/pop install --cli MyApp
-```
-
-The codebase created will also include a `script` folder with the CLI application script.
-A default `help` command is set up be default:
-
- ```console
- $ script/app help
- ```
-
 ## DISCUSSION
 
 There is a Gitter chat room for Pop PHP over at https://gitter.im/pop-php-framework/Lobby
