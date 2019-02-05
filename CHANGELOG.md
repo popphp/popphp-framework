@@ -3,7 +3,7 @@ CHANGELOG
 
 ## 4.0.0
 * Support for PHP 7.1+ only
-* PHPUnit test refactored for PHPUnit 7.0+
+* PHPUnit tests refactored for PHPUnit 7.0+
 * Refactored pop-auth
 * Refactored pop-console, added better support for help command display
 * Refactored pop-db, improved relationship functionality 

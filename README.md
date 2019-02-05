@@ -33,7 +33,7 @@ NEW FEATURES
 ------------
 * A number of components have been improved and refactored. 
 * Support for PHP 7.1+ only.
-* PHPUnit test refactored for PHPUnit 7.0+.
+* PHPUnit tests refactored for PHPUnit 7.0+.
 * Reference the `CHANGELOG.md` for further details.
 
 
