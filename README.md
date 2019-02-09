@@ -41,28 +41,45 @@ INSTALL
 -------
 There are multiple ways you can get Pop PHP Framework into your project.
 
-You can add it to an existing project:
-
-```console
-$ composer require popphp/popphp-framework
-```
-
-You can add it your project's `composer.json` file:
-
-    "require": {
-        "popphp/popphp-framework": "^4.0.1"
-    }
-
-You can create a new project and install it into that project:
+You can create a new project, which is recommended. This way, you will have
+access to the CLI-helper script `pop-kettle` in the main project folder:
 
 ```console
 $ composer create-project popphp/popphp-framework project-folder
 ```
 
-Or, you can clone this repository and install it directly:
+Alternatively, you can add it to an existing project with this command:
+
+```console
+$ composer require popphp/popphp-framework
+```
+
+Or, you can add it your project's `composer.json` file:
+
+    "require": {
+        "popphp/popphp-framework": "^4.0.1"
+    }
+
+Also, you can clone this repository and install it directly:
 
 ```console
 $ composer install
+```
+
+### Kettle CLI-Helper
+
+If choose to install the framework in a way that the `pop-kettle` CLI-helper
+script is not available in the main project folder, you can place a copy of
+the script from the `vendor/popphp/pop-kettle/kettle` location:
+
+```bash
+$ cp vendor/popphp/popphp-framework/kettle .
+```
+
+And make sure the newly copied `kettle` script is set to execute (755)
+
+```bash
+$ chmod 755 kettle
 ```
 
 ## DISCUSSION
