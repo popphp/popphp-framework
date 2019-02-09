@@ -1,6 +1,9 @@
 CHANGELOG
 =========
 
+## 4.0.1
+* Added pop-kettle component for CLI-based helper functionality
+
 ## 4.0.0
 * Support for PHP 7.1+ only
 * PHPUnit tests refactored for PHPUnit 7.0+
