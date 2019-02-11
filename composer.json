@@ -21,7 +21,7 @@
         "popphp/pop-acl": "<=3.1.2",
         "popphp/pop-audit": "<=1.1.0",
         "popphp/pop-auth": "<=3.0.5",
-        "popphp/pop-cache": "<=3.2.1",
+        "popphp/pop-cache": "<=3.2.2",
         "popphp/pop-code": "<=3.0.1",
         "popphp/pop-config": "<=3.2.1",
         "popphp/pop-console": "<=3.0.1",
