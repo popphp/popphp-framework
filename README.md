@@ -85,3 +85,4 @@ $ chmod 755 kettle
 ## DISCUSSION
 
 There is a Gitter chat room for Pop PHP over at https://gitter.im/pop-php-framework/Lobby
+
