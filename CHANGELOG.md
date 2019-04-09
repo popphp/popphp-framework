@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+## 4.0.3
+* Updated to pop-csv v3.1.0, which includes static helper methods
+
+
 ## 4.0.2
 * Updated to pop-db v4.5.0, which includes support for the encoded record class
 
