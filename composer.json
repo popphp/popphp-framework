@@ -34,7 +34,7 @@
         "popphp/pop-dom": "<=3.2.5",
         "popphp/pop-form": "<=3.1.8",
         "popphp/pop-ftp": "<=3.0.1",
-        "popphp/pop-http": "<=3.1.2",
+        "popphp/pop-http": "<=3.2.2",
         "popphp/pop-i18n": "<=3.0.1",
         "popphp/pop-image": "<=3.2.2",
         "popphp/pop-loader": "<=3.0.1",
