@@ -7,7 +7,7 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 4.0.4  
+Pop PHP Framework 4.1.0  
 Released October 17, 2019
 
 OVERVIEW
@@ -57,7 +57,7 @@ $ composer require popphp/popphp-framework
 Or, you can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "^4.0.4"
+        "popphp/popphp-framework": "^4.1.0"
     }
 
 Also, you can clone this repository and install it directly:
