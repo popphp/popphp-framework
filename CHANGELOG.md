@@ -2,7 +2,7 @@ CHANGELOG
 =========
 
 ## 4.1.0
-* Updated to pop-csv v3.1.4, better newline, escape and limit support
+* Updated to pop-csv v3.1.4, better appending, newline, escape and limit support
 * Updated tp pop-db v4.5.5, with support for export and creating large SQL
   queries from data sets
 * Updated to pop-form v3.4.0, which includes:
