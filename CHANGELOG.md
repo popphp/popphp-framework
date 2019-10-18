@@ -1,9 +1,23 @@
 CHANGELOG
 =========
 
+## 4.1.0
+* Updated to pop-csv v3.1.4, better newline, escape and limit support
+* Updated tp pop-db v4.5.5, with support for export and creating large SQL
+  queries from data sets
+* Updated to pop-form v3.4.0, which includes:
+    + ACL Form objects
+    + Simple, light-weight form validator class for easy validation of
+      form values without the weight of a full HTML form object 
+* Update to pop-mail v3.2.2, which includes:
+    + Better support for file attachments, both under the IMAP client
+      and the Mailer classes
+    + Support for auto-detection of content-type for attachments,
+      better handling of newlines in message parts
+* Update to popphp v3.3.1, adding a force route parameter to the `run()` method
+
 ## 4.0.3
 * Updated to pop-csv v3.1.0, which includes static helper methods
-
 
 ## 4.0.2
 * Updated to pop-db v4.5.0, which includes support for the encoded record class
