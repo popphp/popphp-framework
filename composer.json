@@ -38,7 +38,7 @@
         "popphp/pop-i18n": "^3.0.2",
         "popphp/pop-image": "^3.3.1",
         "popphp/pop-kettle": "^1.0.1",
-        "popphp/pop-loader": "^3.0.2",
+        "popphp/pop-loader": "^3.0.3",
         "popphp/pop-log": "^3.1.0",
         "popphp/pop-mail": "^3.2.2",
         "popphp/pop-nav": "^3.2.0",
