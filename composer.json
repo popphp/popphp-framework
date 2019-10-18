@@ -39,7 +39,7 @@
         "popphp/pop-image": "<=3.2.2",
         "popphp/pop-loader": "<=3.0.1",
         "popphp/pop-log": "<=3.0.2",
-        "popphp/pop-mail": "<=3.2.2",
+        "popphp/pop-mail": "<=3.2.3",
         "popphp/pop-nav": "<=3.1.1",
         "popphp/pop-paginator": "<=3.0.2",
         "popphp/pop-pdf": "<=3.2.1",
