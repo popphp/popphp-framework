@@ -40,7 +40,7 @@
         "popphp/pop-kettle": "^1.0.1",
         "popphp/pop-loader": "^3.0.3",
         "popphp/pop-log": "^3.1.0",
-        "popphp/pop-mail": "^3.2.2",
+        "popphp/pop-mail": "^3.2.3",
         "popphp/pop-nav": "^3.2.0",
         "popphp/pop-paginator": "^3.0.4",
         "popphp/pop-pdf": "^3.2.1",
