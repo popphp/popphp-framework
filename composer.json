@@ -45,7 +45,7 @@
         "popphp/pop-mime": "^1.0.0",
         "popphp/pop-nav": "^3.2.1",
         "popphp/pop-paginator": "^3.0.5",
-        "popphp/pop-pdf": ">=4.0.0-beta",
+        "popphp/pop-pdf": "^4.0.0-beta",
         "popphp/pop-queue": "^1.0.0",
         "popphp/pop-session": "^3.2.0",
         "popphp/pop-validator": "^3.1.2",
