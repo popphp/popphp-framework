@@ -53,6 +53,7 @@
         "popphp/popphp": "^3.3.3",
         "popphp/popcorn": "^3.3.0"
     },
+    "minimum-stability": "beta",
     "extra": {
         "branch-alias": {
             "dev-master": "4.5.x-dev"
