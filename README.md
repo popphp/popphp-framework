@@ -45,7 +45,7 @@ You can create a new project, which is recommended. This way, you will have
 access to the CLI-helper script `pop-kettle` in the main project folder:
 
 ```console
-$ composer create-project popphp/popphp-framework project-folder
+$ composer create-project -s beta popphp/popphp-framework project-folder
 ```
 
 Alternatively, you can add it to an existing project with this command:
@@ -58,7 +58,8 @@ Or, you can add it your project's `composer.json` file:
 
     "require": {
         "popphp/popphp-framework": "^4.5.0-beta"
-    }
+    },
+    "minimum-stability": "beta"
 
 Also, you can clone this repository and install it directly:
 
