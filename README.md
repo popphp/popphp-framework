@@ -8,7 +8,7 @@ Pop PHP Framework
 RELEASE INFORMATION
 -------------------
 Pop PHP Framework 4.5.0 (beta)  
-Released December 16, 2019
+Released December 24, 2019
 
 OVERVIEW
 --------
@@ -25,9 +25,9 @@ The core Pop PHP components and the additional components will be installed:
 | [pop-config](https://github.com/popphp/pop-config)   | [pop-http](https://github.com/popphp/pop-http)           | [popphp](https://github.com/popphp/popphp)               |
 | [pop-console](https://github.com/popphp/pop-console) | [pop-i18n](https://github.com/popphp/pop-i18n)           | [pop-queue](https://github.com/popphp/pop-queue)         |
 | [pop-cookie](https://github.com/popphp/pop-cookie)   | [pop-image](https://github.com/popphp/pop-image)         | [pop-session](https://github.com/popphp/pop-session)     |
-| [pop-css](https://github.com/popphp/pop-css)         | [pop-kettle](https://github.com/popphp/pop-kettle)       | [pop-validator](https://github.com/popphp/pop-validator) |
-| [pop-csv](https://github.com/popphp/pop-csv)         | [pop-loader](https://github.com/popphp/pop-loader)       | [pop-view](https://github.com/popphp/pop-view)           |
-| [pop-db](https://github.com/popphp/pop-db)           | [pop-log](https://github.com/popphp/pop-log)             |                                                          |
+| [pop-css](https://github.com/popphp/pop-css)         | [pop-kettle](https://github.com/popphp/pop-kettle)       | [pop-utils](https://github.com/popphp/pop-utils)         |
+| [pop-csv](https://github.com/popphp/pop-csv)         | [pop-loader](https://github.com/popphp/pop-loader)       | [pop-validator](https://github.com/popphp/pop-validator) |
+| [pop-db](https://github.com/popphp/pop-db)           | [pop-log](https://github.com/popphp/pop-log)             | [pop-view](https://github.com/popphp/pop-view)           |
 | [pop-debug](https://github.com/popphp/pop-debug)     | [pop-mail](https://github.com/popphp/pop-mail)           |                                                          |
 
 NEW FEATURES
@@ -57,7 +57,7 @@ $ composer require popphp/popphp-framework
 Or, you can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "^4.5.0-beta"
+        "popphp/popphp-framework": "^4.5.0-beta-1"
     },
     "minimum-stability": "beta"
 

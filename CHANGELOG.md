@@ -55,6 +55,9 @@ CHANGELOG
     + New component to handle generating and parsing MIME content
 * `pop-queue` new release v1.0.0
     + New component to manage job queues
+* `pop-utils` new release v1.0.0
+    + New component to provide simple common utilities, such an `ArrayObject` class
+      and `StringHelper` class. 
 * `pop-view` updated to v3.2.0
     + Added `pop-filter` component for the filtering functionality.
 * `pop-session` updated to v3.2.0

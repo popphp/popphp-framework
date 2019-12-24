@@ -48,6 +48,7 @@
         "popphp/pop-pdf": "^4.0.0-beta",
         "popphp/pop-queue": "^1.0.0",
         "popphp/pop-session": "^3.2.0",
+        "popphp/pop-utils": "^1.0.0",
         "popphp/pop-validator": "^3.1.2",
         "popphp/pop-view": "^3.2.0",
         "popphp/popphp": "^3.3.3",
