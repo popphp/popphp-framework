@@ -9,6 +9,8 @@ CHANGELOG
     + Improved connect/disconnect functionality of adapter classes
     + Remove references to ArrayObjects
     + Improved unit tests/code coverage
+* `pop-acl`updated to v3.3.0
+    + Added policy functionality
 * `pop-audit`updated to v1.2.0
     + Refactored Http adapter to work with newly refactored `pop-http` component
     + Refactored Table adapter to include check and create table schema
@@ -31,20 +33,20 @@ CHANGELOG
     + Refactored the attachment class
 * `pop-form` updated to v3.5.0
     + Added `AclForm` class to enforce ACL-based roles and permissions for which form
-      fields are accessible by certain users.
+      fields are accessible by certain users
     + Removed the native filter classes in favor of using the newly refactored
       `pop-filter` component
     + Added `FormValidator` class to simply perform field value validations without
-      the weight of a full form object.
+      the weight of a full form object
     + Better support for conditional validation
 * `pop-http` updated to v3.5.0
     + Refactored code-base, better class structure (abstract classes, interfaces, etc.)
     + Better support for the HTTP client classes, including better support for form data
     + Incorporated the new `pop-mime` component for better multipart form data generation
-    + Incorporated the newly refactored `pop-filter` component for input data filtering.
+    + Incorporated the newly refactored `pop-filter` component for input data filtering
 * `pop-filter` reinstated and re-purposed in v3.0.0
     + Refactored the previously deprecated `pop-filter` component to handle filtering
-      of data and values for multiple components that need filtering functionality.
+      of data and values for multiple components that need filtering functionality
 * `pop-kettle` updated to v1.1.0
     + Updated to work with newly refactored and updated components of Pop PHP v4.5
     + Added `db:create-seed` command
@@ -56,8 +58,7 @@ CHANGELOG
 * `pop-queue` new release v1.0.0
     + New component to manage job queues
 * `pop-utils` new release v1.0.0
-    + New component to provide simple common utilities, such an `ArrayObject` class
-      and `StringHelper` class. 
+    + New component to provide simple common utilities, classes and interfaces 
 * `pop-view` updated to v3.2.0
     + Added `pop-filter` component for the filtering functionality.
 * `pop-session` updated to v3.2.0
@@ -66,8 +67,8 @@ CHANGELOG
 * `pop-cookie` updated to v3.2.0
     + Added ArrayAccess, Countable and Iterator
     + Added unit tests
-* `popphp` upated to v3.3.0
-    + Added better support for dynamic array params in the HTTP and CLI route objects.
+* `popphp` updated to v3.3.0
+    + Added better support for dynamic array params in the HTTP and CLI route objects
 * `popcorn` updated to v3.3.0
     + Added support for custom HTTP methods
     + Add `any()` method
