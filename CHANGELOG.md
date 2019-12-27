@@ -38,6 +38,7 @@ CHANGELOG
       `pop-filter` component
     + Added `FormValidator` class to simply perform field value validations without
       the weight of a full form object
+    + Added `FormConfig` class for more robust support of form configuration
     + Better support for conditional validation
 * `pop-http` updated to v3.5.0
     + Refactored code-base, better class structure (abstract classes, interfaces, etc.)
@@ -67,6 +68,8 @@ CHANGELOG
 * `pop-cookie` updated to v3.2.0
     + Added ArrayAccess, Countable and Iterator
     + Added unit tests
+* `pop-dir` updated to v3.1.0
+    + Added support for unlinking/unsetting files from directory object (if writable/accessible)
 * `popphp` updated to v3.3.0
     + Added better support for dynamic array params in the HTTP and CLI route objects
 * `popcorn` updated to v3.3.0
