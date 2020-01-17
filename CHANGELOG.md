@@ -23,6 +23,13 @@ CHANGELOG
     + Refactored the Apc adapter to only use the APCu extension
     + Refactored/improved unit tests
     + Code review/clean up
+* `pop-code` updated to v4.0.0
+    + Support for traits
+    + Support for constants
+    + Better support for namespaces
+    + Improved reflection/parsing support
+    + Refactored/improved unit tests
+    + Code review/clean up
 * `pop-debug`updated to v1.2.0
     + Refactored the Sqlite storage class into full Db storage class
     + Refactored the Request handler to use the newly refactored `pop-http` component
