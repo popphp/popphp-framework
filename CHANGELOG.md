@@ -7,6 +7,7 @@ CHANGELOG
     + Refactored "helper" parser classes (expressions, tables, etc.)
     + Improved SQL builder and schema builder classes
     + Improved connect/disconnect functionality of adapter classes
+    + Improved support for standard SQL functions
     + Remove references to ArrayObjects
     + Improved unit tests/code coverage
 * `pop-acl`updated to v3.3.0
@@ -52,6 +53,7 @@ CHANGELOG
     + Better support for the HTTP client classes, including better support for form data
     + Incorporated the new `pop-mime` component for better multipart form data generation
     + Incorporated the newly refactored `pop-filter` component for input data filtering
+    + Better support of large raw data streams storing to file (instead of in memory)
 * `pop-filter` reinstated and re-purposed in v3.0.0
     + Refactored the previously deprecated `pop-filter` component to handle filtering
       of data and values for multiple components that need filtering functionality
@@ -77,6 +79,8 @@ CHANGELOG
     + Added unit tests
 * `pop-dir` updated to v3.1.0
     + Added support for unlinking/unsetting files from directory object (if writable/accessible)
+* `pop-i18n` updated to v3.1.0
+    + Added support for output variations under one source.
 * `popphp` updated to v3.3.0
     + Added better support for dynamic array params in the HTTP and CLI route objects
 * `popcorn` updated to v3.3.0
