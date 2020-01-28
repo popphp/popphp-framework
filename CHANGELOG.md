@@ -2,7 +2,7 @@ CHANGELOG
 =========
 
 ## 4.5.0 (Beta)
-* `pop-db`updated to v5.0.0
+* `pop-db`updated to v5.0.3
     + Refactored the predicate set parser/generator classes
     + Refactored "helper" parser classes (expressions, tables, etc.)
     + Improved SQL builder and schema builder classes
@@ -48,7 +48,7 @@ CHANGELOG
       the weight of a full form object
     + Added `FormConfig` class for more robust support of form configuration
     + Better support for conditional validation
-* `pop-http` updated to v3.5.0
+* `pop-http` updated to v3.5.5
     + Refactored code-base, better class structure (abstract classes, interfaces, etc.)
     + Better support for the HTTP client classes, including better support for form data
     + Incorporated the new `pop-mime` component for better multipart form data generation
@@ -57,7 +57,7 @@ CHANGELOG
 * `pop-filter` reinstated and re-purposed in v3.0.0
     + Refactored the previously deprecated `pop-filter` component to handle filtering
       of data and values for multiple components that need filtering functionality
-* `pop-kettle` updated to v1.1.0
+* `pop-kettle` updated to v1.2.1
     + Updated to work with newly refactored and updated components of Pop PHP v4.5
     + Added `db:create-seed` command
     + Added better support for Windows
@@ -67,8 +67,8 @@ CHANGELOG
     + New component to handle generating and parsing MIME content
 * `pop-queue` new release v1.0.0
     + New component to manage job queues
-* `pop-utils` new release v1.0.0
-    + New component to provide simple common utilities, classes and interfaces 
+* `pop-utils` new release v1.1.0
+    + New component to provide simple common utilities, classes and interfaces
 * `pop-view` updated to v3.2.0
     + Added `pop-filter` component for the filtering functionality.
 * `pop-session` updated to v3.2.0
@@ -81,8 +81,9 @@ CHANGELOG
     + Added support for unlinking/unsetting files from directory object (if writable/accessible)
 * `pop-i18n` updated to v3.1.0
     + Added support for output variations under one source.
-* `popphp` updated to v3.3.0
+* `popphp` updated to v3.4.0
     + Added better support for dynamic array params in the HTTP and CLI route objects
+    + Refactored to use the new `pop-utils` component, including the array and callable features
 * `popcorn` updated to v3.3.0
     + Added support for custom HTTP methods
     + Add `any()` method

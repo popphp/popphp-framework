@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 4.5.0 (beta-3)  
-Released January 24, 2019
+Pop PHP Framework 4.5.0 (beta-4)  
+Released January 28, 2019
 
 OVERVIEW
 --------
@@ -57,7 +57,7 @@ $ composer require popphp/popphp-framework
 Or, you can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "^4.5.0-beta-3"
+        "popphp/popphp-framework": "^4.5.0-beta-4"
     },
     "minimum-stability": "beta"
 
