@@ -81,6 +81,9 @@ CHANGELOG
     + Added support for unlinking/unsetting files from directory object (if writable/accessible)
 * `pop-i18n` updated to v3.1.0
     + Added support for output variations under one source.
+* `pop-image` updated to v3.4.0
+    + Added support for animated GIFs under the Imagick adapter
+    + Deprecated the Gmagick adapter
 * `popphp` updated to v3.4.0
     + Added better support for dynamic array params in the HTTP and CLI route objects
     + Refactored to use the new `pop-utils` component, including the array and callable features

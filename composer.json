@@ -37,7 +37,7 @@
         "popphp/pop-ftp": "^3.0.3",
         "popphp/pop-http": "^3.5.5",
         "popphp/pop-i18n": "^3.1.0",
-        "popphp/pop-image": "^3.3.2",
+        "popphp/pop-image": "^3.4.0",
         "popphp/pop-kettle": "^1.2.1",
         "popphp/pop-loader": "^3.0.4",
         "popphp/pop-log": "^3.2.0",
