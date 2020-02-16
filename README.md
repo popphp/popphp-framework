@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 4.5.0 (beta-4)  
-Released January 28, 2019
+Pop PHP Framework 4.5.0 (beta-5)  
+Released February 15, 2019
 
 OVERVIEW
 --------

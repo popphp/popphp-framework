@@ -2,7 +2,7 @@ CHANGELOG
 =========
 
 ## 4.5.0 (Beta)
-* `pop-db`updated to v5.0.3
+* `pop-db`updated to v5.0.5
     + Refactored the predicate set parser/generator classes
     + Refactored "helper" parser classes (expressions, tables, etc.)
     + Improved SQL builder and schema builder classes
@@ -48,9 +48,12 @@ CHANGELOG
       the weight of a full form object
     + Added `FormConfig` class for more robust support of form configuration
     + Better support for conditional validation
-* `pop-http` updated to v3.5.5
+* `pop-http` updated to v4.0.0
     + Refactored code-base, better class structure (abstract classes, interfaces, etc.)
     + Better support for the HTTP client classes, including better support for form data
+    + Moved server request, response and upload classes under their own new namespace
+      `Pop\Http\Server\` to better organize the code and differentiate between the server
+      and client classes.
     + Incorporated the new `pop-mime` component for better multipart form data generation
     + Incorporated the newly refactored `pop-filter` component for input data filtering
     + Better support of large raw data streams storing to file (instead of in memory)
