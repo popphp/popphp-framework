@@ -57,7 +57,7 @@ $ composer require popphp/popphp-framework
 Or, you can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "^4.5.0-beta-4"
+        "popphp/popphp-framework": "^4.5.0-beta-5"
     },
     "minimum-stability": "beta"
 
