@@ -76,8 +76,20 @@ the script from the `vendor/popphp/pop-kettle/kettle` location:
 ```bash
 $ cp vendor/popphp/popphp-framework/kettle .
 ```
+Once you've copied the script over, you have to change the reference to the script's
+config file from:
 
-And make sure the newly copied `kettle` script is set to execute (755)
+```php
+include __DIR__ . '/config/app.console.php'
+```
+
+to
+
+```php
+include __DIR__ . '/vendor/popphp/pop-kettle/config/app.console.php'
+```
+
+and make sure the newly copied `kettle` script is set to execute (755)
 
 ```bash
 $ chmod 755 kettle
