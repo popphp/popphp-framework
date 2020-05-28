@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-## 4.5.0 (Beta)
+## 4.5.0
 * `pop-db`updated to v5.0.5
     + Refactored the predicate set parser/generator classes
     + Refactored "helper" parser classes (expressions, tables, etc.)
@@ -10,6 +10,11 @@ CHANGELOG
     + Improved support for standard SQL functions
     + Remove references to ArrayObjects
     + Improved unit tests/code coverage
+* `pop-pdf` updated to v4.0.0
+    + Fixed field issues
+    + Improved text support
+    + Improved HTML support
+    + Code review/clean up
 * `pop-acl`updated to v3.3.0
     + Added policy functionality
 * `pop-audit`updated to v1.2.0

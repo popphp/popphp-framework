@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 4.5.0 (beta-5)  
-Released February 15, 2019
+Pop PHP Framework 4.5.0  
+Released May 28, 2020
 
 OVERVIEW
 --------
@@ -45,7 +45,7 @@ You can create a new project, which is recommended. This way, you will have
 access to the CLI-helper script `pop-kettle` in the main project folder:
 
 ```console
-$ composer create-project -s beta popphp/popphp-framework project-folder
+$ composer create-project popphp/popphp-framework project-folder
 ```
 
 Alternatively, you can add it to an existing project with this command:
@@ -57,9 +57,8 @@ $ composer require popphp/popphp-framework
 Or, you can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "^4.5.0-beta-5"
-    },
-    "minimum-stability": "beta"
+        "popphp/popphp-framework": "^4.5.0"
+    }
 
 Also, you can clone this repository and install it directly:
 
@@ -80,13 +79,13 @@ Once you've copied the script over, you have to change the reference to the scri
 config file from:
 
 ```php
-include __DIR__ . '/config/app.console.php'
+include __DIR__ . '/config/app.console.php';
 ```
 
 to
 
 ```php
-include __DIR__ . '/vendor/popphp/pop-kettle/config/app.console.php'
+include __DIR__ . '/vendor/popphp/pop-kettle/config/app.console.php';
 ```
 
 and make sure the newly copied `kettle` script is set to execute (755)
