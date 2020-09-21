@@ -65,10 +65,12 @@ CHANGELOG
 * `pop-filter` reinstated and re-purposed in v3.0.0
     + Refactored the previously deprecated `pop-filter` component to handle filtering
       of data and values for multiple components that need filtering functionality
-* `pop-kettle` updated to v1.2.1
+* `pop-kettle` updated to v1.5.0
     + Updated to work with newly refactored and updated components of Pop PHP v4.5
     + Added `db:create-seed` command
     + Added better support for Windows
+    + Added support for MVC commands
+    + Added support for include helper file to hook other apps into Kettle
 * `pop-log` updated to v3.2.0
     + Added log limits
 * `pop-mime` new release v1.0.0
@@ -92,9 +94,11 @@ CHANGELOG
 * `pop-image` updated to v3.4.0
     + Added support for animated GIFs under the Imagick adapter
     + Deprecated the Gmagick adapter
-* `popphp` updated to v3.4.0
+* `popphp` updated to v3.6.0
     + Added better support for dynamic array params in the HTTP and CLI route objects
     + Refactored to use the new `pop-utils` component, including the array and callable features
+    + Added support for multi-byte routes
+    + Added support for named routes and URL generation
 * `popcorn` updated to v3.3.0
     + Added support for custom HTTP methods
     + Add `any()` method
