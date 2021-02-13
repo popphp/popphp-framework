@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 4.5.0  
-Released May 28, 2020
+Pop PHP Framework 4.6.0  
+Released February 12, 2021
 
 OVERVIEW
 --------
@@ -32,9 +32,8 @@ The core Pop PHP components and the additional components will be installed:
 
 NEW FEATURES
 ------------
-* A number of components have been improved and refactored. 
-* Support for PHP 7.1+ only.
-* PHPUnit tests refactored for PHPUnit 7.0+.
+* Support for PHP 7.3+ only.
+* PHPUnit tests refactored for PHPUnit 9.0+.
 * Reference the `CHANGELOG.md` for further details.
 
 INSTALL
@@ -57,7 +56,7 @@ $ composer require popphp/popphp-framework
 Or, you can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "^4.5.0"
+        "popphp/popphp-framework": "^4.6.0"
     }
 
 Also, you can clone this repository and install it directly:

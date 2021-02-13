@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+## 4.6.0
+* Migrated unit tests from Travis CI to GitHub Actions
+* Changed the minimum version support for PHP to 7.3
+* Changed the minimum version support for PHPUnit to 9.0
+* `pop-image` updated to v3.6.0
+    + Full removal of the Gmagick adapter
+* `pop-queue` updated to v1.2.0
+    + Migrated from the SuperClosure library to the OPI Closure library
+
 ## 4.5.0
 * `pop-db`updated to v5.0.5
     + Refactored the predicate set parser/generator classes
