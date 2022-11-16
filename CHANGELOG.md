@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## 4.7.0
+* Added support for PHP 8.0+. Backwards compatible to PHP 7.4.
+* Added new `pop-storage` component
+    + Provides interchangeable adapters to easily switch between storage resources, e.g., local disk, AWS S3, etc.
+
 ## 4.6.0
 * Migrated unit tests from Travis CI to GitHub Actions
 * Changed the minimum version support for PHP to 7.3

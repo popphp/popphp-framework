@@ -7,8 +7,8 @@ Pop PHP Framework
 
 RELEASE INFORMATION
 -------------------
-Pop PHP Framework 4.6.0  
-Released February 12, 2021
+Pop PHP Framework 4.7.0  
+Released November 16, 2022
 
 OVERVIEW
 --------
@@ -25,14 +25,14 @@ The core Pop PHP components and the additional components will be installed:
 | [pop-config](https://github.com/popphp/pop-config)   | [pop-http](https://github.com/popphp/pop-http)           | [popphp](https://github.com/popphp/popphp)               |
 | [pop-console](https://github.com/popphp/pop-console) | [pop-i18n](https://github.com/popphp/pop-i18n)           | [pop-queue](https://github.com/popphp/pop-queue)         |
 | [pop-cookie](https://github.com/popphp/pop-cookie)   | [pop-image](https://github.com/popphp/pop-image)         | [pop-session](https://github.com/popphp/pop-session)     |
-| [pop-css](https://github.com/popphp/pop-css)         | [pop-kettle](https://github.com/popphp/pop-kettle)       | [pop-utils](https://github.com/popphp/pop-utils)         |
-| [pop-csv](https://github.com/popphp/pop-csv)         | [pop-loader](https://github.com/popphp/pop-loader)       | [pop-validator](https://github.com/popphp/pop-validator) |
-| [pop-db](https://github.com/popphp/pop-db)           | [pop-log](https://github.com/popphp/pop-log)             | [pop-view](https://github.com/popphp/pop-view)           |
-| [pop-debug](https://github.com/popphp/pop-debug)     | [pop-mail](https://github.com/popphp/pop-mail)           |                                                          |
+| [pop-css](https://github.com/popphp/pop-css)         | [pop-kettle](https://github.com/popphp/pop-kettle)       | [pop-storage](https://github.com/popphp/pop-storage)     |
+| [pop-csv](https://github.com/popphp/pop-csv)         | [pop-loader](https://github.com/popphp/pop-loader)       | [pop-utils](https://github.com/popphp/pop-utils)         |
+| [pop-db](https://github.com/popphp/pop-db)           | [pop-log](https://github.com/popphp/pop-log)             | [pop-validator](https://github.com/popphp/pop-validator) |
+| [pop-debug](https://github.com/popphp/pop-debug)     | [pop-mail](https://github.com/popphp/pop-mail)           | [pop-view](https://github.com/popphp/pop-view)           |
 
 NEW FEATURES
 ------------
-* Support for PHP 7.3+ only.
+* Support for PHP 8.0+ and 7.4+ only.
 * PHPUnit tests refactored for PHPUnit 9.0+.
 * Reference the `CHANGELOG.md` for further details.
 
@@ -56,7 +56,7 @@ $ composer require popphp/popphp-framework
 Or, you can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "^4.6.0"
+        "popphp/popphp-framework": "^4.7.0"
     }
 
 Also, you can clone this repository and install it directly:
