@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+## 4.8.0
+* Added API-based adapters for `MailGun` and `SendGrid` in the `pop-mail` component 
+* Added new `Auth` header class to the `pop-http` component
+  + Provides easier access to auth header information for outbound client requests and inbound server requests
+
 ## 4.7.0
 * Added support for PHP 8.0+. Backwards compatible to PHP 7.4.
 * Added new `pop-storage` component
