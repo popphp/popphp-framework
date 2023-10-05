@@ -3,7 +3,7 @@ Pop PHP Framework
 
 <img src="http://www.popphp.org/assets/img/pop-php-logo.png" width="180" height="180" />
 
-[![Join the chat at https://gitter.im/pop-php-framework/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/pop-php-framework/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://discord.gg/8DUdCr9x](https://www.popphp.org/assets/img/discord-chat.svg)](https://discord.gg/8DUdCr9x)
 
 RELEASE INFORMATION
 -------------------
@@ -95,5 +95,5 @@ $ chmod 755 kettle
 
 ## DISCUSSION
 
-There is a Gitter chat room for Pop PHP over at https://gitter.im/pop-php-framework/Lobby
+There is a Discord server for the Pop PHP community and support. The invite link is https://discord.gg/8DUdCr9x
 
