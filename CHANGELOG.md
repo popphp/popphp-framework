@@ -37,7 +37,7 @@ CHANGELOG
 - `pop-db`
   + Added the functionality to store DB migrations in a DB table.
 - `pop-code`
-  + Added support return types and better support for type hints
+  + Added support for return types and better support for type hints
 - `pop-color`
   + New component for color value management, parsing and conversion
 - `pop-console`
@@ -55,7 +55,7 @@ CHANGELOG
   + Deprecated and removed abstract error class and error interface
 
 ### Deprecated Features
-- Support for PHP 7.4 no longer provided
+- PHP 7.4 no longer supported
 - The `pop-loader` component is no longer available
 - Removed abstract error class and error interface in `pop-utils`
 
