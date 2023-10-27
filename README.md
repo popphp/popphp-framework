@@ -63,6 +63,8 @@ Or, you can add it your project's `composer.json` file:
 Also, you can clone this repository and install it directly:
 
 ```console
+$ git clone https://github.com/popphp/popphp-framework.git popphp
+$ cd popphp
 $ composer install
 ```
 
