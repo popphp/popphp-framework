@@ -2,7 +2,7 @@ CHANGELOG
 =========
 
 ## 5.0.0
-**(11/1/2023)**
+**(10/30/2023)**
 - Upgraded to PHP 8.1+
 - `pop-http`
   + Better separation of Client and Server functionality
