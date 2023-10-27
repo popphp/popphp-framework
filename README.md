@@ -85,7 +85,9 @@ config file from:
 to
 
 ```php
-    $app = new Pop\Application($autoloader, include __DIR__ . '/vendor/popphp/pop-kettle/config/app.console.php');
+    $app = new Pop\Application(
+        $autoloader, include __DIR__ . '/vendor/popphp/pop-kettle/config/app.console.php'
+    );
 ```
 
 and make sure the newly copied `kettle` script is set to execute (755)
