@@ -79,7 +79,9 @@ Once you've copied the script over, you have to change the reference to the scri
 config file from:
 
 ```php
-    $app = new Pop\Application($autoloader, include __DIR__ . '/config/app.console.php');
+    $app = new Pop\Application(
+        $autoloader, include __DIR__ . '/config/app.console.php'
+    );
 ```
 
 to
