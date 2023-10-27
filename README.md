@@ -18,7 +18,7 @@ Released October 27, 2023
 
 Overview
 --------
-This repository contains the composer.json file to install the full Pop PHP Framework.
+This repository contains the `composer.json` file to install the full Pop PHP Framework.
 The core Pop PHP components and the additional components listed below will be installed:
 
 |                                                      | Components                                         |                                                          |
