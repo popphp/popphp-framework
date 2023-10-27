@@ -7,7 +7,7 @@
 $autoloader = include __DIR__ . '/vendor/autoload.php';
 
 try {
-    $app = new Pop\Application($autoloader, include __DIR__ . '/vendor/popphp/pop-kettle/config/app.console.php');
+    $app = new Pop\Application($autoloader, include __DIR__ . '/config/app.console.php');
     if (file_exists('kettle.inc.php')) {
         include 'kettle.inc.php';
     }
@@ -17,3 +17,5 @@ try {
     $app = new Pop\Kettle\Module();
     $app->cliError($exception);
 }
+
+

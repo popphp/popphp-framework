@@ -1,18 +1,76 @@
 CHANGELOG
 =========
 
+## 5.0.0
+**(11/1/2023)**
+- Upgraded to PHP 8.1+
+- `pop-http`
+  + Better separation of Client and Server functionality
+  + Added standalone Client class
+  + Added client handlers to support curl, streams and curl multi
+  + Added standalone Server class
+  + Added Promises
+  + Added Curl CLI conversion functionality
+  + Added factories to the client Stream and Curl classes
+  + Added factories to the request, response and upload classes
+- `pop-mail`
+  + Expanded the available mail transports to include:
+    - Mailgun
+    - Sendgrid
+    - Office 365
+    - AWS SES
+    - Google
+  + Expanded the available mail clients to include:
+    - Office 365
+    - Google
+- `pop-storage`
+  + Added Azure adapter
+  + Refactored the S3 and Local adapters
+  + Added top-level normalized Storage class
+- `popphp`
+  + Improved CLI route syntax and handling
+- `pop-auth`
+  + Refactored for `pop-http` v5.0.0
+- `pop-db`
+  + Added the functionality to store DB migrations in a DB table.
+- `pop-code`
+  + Added support return types and better support for type hints
+- `pop-color`
+  + New component for color value management, parsing and conversion
+- `pop-console`
+  + Added support for 4th console color to visually separate parameters and options
+- `pop-image`
+  + Deprecated and removed the following methods:
+    - `setAdjust()`, `setDraw()`, `setEffect()`, `setFilter()`, `setLayer()`, `setType()`
+  + The following existing methods now serve as the constructor factories for their respective objects:
+    - `adjust()`, `draw()`, `effect()`, `filter()`, `layer()`, `type()`
+- `pop-kettle`
+  + Added the ability to store and manage migrations from a database table
+  + Added the ability to export and import raw SQL files (MySQL only.)
+- `pop-utils`
+  + Added File helper class
+  + Deprecated and removed abstract error class and error interface
+
+### Deprecated Features
+- Support for PHP 7.4 no longer provided
+- The `pop-loader` component is no longer available
+- Removed abstract error class and error interface in `pop-utils`
+
 ## 4.8.0
+**(9/3/2023)**
 * Added API-based adapters for `MailGun` and `SendGrid` in the `pop-mail` component 
 * Added new `Auth` header class to the `pop-http` component
   + Provides easier access to auth header information for outbound client requests and inbound server requests
 * Added ability to track full state in the `pop-audit` component
 
 ## 4.7.0
+**(11/16/2022)**
 * Added support for PHP 8.0+. Backwards compatible to PHP 7.4.
 * Added new `pop-storage` component
     + Provides interchangeable adapters to easily switch between storage resources, e.g., local disk, AWS S3, etc.
 
 ## 4.6.0
+**(2/12/2021)**
 * Migrated unit tests from Travis CI to GitHub Actions
 * Changed the minimum version support for PHP to 7.3
 * Changed the minimum version support for PHPUnit to 9.0
@@ -22,6 +80,7 @@ CHANGELOG
     + Migrated from the SuperClosure library to the OPI Closure library
 
 ## 4.5.0
+**(5/28/2020)**
 * `pop-db`updated to v5.0.5
     + Refactored the predicate set parser/generator classes
     + Refactored "helper" parser classes (expressions, tables, etc.)
@@ -125,6 +184,7 @@ CHANGELOG
     + Better exception error messaging
 
 ## 4.1.0
+**(10/17/2019)**
 * Updated to pop-csv v3.1.4, better appending, newline, escape and limit support
 * Updated tp pop-db v4.5.5, with support for export and creating large SQL
   queries from data sets
@@ -140,15 +200,19 @@ CHANGELOG
 * Update to popphp v3.3.1, adding a force route parameter to the `run()` method
 
 ## 4.0.3
+**(4/9/2019)**
 * Updated to pop-csv v3.1.0, which includes static helper methods
 
 ## 4.0.2
+**(3/12/2019)**
 * Updated to pop-db v4.5.0, which includes support for the encoded record class
 
 ## 4.0.1
+**(2/9/2019)**
 * Added pop-kettle component for CLI-based helper functionality
 
 ## 4.0.0
+**(2/5/2019)**
 * Support for PHP 7.1+ only
 * PHPUnit tests refactored for PHPUnit 7.0+
 * Refactored pop-auth
@@ -177,7 +241,6 @@ CHANGELOG
 * Updated pop-pdf
 
 ## 3.6.4
-
 * Updated license & copyright
 * Updated composer.json
 
