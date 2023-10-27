@@ -13,6 +13,7 @@ CHANGELOG
   + Added Curl CLI conversion functionality
   + Added factories to the client Stream and Curl classes
   + Added factories to the request, response and upload classes
+  + Improved Auth header object, added support for digest auth
 - `pop-mail`
   + Expanded the available mail transports to include:
     - Mailgun
