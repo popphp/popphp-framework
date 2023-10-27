@@ -13,7 +13,7 @@ Released October 27, 2023
 OVERVIEW
 --------
 This repository contains the composer.json file to install the full Pop PHP Framework.
-The core Pop PHP components and the additional components will be installed:
+The core Pop PHP components and the additional components listed below will be installed:
 
 |                                                      | Components                                         |                                                          |
 |------------------------------------------------------|----------------------------------------------------|----------------------------------------------------------|
@@ -35,7 +35,7 @@ NEW FEATURES
 * Support for PHP 8.1+
 * Support for PHP <=7.4 has been deprecated.
 * PHPUnit tests refactored for PHPUnit 10.0+.
-* Reference the `CHANGELOG.md` for further details.
+* Reference the [![CHANGELOG.md](https://github.com/popphp/popphp-framework/blob/master/CHANGELOG.md) for further details.
 
 INSTALL
 -------
