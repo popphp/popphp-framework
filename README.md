@@ -41,7 +41,7 @@ New Features
 * Support for PHP 8.1+
 * Support for PHP <=7.4 has been deprecated.
 * PHPUnit tests refactored for PHPUnit 10.0+.
-* Reference the [CHANGELOG.md](https://github.com/popphp/popphp-framework/blob/master/CHANGELOG.md) for further details.
+* Reference the [CHANGELOG.md](https://github.com/popphp/popphp-framework/blob/v5/CHANGELOG.md) for further details.
 
 [Top](#pop-php-framework)
 
