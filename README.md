@@ -85,6 +85,8 @@ You can add it your project's `composer.json` file:
     }
 
 
+[Top](#pop-php-framework)
+
 Kettle
 ------
 
@@ -122,8 +124,11 @@ and make sure the newly copied `kettle` script is set to execute (755)
 $ chmod 755 kettle
 ```
 
+[Top](#pop-php-framework)
+
 Support
 -------
 
 There is a Discord server for the Pop PHP community and support. The invite link is https://discord.gg/8DUdCr9x
+Also, there is a account on X at https://x.com/popphpframework
 
