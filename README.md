@@ -60,7 +60,8 @@ $ composer create-project popphp/popphp-framework project-folder
 
 ##### Option 2
 
-You can clone this repository directly, which will also install `pop-kettle`:
+You can clone this repository directly, which will also install the `kettle` script
+in the main project folder:
 
 ```console
 $ git clone https://github.com/popphp/popphp-framework.git popphp
