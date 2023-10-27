@@ -52,7 +52,7 @@ There are multiple ways you can get Pop PHP Framework into your project.
 ##### Option 1
 
 You can create a new project with the `composer create-project` command, which is recommended.
-This way, you will have access to the CLI-helper script `pop-kettle` in the main project folder:
+This way, you will have access to the CLI-helper script `kettle` in the main project folder:
 
 ```console
 $ composer create-project popphp/popphp-framework project-folder
