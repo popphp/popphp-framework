@@ -79,13 +79,13 @@ Once you've copied the script over, you have to change the reference to the scri
 config file from:
 
 ```php
-include __DIR__ . '/config/app.console.php';
+    $app = new Pop\Application($autoloader, include __DIR__ . '/config/app.console.php');
 ```
 
 to
 
 ```php
-include __DIR__ . '/vendor/popphp/pop-kettle/config/app.console.php';
+    $app = new Pop\Application($autoloader, include __DIR__ . '/vendor/popphp/pop-kettle/config/app.console.php');
 ```
 
 and make sure the newly copied `kettle` script is set to execute (755)
