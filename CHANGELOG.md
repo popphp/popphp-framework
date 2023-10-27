@@ -6,11 +6,13 @@ CHANGELOG
 - Upgraded to PHP 8.1+
 - `pop-http`
   + Better separation of Client and Server functionality
-  + Added standalone Client class
-  + Added client handlers to support curl, streams and curl multi
-  + Added standalone Server class
+    - Added standalone Client class
+    - Added client handlers to support curl, streams and curl multi
+    - Added standalone Server class
+  + Improved response content negotiation and handling
   + Added Promises
   + Added Curl CLI conversion functionality
+  + Added ability to create raw strings of a client request
   + Added factories to the client Stream and Curl classes
   + Added factories to the request, response and upload classes
   + Improved Auth header object, added support for digest auth

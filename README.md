@@ -5,12 +5,18 @@ Pop PHP Framework
 
 [![Join the chat at https://discord.gg/8DUdCr9x](https://www.popphp.org/assets/img/discord-chat.svg)](https://discord.gg/8DUdCr9x)
 
-RELEASE INFORMATION
+* [Overview](#overview)
+* [New Features](#new-features)
+* [Install](#install)
+* [Kettle](#kettle)
+* [Support](#support)
+
+Release Information
 -------------------
 Pop PHP Framework 5.0.0
 Released October 27, 2023
 
-OVERVIEW
+Overview
 --------
 This repository contains the composer.json file to install the full Pop PHP Framework.
 The core Pop PHP components and the additional components listed below will be installed:
@@ -30,14 +36,16 @@ The core Pop PHP components and the additional components listed below will be i
 | [pop-csv](https://github.com/popphp/pop-csv)         | [pop-log](https://github.com/popphp/pop-log)       | [pop-validator](https://github.com/popphp/pop-validator) |
 | [pop-db](https://github.com/popphp/pop-db)           | [pop-mail](https://github.com/popphp/pop-mail)     | [pop-view](https://github.com/popphp/pop-view)           |
 
-NEW FEATURES
+New Features
 ------------
 * Support for PHP 8.1+
 * Support for PHP <=7.4 has been deprecated.
 * PHPUnit tests refactored for PHPUnit 10.0+.
 * Reference the [CHANGELOG.md](https://github.com/popphp/popphp-framework/blob/master/CHANGELOG.md) for further details.
 
-INSTALL
+[Top](#pop-php-framework)
+
+Install
 -------
 There are multiple ways you can get Pop PHP Framework into your project.
 
@@ -77,7 +85,12 @@ You can add it your project's `composer.json` file:
     }
 
 
-### Kettle CLI-Helper
+Kettle
+------
+
+### CLI Helper
+
+`pop-kettle`
 
 If choose to install the framework in a way that the `pop-kettle` CLI-helper script is not available
 in the main project folder (options 3 and 4), you can place a copy of the script from the
@@ -109,7 +122,8 @@ and make sure the newly copied `kettle` script is set to execute (755)
 $ chmod 755 kettle
 ```
 
-## DISCUSSION
+Support
+-------
 
 There is a Discord server for the Pop PHP community and support. The invite link is https://discord.gg/8DUdCr9x
 
