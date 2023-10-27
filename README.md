@@ -41,26 +41,14 @@ INSTALL
 -------
 There are multiple ways you can get Pop PHP Framework into your project.
 
-You can create a new project, which is recommended. This way, you will have
-access to the CLI-helper script `pop-kettle` in the main project folder:
+1 .You can create a new project with the `composer create-project` command, which is recommended.
+This way, you will have access to the CLI-helper script `pop-kettle` in the main project folder:
 
 ```console
 $ composer create-project popphp/popphp-framework project-folder
 ```
 
-Alternatively, you can add it to an existing project with this command:
-
-```console
-$ composer require popphp/popphp-framework
-```
-
-Or, you can add it your project's `composer.json` file:
-
-    "require": {
-        "popphp/popphp-framework": "^5.0.0"
-    }
-
-Also, you can clone this repository and install it directly:
+2. You can clone this repository directly, which will also install `pop-kettle`:
 
 ```console
 $ git clone https://github.com/popphp/popphp-framework.git popphp
@@ -68,11 +56,24 @@ $ cd popphp
 $ composer install
 ```
 
+3. You can add it to an existing project with the `composer require` command:
+
+```console
+$ composer require popphp/popphp-framework
+```
+
+4. You can add it your project's `composer.json` file:
+
+    "require": {
+        "popphp/popphp-framework": "^5.0.0"
+    }
+
+
 ### Kettle CLI-Helper
 
-If choose to install the framework in a way that the `pop-kettle` CLI-helper
-script is not available in the main project folder, you can place a copy of
-the script from the `vendor/popphp/pop-kettle/kettle` location:
+If choose to install the framework in a way that the `pop-kettle` CLI-helper script is
+not available in the main project folder (#3 and #4), you can place a copy of the script
+from the `vendor/popphp/pop-kettle/kettle` location:
 
 ```bash
 $ cp vendor/popphp/popphp-framework/kettle .
