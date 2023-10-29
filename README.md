@@ -3,7 +3,7 @@ Pop PHP Framework
 
 <img src="http://www.popphp.org/assets/img/pop-php-logo.png" width="180" height="180" />
 
-[![Join the chat at https://discord.gg/8DUdCr9x](https://www.popphp.org/assets/img/discord-chat.svg)](https://discord.gg/8DUdCr9x)
+[![Join the chat at https://discord.gg/D9JBxPa5](https://www.popphp.org/assets/img/discord-chat.svg)](https://discord.gg/D9JBxPa5)
 
 * [Overview](#overview)
 * [New Features](#new-features)
