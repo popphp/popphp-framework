@@ -131,6 +131,9 @@ $ chmod 755 kettle
 Support
 -------
 
-There is a Discord server for the Pop PHP community and support. The invite link is https://discord.gg/8DUdCr9x
-Also, there is a account on X at https://x.com/popphpframework
+There are a few different ways to participate in the Pop PHP community:
+
+- [Slack](https://popphp.slack.com)
+- [Discord](https://discord.gg/D9JBxPa5)
+- [X](https://x.com/popphpframework)
 
