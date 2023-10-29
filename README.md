@@ -131,9 +131,21 @@ $ chmod 755 kettle
 Support
 -------
 
-There are a few different ways to participate in the Pop PHP community:
+The best way to directly interact with Pop PHP is here on GitHub. You can:
+
+- Contribute code
+- Request a feature
+- Report an issue
+
+but please do so under the pertinent repository related to the topic at hand. 
+
+Besides interacting with the various repositories here on GitHub, there are
+a few other ways to participate in the Pop PHP community:
 
 - [Slack](https://popphp.slack.com)
 - [Discord](https://discord.gg/D9JBxPa5)
 - [X](https://x.com/popphpframework)
+
+
+[Top](#pop-php-framework)
 
