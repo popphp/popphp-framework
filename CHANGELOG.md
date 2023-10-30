@@ -42,6 +42,10 @@ CHANGELOG
   + New component for color value management, parsing and conversion
 - `pop-console`
   + Added support for 4th console color to visually separate parameters and options
+- `pop-css`
+  + Added `writeToFile($to)` method
+  + Improved comment functionality
+  + Improved the CSS object constructor
 - `pop-image`
   + Deprecated and removed the following methods:
     - `setAdjust()`, `setDraw()`, `setEffect()`, `setFilter()`, `setLayer()`, `setType()`
