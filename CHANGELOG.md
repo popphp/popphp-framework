@@ -51,6 +51,7 @@ CHANGELOG
 - `pop-debug`
   + Improved get/retrieval of stored debug content
   + Renamed `Db` storage adapter `Database` to limit possible namespace conflicts
+  + Added `timestamp` column to database storage adapter
   + Deprecated/removed Redis adapter
 - `pop-image`
   + Deprecated and removed the following methods:
