@@ -46,6 +46,9 @@ CHANGELOG
   + Added `writeToFile($to)` method
   + Improved comment functionality
   + Improved the CSS object constructor
+- `pop-debug`
+  + Improved get/retrieval of stored debug content
+  + Deprecated/removed Redis adapter
 - `pop-image`
   + Deprecated and removed the following methods:
     - `setAdjust()`, `setDraw()`, `setEffect()`, `setFilter()`, `setLayer()`, `setType()`
