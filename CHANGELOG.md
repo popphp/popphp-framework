@@ -61,6 +61,8 @@ CHANGELOG
 - `pop-kettle`
   + Added the ability to store and manage migrations from a database table
   + Added the ability to export and import raw SQL files (MySQL only.)
+- `pop-log`
+  + Renamed `Db` writer `Database` to limit possible namespace conflicts
 - `pop-utils`
   + Added File helper class
   + Deprecated and removed abstract error class and error interface
