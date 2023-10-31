@@ -98,7 +98,7 @@ Kettle
 
 If choose to install the framework in a way that the `pop-kettle` CLI-helper script is not available
 in the main project folder (options 3 and 4), you can place a copy of the script from the
-`vendor/popphp/pop-kettle/kettle` location:
+`vendor/popphp/pop-kettle/kettle` location in the main project folder (adjacent to the `vendor` folder):
 
 ```bash
 $ cp vendor/popphp/popphp-framework/kettle .
