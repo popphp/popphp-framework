@@ -38,6 +38,8 @@ CHANGELOG
   + Added the functionality to store DB migrations in a DB table.
 - `pop-code`
   + Added support for return types and better support for type hints
+- `pop-cache`
+  + Renamed `Db` adapter `Database` to limit possible namespace conflicts 
 - `pop-color`
   + New component for color value management, parsing and conversion
 - `pop-console`
@@ -48,6 +50,7 @@ CHANGELOG
   + Improved the CSS object constructor
 - `pop-debug`
   + Improved get/retrieval of stored debug content
+  + Renamed `Db` storage adapter `Database` to limit possible namespace conflicts
   + Deprecated/removed Redis adapter
 - `pop-image`
   + Deprecated and removed the following methods:
