@@ -30,6 +30,13 @@ CHANGELOG
   + Added Azure adapter
   + Refactored the S3 and Local adapters
   + Added top-level normalized Storage class
+- `pop-queue`
+  + Created a task object that extends the job object and has scheduling functionality
+  + Deprecated the scheduler object in favor if the task object and a single worker object 
+  + Added a cron object to manage scheduling; greatly improved scheduling functionality
+  + Added the ability to have sub-minute scheduling
+  + Added max attempts
+  + Improved the "run until" functionality
 - `popphp`
   + Improved CLI route syntax and handling
 - `pop-auth`
