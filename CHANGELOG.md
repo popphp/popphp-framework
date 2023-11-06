@@ -42,7 +42,9 @@ CHANGELOG
 - `pop-auth`
   + Refactored for `pop-http` v5.0.0
 - `pop-db`
-  + Added the functionality to store DB migrations in a DB table.
+  + Added Seeder class with `create()` and `run()` methods
+  + Added the functionality to store DB migrations in a DB table
+  + Improved debugger functionality with the profiler
 - `pop-code`
   + Added support for return types and better support for type hints
 - `pop-cache`
@@ -67,6 +69,7 @@ CHANGELOG
     - `adjust()`, `draw()`, `effect()`, `filter()`, `layer()`, `type()`
 - `pop-kettle`
   + Added the ability to store and manage migrations from a database table
+  + Moved seed functionality over to new `Pop\Db\Sql\Seeder` class
   + Added the ability to export and import raw SQL files (MySQL only.)
 - `pop-log`
   + Renamed `Db` writer `Database` to limit possible namespace conflicts
