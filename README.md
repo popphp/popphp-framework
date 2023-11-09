@@ -39,7 +39,7 @@ The core Pop PHP components and the additional components listed below will be i
 
 New Features
 ------------
-* A large number of component improvements, upgrades and refactors.
+* A large number of improvements, upgrades and refactors across many components.
 * Support for PHP 8.1+
 * Support for PHP <=7.4 has been deprecated.
 * PHPUnit tests refactored for PHPUnit 10.0+.
