@@ -4,7 +4,7 @@ Pop PHP Framework
 <img src="http://www.popphp.org/assets/img/pop-php-logo.png" width="180" height="180" />
 
 [![Join the chat at https://popphp.slack.com](https://media.popphp.org/img/slack.svg)](https://popphp.slack.com)
-[![Join the chat at https://discord.gg/D9JBxPa5](https://media.popphp.org/img/discord.svg)](https://discord.gg/D9JBxPa5)
+[![Join the chat at https://discord.gg/TZjgT74U7E](https://media.popphp.org/img/discord.svg)](https://discord.gg/TZjgT74U7E)
 
 * [Overview](#overview)
 * [New Features](#new-features)
@@ -145,7 +145,7 @@ Besides interacting with the various repositories here on GitHub, there are
 a few other ways to participate in the Pop PHP community:
 
 - [Slack](https://popphp.slack.com)
-- [Discord](https://discord.gg/D9JBxPa5)
+- [Discord](https://discord.gg/TZjgT74U7E)
 - [X](https://x.com/popphpframework)
 
 

@@ -53,6 +53,8 @@ CHANGELOG
   + Renamed `Db` adapter `Database` to limit possible namespace conflicts 
 - `pop-color`
   + New component for color value management, parsing and conversion
+- `pop-config`
+  + Add support for YAML
 - `pop-console`
   + Added support for 4th console color to visually separate parameters and options
 - `pop-css`
