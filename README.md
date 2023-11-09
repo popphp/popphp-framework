@@ -15,7 +15,7 @@ Pop PHP Framework
 Release Information
 -------------------
 Pop PHP Framework 5.0.0  
-Released October 30, 2023
+Released November 8, 2023
 
 Overview
 --------
@@ -39,6 +39,7 @@ The core Pop PHP components and the additional components listed below will be i
 
 New Features
 ------------
+* A large number of component improvements, upgrades and refactors.
 * Support for PHP 8.1+
 * Support for PHP <=7.4 has been deprecated.
 * PHPUnit tests refactored for PHPUnit 10.0+.
@@ -101,9 +102,10 @@ in the main project folder (options 3 and 4), you can place a copy of the script
 `vendor/popphp/pop-kettle/kettle` location in the main project folder (adjacent to the `vendor` folder):
 
 ```bash
-$ cp vendor/popphp/popphp-framework/kettle .
+$ cp vendor/popphp/pop-kettle/kettle .
+$ cp vendor/popphp/pop-kettle/kettle.inc.php .
 ```
-Once you've copied the script over, you have to change the reference to the script's
+Once you've copied the scripts over, you have to change the reference to the script's
 config file from:
 
 ```php
