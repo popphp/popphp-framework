@@ -2,7 +2,7 @@ CHANGELOG
 =========
 
 ## 5.0.0
-**(10/30/2023)**
+**(11/08/2023)**
 - Upgraded to PHP 8.1+
 - `pop-http`
   + Better separation of Client and Server functionality
@@ -32,11 +32,13 @@ CHANGELOG
   + Added top-level normalized Storage class
 - `pop-queue`
   + Created a task object that extends the job object and has scheduling functionality
-  + Deprecated the scheduler object in favor if the task object and a single worker object 
+  + Deprecated the scheduler object and refactored worker object
+    - Reworked hierarchy of job/task -> queue -> worker
   + Added a cron object to manage scheduling; greatly improved scheduling functionality
   + Added the ability to have sub-minute scheduling
   + Added max attempts
   + Improved the "run until" functionality
+  + Added AWS SQS adapter
 - `popphp`
   + Improved CLI route syntax and handling
 - `pop-auth`
