@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+## 5.1.0
+**(12/12/2023)**
+- Improved transaction support in `pop-db`
+- Incorporated `vlucas/phpdotenv` in `popphp` to track application-specific variables
+- Improved application handling and support with `pop-kettle`
+- Improved color and styling support in `pop-console`
+
 ## 5.0.0
 **(11/08/2023)**
 - Upgraded to PHP 8.1+

@@ -1,10 +1,13 @@
-#!/usr/bin/php
+#!/usr/bin/env php
 <?php
 /**
  * Pop Kettle Console Application
  */
 
 $autoloader = include __DIR__ . '/vendor/autoload.php';
+
+$dotEnv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotEnv->safeLoad();
 
 try {
     $app = new Pop\Application($autoloader, include __DIR__ . '/vendor/popphp/pop-kettle/config/app.console.php');
@@ -17,5 +20,3 @@ try {
     $app = new Pop\Kettle\Module();
     $app->cliError($exception);
 }
-
-
