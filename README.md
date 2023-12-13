@@ -14,7 +14,7 @@ Pop PHP Framework
 
 Release Information
 -------------------
-Pop PHP Framework 5.1.0
+Pop PHP Framework 5.1.0  
 Released December 12, 2023
 
 Overview
