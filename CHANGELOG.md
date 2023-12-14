@@ -4,6 +4,7 @@ CHANGELOG
 ## 5.1.0
 **(12/12/2023)**
 - Improved transaction support in `pop-db`
+- Added individual query methods to the database adapters in `pop-db`
 - Added the `Pop\App` helper class in `popphp`
 - Incorporated `vlucas/phpdotenv` in `popphp` to track application-specific variables
 - Improved application handling and support with `pop-kettle`
