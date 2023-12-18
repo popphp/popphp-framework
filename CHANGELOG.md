@@ -2,7 +2,7 @@ CHANGELOG
 =========
 
 ## 5.1.0
-**(12/15/2023)**
+**(12/18/2023)**
 - Improved transaction support in `pop-db`
 - Added individual query methods to the database adapters in `pop-db`
 - Added the `Pop\App` helper class in `popphp`
