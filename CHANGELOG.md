@@ -15,7 +15,6 @@ CHANGELOG
 - Upgraded the "options" parameter - renamed "omit" to "exclude" and added "include" in `pop-csv`
 - Added `outputToRawString` method in `pop-image`
 
-
 ## 5.1.0
 **(12/18/2023)**
 - Improved transaction support in `pop-db`
