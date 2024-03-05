@@ -14,8 +14,8 @@ Pop PHP Framework
 
 Release Information
 -------------------
-Pop PHP Framework 5.1.0  
-Released December 12, 2023
+Pop PHP Framework 5.2.0  
+Released March 4, 2024
 
 Overview
 --------
@@ -84,7 +84,7 @@ $ composer require popphp/popphp-framework
 You can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "^5.1.0"
+        "popphp/popphp-framework": "^5.2.0"
     }
 
 

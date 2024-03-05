@@ -1,6 +1,21 @@
 CHANGELOG
 =========
 
+## 5.2.0
+**(3/4/2024)**
+- Added bash completion to `pop-kettle`
+- Added style object and functionality to `pop-pdf`
+- `popcorn`
+  + Added support for custom methods in the config
+  + Improved route prefixes
+- `pop-form`
+  + Improved error message grouping and display
+  + Improved append/prepend functionality with form field elements
+- Improved ACL policy support in `pop-nav`
+- Upgraded the "options" parameter - renamed "omit" to "exclude" and added "include" in `pop-csv`
+- Added `outputToRawString` method in `pop-image`
+
+
 ## 5.1.0
 **(12/18/2023)**
 - Improved transaction support in `pop-db`
