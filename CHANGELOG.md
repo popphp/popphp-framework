@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+## 5.3.0
+**(4/1/2024)**
+- `pop-utils`
+  + Added helper class and functions
+  + Added autoloading of helper functions to main application object
+  + Added array helper class
+  + Refactored existing array classes for better interoperability
+
 ## 5.2.0
 **(3/4/2024)**
 - Added bash completion to `pop-kettle`
