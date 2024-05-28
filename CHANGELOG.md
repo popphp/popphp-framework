@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+## 5.3.1
+**(5/28/2024)**
+- Small improvements to the following packages:
+  + `popphp`
+  + `pop-db`
+  + `pop-form`
+  + `pop-http`
+  + `pop-mail`
+  + `pop-utils`
+
 ## 5.3.0
 **(4/1/2024)**
 - `pop-utils`
