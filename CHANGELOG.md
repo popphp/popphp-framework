@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+## 5.4.0
+**(9/10/2024)**
+- Updates & Improvements to the following packages:
+  + `popphp` - bug fix
+  + `pop-dom` - bug fix
+  + `pop-form` - bug fix
+  + `pop-http` - bug fix
+  + `pop-pdf` - Added support for text extraction
+  + `pop-utils` - Added DateTimeTrait
+  + `pop-validator` - Added DateTime validators
+
 ## 5.3.1
 **(5/28/2024)**
 - Small improvements to the following packages:
