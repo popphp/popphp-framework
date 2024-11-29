@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+## 5.5.0
+**(12/2/2024)**
+- Updated for PHP 8.2+
+- Updated test for PHPUnit 11.0
+- Updates & Improvements to the following packages:
+  + `pop-mail` - bug fixes
+  + `pop-db` - Added support for `UPDATE` SQL in the Sql Data class
+  + `pop-debug` - Added support for adding loggers to the debugger
+  + `pop-form` - Improved support for i18n for the required message
+  + `pop-http` - Improved support for custom content-type headers
+  + `pop-kettle` - Added bash and zsh completion
+  + `pop-log` - Added serialization support for context
+  + `pop-validator` - Added optional results property
+
 ## 5.4.0
 **(9/10/2024)**
 - Updates & Improvements to the following packages:

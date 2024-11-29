@@ -3,7 +3,6 @@ Pop PHP Framework
 
 <img src="http://www.popphp.org/assets/img/pop-php-logo.png" width="180" height="180" />
 
-[![Join the chat at https://popphp.slack.com](https://media.popphp.org/img/slack.svg)](https://popphp.slack.com)
 [![Join the chat at https://discord.gg/TZjgT74U7E](https://media.popphp.org/img/discord.svg)](https://discord.gg/TZjgT74U7E)
 
 * [Overview](#overview)
@@ -14,8 +13,8 @@ Pop PHP Framework
 
 Release Information
 -------------------
-Pop PHP Framework 5.4.0  
-Released September 10, 2024
+Pop PHP Framework 5.5.0  
+Released December 2, 2024
 
 Overview
 --------
@@ -40,9 +39,8 @@ The core Pop PHP components and the additional components listed below will be i
 New Features
 ------------
 * A large number of improvements, upgrades and refactors across many components.
-* Support for PHP 8.1+.
-* Support for PHP <=7.4 has been deprecated.
-* PHPUnit tests refactored for PHPUnit 10.0+.
+* Support for PHP 8.2+.
+* PHPUnit tests refactored for PHPUnit 11.0+.
 * Reference the [CHANGELOG.md](https://github.com/popphp/popphp-framework/blob/master/CHANGELOG.md) for further details.
 
 [Top](#pop-php-framework)
@@ -84,7 +82,7 @@ $ composer require popphp/popphp-framework
 You can add it your project's `composer.json` file:
 
     "require": {
-        "popphp/popphp-framework": "^5.4.0"
+        "popphp/popphp-framework": "^5.5.0"
     }
 
 
@@ -144,7 +142,6 @@ but please do so under the pertinent repository related to the topic at hand.
 Besides interacting with the various repositories here on GitHub, there are
 a few other ways to participate in the Pop PHP community:
 
-- [Slack](https://popphp.slack.com)
 - [Discord](https://discord.gg/TZjgT74U7E)
 - [X](https://x.com/popphpframework)
 
