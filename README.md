@@ -14,7 +14,7 @@ Pop PHP Framework
 Release Information
 -------------------
 Pop PHP Framework 5.5.0  
-Released December 2, 2024
+Released February 12, 2025
 
 Overview
 --------
@@ -40,7 +40,7 @@ New Features
 ------------
 * A large number of improvements, upgrades and refactors across many components.
 * Support for PHP 8.2+.
-* PHPUnit tests refactored for PHPUnit 11.0+.
+* PHPUnit tests refactored for PHPUnit 11+.
 * Reference the [CHANGELOG.md](https://github.com/popphp/popphp-framework/blob/master/CHANGELOG.md) for further details.
 
 [Top](#pop-php-framework)

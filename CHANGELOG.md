@@ -2,12 +2,15 @@ CHANGELOG
 =========
 
 ## 5.5.0
-**(12/2/2024)**
+**(02/12/2025)**
 - Updated for PHP 8.2+
-- Updated test for PHPUnit 11.0
+- Updated test for PHPUnit 11+
 - Updates & Improvements to the following packages:
+  + `pop-db`
+    - Added support `latest()` and `oldest()` methods with `hasMany` relationships
+    - Added support for `UPDATE` SQL in the Sql Data class
+  + `pop-csv` - added support to map array and multi-dimensional array values to a single cell value
   + `pop-mail` - bug fixes
-  + `pop-db` - Added support for `UPDATE` SQL in the Sql Data class
   + `pop-debug` - Added support for adding loggers to the debugger
   + `pop-form` - Improved support for i18n for the required message
   + `pop-http` - Improved support for custom content-type headers
