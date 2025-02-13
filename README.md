@@ -40,7 +40,7 @@ New Features
 ------------
 * A large number of improvements, upgrades and refactors across many components.
 * Support for PHP 8.2+.
-* PHPUnit tests refactored for PHPUnit 11+.
+* PHPUnit tests refactored for PHPUnit 11.5+.
 * Reference the [CHANGELOG.md](https://github.com/popphp/popphp-framework/blob/master/CHANGELOG.md) for further details.
 
 [Top](#pop-php-framework)

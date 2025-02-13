@@ -4,7 +4,7 @@ CHANGELOG
 ## 5.5.0
 **(02/12/2025)**
 - Updated for PHP 8.2+
-- Updated test for PHPUnit 11+
+- Updated test for PHPUnit 11.5+
 - Updates & Improvements to the following packages:
   + `pop-db`
     - Added support `latest()` and `oldest()` methods with `hasMany` relationships
@@ -16,6 +16,7 @@ CHANGELOG
   + `pop-http` - Improved support for custom content-type headers
   + `pop-kettle` - Added bash and zsh completion
   + `pop-log` - Added serialization support for context
+  + `pop-storage` - Improved the Azure adapter
   + `pop-validator` - Added optional results property
 
 ## 5.4.0
