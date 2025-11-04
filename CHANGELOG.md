@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+## 6.0.0
+**(11/03/2025)**
+- Updated for PHP 8.3+
+- Updated test for PHPUnit 12.0+
+- New/Refactored Package:
+    + `pop-crypt`
+        - an older package that was sunset a few years ago. It has been refactored with modern support
+          for one-way hashing and two-way encryption
+- Updates & Improvements to the following packages:
+    + `popphp` - Added support for middleware
+    + `pop-db` - Refactored the `Pop\Db\Record\Encoded` class to work with the newly refactored `pop-crypt` component
+    + `pop-debug` - Refactored and streamlined the `pop-debug` component
+    + `pop-util` - added the `Pop\Utils\Num` helper class
+
 ## 5.5.0
 **(02/12/2025)**
 - Updated for PHP 8.2+
