@@ -14,7 +14,7 @@ CHANGELOG
       + PSR-6/PSR-16: Caching interface
     - Improvements to cache retrieval
     - Addition of modern caching features (e.g. remember())
-    - Injectable clockoutstanding: Cache::getAvailableAdapters()['memcached'] checking the legacy Memcache class instead of Memcached, and no phpstan/psalm setup in composer.json — this is "Plan C" from the earlier #8/#9 split, not yet started.
+    - Injectable clock
   + `pop-code`
     - General improvements/additions to catch up to PHP 8.4
     - Improvements/additions for modifiers
