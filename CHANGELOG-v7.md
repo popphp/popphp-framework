@@ -49,7 +49,7 @@ CHANGELOG
     - Improved file streaming
   + `pop-db`
     - Improved and upgraded shorthand syntax across the board
-    - Improved and upgrade relationships
+    - Improved and upgraded relationships
     - JSON support
     - Subquery support
     - EXISTS support
