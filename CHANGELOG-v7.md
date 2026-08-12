@@ -50,13 +50,16 @@ CHANGELOG
   + `pop-db`
     - Improved and upgraded shorthand syntax across the board
     - Improved and upgraded relationships
+    - Before/after hook support for save/update/delete
     - JSON support
     - Subquery support
     - EXISTS support
     - Fillable/guarded support
+    - Removed circular dependency to `pop-debug`
   + `pop-debug`
     - Refactor for new `pop-log` compatibility
     - Support NDJson
+    - Removed circular dependency to `pop-db`
   + `pop-form`
     - Improved CSRF
     - Removed the Captcha field (outdated and ineffective in today's modern web landscape.)
@@ -72,7 +75,8 @@ CHANGELOG
       + Dropped use of `pop-mime` body for multipart handling in favor of newly built native `Body` class
       + Improved data handling and parsing
       + Improvements to the Curl and Stream handler classes
-      + Improvements to the Client class
+      + Improvements to the Client functionality
+      + Improvements to the Server functionality
     - Improvements to the Curl command functionality
     - Added Mock Transport Handler
   + `pop-image`
@@ -105,6 +109,8 @@ CHANGELOG
     - Support for presigned/temporary URLs
     - Improved recursive listing
     - Improved streaming
+  + `pop-utils`
+    - Added debug interfaces (to break circular dependency between `pop-db` and `pop-debug`)
   + `pop-view`
     - Major refactor/upgrade to the stream template
   + `popphp`
