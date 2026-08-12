@@ -1,6 +1,8 @@
 CHANGELOG
 =========
 
+## 7.0.0 beta
+**(As of 08/11/2026)**
 - Updated for PHP 8.4+
 - New Package:
   + `pop-parser` - A package that provides simple parsing of name and address strings into individual data points.
