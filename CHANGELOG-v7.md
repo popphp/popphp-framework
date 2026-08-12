@@ -109,6 +109,7 @@ CHANGELOG
       + New memory adapter
       + Delay, backoff and timeout added to jobs
       + Improvements to concurrent workers
+      + Worker registry and observability
       + Improved schedule fairness
       + Improved worker orchestration
       + Improved security
