@@ -6,7 +6,7 @@ CHANGELOG
 - Updated for PHP 8.4+
 - New Package:
   + `pop-parser` - A package that provides simple parsing of name and address strings into individual data points.
-- Updates & Improvements to the following packages:
+- Upgrades & Improvements to the following packages:
   + `pop-acl`
     - Added role/resource removal for better management
     - Added introspection to get current permissions
