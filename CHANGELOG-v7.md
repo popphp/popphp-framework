@@ -102,6 +102,7 @@ CHANGELOG
     - Added native text extract
     - Added native PDF merge
     - Finished HTML-to-PDF functionality, including HTML tables
+    - CID font support (Cyrillic, Greek, Arabic, etc.)
   + `pop-queue`
     - Full refactor
       + New adapter contracts
