@@ -101,7 +101,15 @@ CHANGELOG
     - Added native PDF merge
     - Finished HTML-to-PDF functionality, including HTML tables
   + `pop-queue`
-    - TBD
+    - Full refactor
+      + New adapter contracts
+      + Improved dead-letter storage
+      + New memory adapter
+      + Delay, backoff and timeout added to jobs
+      + Improvements to concurrent workers
+      + Improved schedule fairness
+      + Improved worker orchestration
+      + Improved security
   + `pop-session`
     - Improved session clean up
     - Improved session security
