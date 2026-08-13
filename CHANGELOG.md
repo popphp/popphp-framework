@@ -7,7 +7,7 @@ CHANGELOG
 - Updated for PHP 8.4+
 - New Package:
   + `framework`
-    - This repo `popphp/framework` now becomes the official "installer" repository to provide the correct abstracted
+    - The repo `popphp/framework` now becomes the official "installer" repository to provide the correct abstracted
       layer to the underlying `popphp-framework` repo installation. Your project composer file just gets one `requires`
       entry of `popphp/framework` instead of 30+ `requires` entries from original `popphp-framework` repo.
   + `pop-parser`
