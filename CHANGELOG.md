@@ -6,6 +6,10 @@ CHANGELOG
 **(As of 08/12/2026)**
 - Updated for PHP 8.4+
 - New Package:
+  + `framework`
+    - This repo `popphp/framework` now becomes the official "installer" repository to provide the correct abstracted
+      layer to the underlying `popphp-framework` repo installation. Your project composer file just gets one `requires`
+      entry of `popphp/framework` instead of 30+ `requires` entries from original `popphp-framework` repo.
   + `pop-parser`
     - A package that provides simple parsing of name and address strings into individual data points.
 - Upgrades & Improvements to the following packages:
