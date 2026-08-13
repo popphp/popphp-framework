@@ -39,7 +39,8 @@ CHANGELOG
     - Improved exception handling
     - Improved collision behavior
   + `pop-console`
-    - Expanded the Command class to use the dispatchable functionality. This is now used to add executable application commands directly to pop-kettle (without the need to use a Controller.)
+    - Expanded the Command class to use the dispatchable functionality. This is now used to add executable
+      application commands directly to pop-kettle (without the need to use a Controller.)
     - Added table rendering
     - Added progress bar functionality
   + `pop-crypt`
@@ -58,6 +59,7 @@ CHANGELOG
     - JSON support
     - Subquery support
     - EXISTS support
+    - Moved AbstractDataModel to `pop-db` (from `popphp`)
     - Fillable/guarded support
     - Removed circular dependency to `pop-debug`
   + `pop-debug`
@@ -86,7 +88,8 @@ CHANGELOG
   + `pop-image`
     - Removed the Captcha class (outdated and ineffective in today's modern web landscape.)
   + `pop-kettle`
-    - Added ability to add executable commands directly to the kettle helper script, as opposed to having to build a separate application script and console controllers.
+    - Added ability to add executable commands directly to the kettle helper script, as opposed to having to
+      build a separate application script and console controllers.
     - Added autoloading of commands in the application namespace.
   + `pop-log`
     - Added PSR Interoperability
@@ -125,6 +128,7 @@ CHANGELOG
     - Improved streaming
   + `pop-utils`
     - Added debug interfaces (to break circular dependency between `pop-db` and `pop-debug`)
+    - Moved AbstractModel to `pop-utils` (from `popphp`)
   + `pop-view`
     - Major refactor/upgrade to the stream template
   + `popphp`
@@ -135,6 +139,8 @@ CHANGELOG
     - Added the ability to directly consume a CallableObject as a controller
     - Changed the thrown error in Pop\Application::run() from Pop\Exception to Throwable
     - Patched a number of bugs and general issues throughout.
+    - Moved AbstractModel to `pop-utils`
+    - Moved AbstractDataModel to `pop-db`
 - Deprecated:
   + `popcorn` - no longer supported. The functionality has officially been baked directly into the `Pop\Application` class.
   + `pop-ftp` - no longer supported.
