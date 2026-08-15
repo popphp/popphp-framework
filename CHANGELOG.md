@@ -7,6 +7,7 @@ CHANGELOG
 - Updated for PHP 8.4+
 - Added `declare(strict_types=1);` throughout all components
 - Added PHPStan coverage throughout all components 
+- Improved test code coverage throughout all components
 - New Package:
   + `framework`
     - The repo `popphp/framework` now becomes the official "installer" repository to provide the correct abstracted
