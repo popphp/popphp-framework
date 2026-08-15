@@ -94,6 +94,7 @@ CHANGELOG
   + `pop-kettle`
     - Added ability to add executable commands directly to the kettle helper script, as opposed to having to
       build a separate application script and console controllers.
+    - Added support to manage queues directly from the kettle helper script.
     - Added autoloading of commands in the application namespace.
   + `pop-log`
     - Added PSR Interoperability
