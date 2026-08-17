@@ -6,14 +6,13 @@ Pop PHP Framework
 [![Join the chat at https://discord.gg/TZjgT74U7E](https://media.popphp.org/img/discord.svg)](https://discord.gg/TZjgT74U7E)
 
 * [Overview](#overview)
-* [New Features](#new-features)
 * [Install](#install)
 * [Support](#support)
 
 Release Information
 -------------------
 Pop PHP Framework 7.0.0 [Beta]  
-Released August 17, 2026
+Released August TBD, 2026
 
 Overview
 --------
@@ -34,13 +33,6 @@ The core Pop PHP components and the additional components listed below will be i
 | [pop-crypt](https://github.com/popphp/pop-crypt)     | [pop-kettle](https://github.com/popphp/pop-kettle) | [pop-utils](https://github.com/popphp/pop-utils)         |
 | [pop-css](https://github.com/popphp/pop-css)         | [pop-log](https://github.com/popphp/pop-log)       | [pop-validator](https://github.com/popphp/pop-validator) |
 | [pop-csv](https://github.com/popphp/pop-csv)         | [pop-mail](https://github.com/popphp/pop-mail)     | [pop-view](https://github.com/popphp/pop-view)           |
-
-New Features
-------------
-* A large number of improvements, upgrades and refactors across many components.
-* Support for PHP 8.4+.
-* PHPUnit tests refactored for PHPUnit 12.5+.
-* Reference the [CHANGELOG.md](https://github.com/popphp/popphp-framework/blob/master/CHANGELOG.md) for further details.
 
 Install
 -------
