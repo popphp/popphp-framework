@@ -11,8 +11,8 @@ Pop PHP Framework
 
 Release Information
 -------------------
-Pop PHP Framework 7.0.0 [Beta]  
-Released August TBD, 2026
+Pop PHP Framework 7.0.0  
+Released August 17, 2026
 
 Overview
 --------
