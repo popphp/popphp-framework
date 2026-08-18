@@ -1,9 +1,8 @@
 CHANGELOG
 =========
 
-## 7.0.0 Beta
-### [IN PROGRESS]
-**(As of 08/16/2026)**
+## 7.0.0
+**(08/17/2026)**
 - Many new features and upgrades
 - Updated for PHP 8.4+
 - Added `declare(strict_types=1);` throughout all components
