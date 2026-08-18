@@ -36,7 +36,8 @@ The core Pop PHP components and the additional components listed below will be i
 
 Install
 -------
-Please see the official framework repository at [popphp/framework](https://github.com/popphp/framework#install) for installation instructions.
+Please see the official framework repository at [popphp/framework](https://github.com/popphp/framework#install) for installation instructions
+and more detailed information on new features and recent updates.
 
 Support
 -------
