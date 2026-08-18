@@ -219,7 +219,8 @@ Dependencies flow downward, so upgrade in this order and run each layer's tests 
 3. **Services** — `pop-cache`, `pop-log`, `pop-session`, `pop-cookie`, `pop-storage`, `pop-queue`, `pop-debug`
 4. **Application layer** — `pop-acl`, `pop-auth`, `pop-audit`, `pop-validator`, `pop-form`, `pop-view`,
    `pop-nav`, `pop-mail`, `pop-image`, `pop-pdf`, `pop-css`, `pop-csv`, `pop-i18n`, `pop-dir`, `pop-paginator`
-5. **Tooling** — `pop-kettle`, and re-copy `kettle` / rewrite `kettle.inc.php` in each project
+5. **Tooling** — `pop-kettle`, and in each project re-copy `kettle`, delete `kettle.inc.php`, and move its
+   PSR-4 line into `composer.json`
 
 ---
 
@@ -2529,7 +2530,7 @@ $token = unserialize($_SESSION['pop_captcha']);
 
 ## pop-kettle
 
-**Scope:** Kettle is re-architected from a `Pop\Module\Module` plugged into a generic `Pop\Application` into its own `Pop\Kettle\Application` class with a new `prepare()/load()/run()` bootstrap, a rewritten `kettle`/`kettle.inc.php` contract, restructured scaffolding templates, a regrouped `web:*` command namespace, and a new `queue:*`/`create:command` command surface.
+**Scope:** Kettle is re-architected from a `Pop\Module\Module` plugged into a generic `Pop\Application` into its own `Pop\Kettle\Application` class with a new `prepare()/load()/run()` bootstrap, a rewritten `kettle` script that no longer has an include hook, restructured scaffolding templates, a regrouped `web:*` command namespace, and a new `queue:*`/`create:command` command surface.
 **Break count:** 16 (4 high, 8 medium, 4 low)
 
 ### `Pop\Kettle\Module` removed and replaced by `Pop\Kettle\Application`
@@ -2556,22 +2557,28 @@ The script no longer constructs `Pop\Application` + `Module`, resolves paths wit
 
 **Migration:** Re-copy `kettle` from `vendor/popphp/pop-kettle/kettle`, `chmod 755`, and re-apply the config-path edit documented in the README.
 
-### `kettle.inc.php` runs before the application object exists — `$app` is out of scope
-**Severity:** High — **Affects:** any project with a customized `kettle.inc.php`
-The include point moved. `kettle.inc.php` is now included after `$autoloader` and `$config` are set up but **before** `Pop\Kettle\Application` is constructed, so `$app` no longer exists when your file runs. Anything that registered routes or services through `$app` has to work against `$autoloader` and the `$config` array instead. The packaged copy is named `kettle.inc.orig.php`, and `app:init` writes it out only when no `kettle.inc.php` is already present, so an existing customized file is left alone.
+### `kettle.inc.php` removed — the include hook is gone entirely
+**Severity:** High — **Affects:** every v6 project, since `app:init` wrote a `kettle.inc.php` into all of them
+The v7 `kettle` script no longer looks for `kettle.inc.php`, and the packaged template is deleted. The file itself is left sitting in your project root, so nothing errors — it simply **stops being executed**. Everything it did is silently lost: the `addPsr4()` line that told Kettle about your app namespace, plus any routes, services or bootstrapping you added to it.
+
+Losing the autoloader line is what you notice first — custom controllers and table-backed migration classes stop resolving, and `db:migrate` fails on a class it can no longer find.
 
 ```php
-// v6 — kettle.inc.php
-$app->router()->addRoute('my:cmd', [...]);   // $app available
-
-// v7 — kettle.inc.php
+// v6 — kettle.inc.php, included by the kettle script
+$app->router()->addRoute('my:cmd', [...]);
 $autoloader->addPsr4('MyApp\\', __DIR__ . '/app/src');
-$config['routes']['my:cmd'] = [...];          // $app NOT available
 ```
-**Migration:** Rewrite `kettle.inc.php` against `$autoloader` / `$config` instead of `$app`.
+
+```json
+// v7 — composer.json
+"autoload": { "psr-4": { "MyApp\\": "app/src/" } }
+```
+Autoloading is now Composer's job for every entry point at once — `kettle`, `public/index.php` and a stand-alone `script/<app>` all read the same generated autoloader, and the `addPsr4()` calls are gone from the scaffolded scripts too. Custom commands replace the routes half: classes under `app/src/Console/Command/Kettle` are discovered by `CommandRegistry::loadRoutes()` on every run.
+
+**Migration:** Add your namespace to `composer.json` under `autoload.psr-4` (`"MyApp\\": "app/src/"`), run `composer dump-autoload`, move any custom routes to `create:command` classes, and delete `kettle.inc.php`. Re-running `app:init` does the composer.json edit and the dump for you.
 
 ### Controller constructor params are no longer injected by Kettle
-**Severity:** High — **Affects:** custom Kettle controllers registered through `kettle.inc.php` routes
+**Severity:** High — **Affects:** custom Kettle controllers reached through routes you added yourself
 v6's `Module::register()` called `addControllerParams('*', ['application' => …, 'console' => new Console(120, '    ')])`. `Pop\Kettle\Application` does none of that; the v7 `popphp` router instantiates a dispatchable as `new $class($application)` only when the class uses `Pop\Dispatch\ConsoleTrait`, otherwise `new $class()`.
 
 ```php
@@ -2619,13 +2626,25 @@ $app->on('app.route.pre', fn() => Pop\Kettle\Event\Console::maintenanceDisplay($
 
 **Migration:** Update any `Pop\Model\AbstractModel` type-hint or `instanceof` covering these models to `Pop\Utils\AbstractModel`.
 
-### `Model\Application::init()` / `install()` signatures and defaults changed
-**Severity:** Medium — **Affects:** programmatic scaffolding callers
-Both gained trailing `bool $cliApp = false, bool $createDb = false, ?string $frontend = null` (`$frontend` being `'alpine'`, `'vue'`, `'react'` or `null` for none). Defaults changed: `$name` `'Pop'` → `'MyApp'`, `$url` `'http://localhost'` → `''`. The template root moved to `config/templates/codebase/<install>`.
+### `Model\Application::init()` / `install()` dropped `$env` from the middle of the signature
+**Severity:** Medium — **Affects:** programmatic scaffolding callers, and any subclass overriding either method
+`app:init` no longer sets the environment, so the `string $env` parameter is gone — and it was **not** the last one. Every argument after it shifts left by one position.
 
-Every added parameter is optional, so existing calls keep working. A subclass that **overrides** either method is the exception — PHP requires an override to accept at least as many parameters as its parent, so a v6 override fatals with an incompatible-declaration error until the new parameters are added to it.
+```php
+// v6
+public function init(string $location, string $namespace, ?bool $web = null, ?bool $api = null, ?bool $cli = null,
+    string $name = 'Pop', string $env = 'local', string $url = 'http://localhost'): void
 
-**Migration:** Nothing to do for plain callers. If you override `init()` or `install()`, add the trailing parameters to your signature and pass them through.
+// v7
+public function init(string $location, string $namespace, ?bool $web = null, ?bool $api = null, ?bool $cli = null,
+    string $name = 'MyApp', string $url = '', bool $cliApp = false, bool $createDb = false,
+    ?string $frontend = null): void
+```
+A v6 call that passed seven positional arguments now feeds its environment string into `$url` — **silently**, since both are strings. Passing eight fatals instead, because the old `$url` value lands in `bool $cliApp`. `install()` shifts the same way, one position earlier (`$env` was its fifth parameter).
+
+Alongside that: the three trailing parameters are new (`$frontend` being `'alpine'`, `'vue'`, `'react'` or `null`), defaults changed — `$name` `'Pop'` → `'MyApp'`, `$url` `'http://localhost'` → `''` — and the template root moved to `config/templates/codebase/<install>`. A subclass that **overrides** either method also fatals until it matches the new parameter count.
+
+**Migration:** Drop the `$env` argument from every call and re-check the positions after it; switch to named arguments if you pass more than the first few. To set the environment, use `app:env --set` or write `APP_ENV` yourself.
 
 ### `create:ctrl --cli` no longer also creates an HTTP controller, and now requires `script/`
 **Severity:** Medium — **Affects:** `./kettle create:ctrl --cli <ctrl>`
@@ -2654,13 +2673,13 @@ v6 only handled `$database['default']` and connected immediately. v7 loops every
 
 ### `X_POP_CONSOLE_INPUT_2/3/4` prompt-override hooks removed
 **Severity:** Low — **Affects:** external harnesses that drove Kettle prompts via `$_SERVER`
-The `app:init` prompt sequence also changed, so any script feeding it canned answers is off by more than one. v6 asked four questions; v7 asks up to seven — a stand-alone-CLI-app question for `--cli`, and, for any install flavor including web, a front-end question followed by a framework choice.
+The `app:init` prompt sequence also changed, so any script feeding it canned answers is off by more than one. v6 asked four questions — app name, environment, URL, configure-a-database. v7 asks up to six: the environment question is gone, and three new ones appear — a stand-alone-CLI-app question for `--cli`, and, for any install flavor including web, a front-end question followed by a framework choice.
 
 **Migration:** Feed prompts through `Console::setInputStream()`, and re-record the answer sequence against a v7 `app:init` run.
 
-### `.env` template `APP_NAME` default changed from `Pop` to `MyApp`
+### `.env` template: `APP_NAME` default changed, and `APP_ENV` is no longer written
 **Severity:** Low — **Affects:** re-running `app:init` over a pre-existing `.env`
-Since `.env` is only copied when absent, an existing v6 `.env` will no longer have its app name substituted. The template also gained `QUEUE_ADAPTER`, `QUEUE_PRIORITY`, `QUEUE_LEASE`.
+`APP_NAME` defaults to `MyApp` instead of `Pop`, and since `.env` is only copied when absent, an existing v6 `.env` will no longer have its app name substituted. `APP_ENV` is not substituted at all any more — a new app always starts at `local`, and `app:env --set` changes it afterward. The template also gained `QUEUE_ADAPTER`, `QUEUE_PRIORITY`, `QUEUE_LEASE`, and the packaged file was renamed `orig.env` → `.env.example` (in the `popphp/framework` skeleton too, where it sits in your project root).
 
 ### `db:reset` uses `DELETE FROM` instead of `TRUNCATE` on SQLite
 **Severity:** Low — **Affects:** `./kettle db:reset` against SQLite

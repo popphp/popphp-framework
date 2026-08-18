@@ -121,6 +121,11 @@ CHANGELOG
     - Added support to manage queues directly from the kettle helper script
     - Added autoloading of commands in the application namespace
     - Added new `pop-console` functionality to display help for sub-commands
+    - Added the `--set` flag to the `app:env` command to change the application environment;
+      `app:init` no longer prompts for it
+    - Removed the `kettle.inc.php` file; `app:init` now registers the application namespace in
+      `composer.json` and runs `composer dump-autoload` instead
+    - Renamed the `orig.env` template file to `.env.example`
   + `pop-log`
     - Added PSR Interoperability
       + PSR-3: Logger interface

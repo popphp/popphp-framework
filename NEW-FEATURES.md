@@ -4,7 +4,7 @@
 
 Everything **Pop PHP Framework v7.0.0** gives you that **v6.0.0** did not, component by component.
 
-**265 new features** across the bundled components, plus one entirely new package.
+**266 new features** across the bundled components, plus one entirely new package.
 
 This is the companion to [`BC-BREAKS.md`](BC-BREAKS.md). That document tells you what will break; this one
 tells you what you get for it.
@@ -119,7 +119,7 @@ queues (`pop-queue`), syslog/stdout/NDJSON logging (`pop-log`), NDJSON debug sto
 | pop-http | 5.3.8 → 6.0.0 | 17 |
 | popphp (core) | 4.4.4 → 5.0.0 | 17 |
 | pop-code | 5.0.8 → 6.0.0 | 14 |
-| pop-kettle | 2.3.4 → 3.0.0 | 11 |
+| pop-kettle | 2.3.4 → 3.0.0 | 12 |
 | pop-pdf | 5.2.12 → 6.0.0 | 11 |
 | pop-queue | 2.1.3 → 3.0.0 | 11 |
 | pop-log | 4.0.4 → 5.0.0 | 10 |
@@ -2451,8 +2451,8 @@ try {
 
 ## pop-kettle — 2.3.4 → 3.0.0
 
-**Summary:** A front-end build system scaffolded straight into your app at `app:init` (AlpineJS, Vue or React, each with Tailwind CSS), a full `queue:*` command family, project-defined `create:command` commands that can be auto-discovered and dispatched through Kettle or through your own stand-alone CLI application, multi-connection database config, and opt-in stand-alone CLI app scaffolding.
-**Feature count:** 11
+**Summary:** A front-end build system scaffolded straight into your app at `app:init` (AlpineJS, Vue or React, each with Tailwind CSS), a full `queue:*` command family, project-defined `create:command` commands that can be auto-discovered and dispatched through Kettle or through your own stand-alone CLI application, multi-connection database config, Composer-registered app autoloading, and opt-in stand-alone CLI app scaffolding.
+**Feature count:** 12
 
 ### Front-end scaffolding at `app:init` — AlpineJS, Vue or React, each with Tailwind
 `app:init` now offers to install a complete front-end build system alongside your PHP app. The prompt appears for any install flavor that includes web — `--web`, `--web --api`, `--web --cli`, `--web --api --cli`, or no flavor flags at all, since web is the default. (An API-only or CLI-only install is never asked.)
@@ -2503,6 +2503,16 @@ Everything to do with running and building the web side of an app now sits in on
 ```
 A namespace that matches nothing prints an empty list rather than erroring. Your own `create:command` commands are matched the same way, so `./kettle help myapp` narrows to the ones you wrote.
 **In v6:** not possible — `help` took only `--raw`, and printed every registered command every time.
+
+### `app:env --set` changes the application environment
+`app:env` gained a `--set` flag that rewrites `APP_ENV` in `.env` for you, picked from the same numbered list `app:init` used to ask at scaffold time. Because it is a menu, only the five valid values can be written — a typo just re-prompts instead of leaving an unusable environment in `.env`.
+
+```bash
+./kettle app:env          # show the current environment
+./kettle app:env --set    # 1: local  2: dev  3: testing  4: staging  5: production
+```
+Either way you get the same color-coded alert box back, so setting the environment confirms itself. If there is no `.env` in the current folder, `--set` says so and exits rather than creating one.
+**In v6:** the environment was asked once during `app:init` and never again — changing it afterward meant hand-editing `APP_ENV` in `.env`, with nothing validating what you typed. `app:init` no longer asks at all; every new app starts at `local`.
 
 ### Queue command family (`queue:*`)
 A complete `pop-queue` front end: configure a queue's adapter (File, Database or Redis) interactively, run the worker or scheduler as a daemon or a single cron-friendly pass, inspect pending/dead-letter jobs and scheduled tasks, and clear them.
@@ -2572,14 +2582,14 @@ Also new: `Application::NAME`/`FULL_NAME`/`VERSION` constants, `getConsole()` fo
 If you declined, `create:ctrl --cli` fails explicitly rather than scaffolding into a directory that doesn't exist.
 **In v6:** every `--cli` install unconditionally copied `script/myapp` and the console controller folder; no prompt, no choice.
 
-### `app:init` wires `kettle.inc.php` and its autoloader automatically
-Init copies `kettle.inc.orig.php` into place and appends the PSR-4 line for your namespace, so `kettle` knows your app without manual editing. It only writes the file when one is not already there, so re-running `app:init` on an existing project leaves your customized copy untouched. The include runs after `$config` is built but before the `Application` is constructed, so it can add to `$config['routes']`.
+### `app:init` registers your namespace in `composer.json` — the include file is gone
+Autoloading is Composer's job now. `app:init` adds your namespace to `composer.json`'s `autoload.psr-4` map and runs `composer dump-autoload`, so `kettle`, `public/index.php` and a stand-alone `script/<app>` all resolve your classes from the one generated autoloader. The `addPsr4()` calls are gone from the scaffolded scripts, and `kettle.inc.php` is deleted outright — there is no second place to keep in sync.
 
-```php
-// kettle.inc.php, written for you by app:init
-$autoloader->addPsr4('MyApp\\', __DIR__ . '/app/src');
+```json
+"autoload": { "psr-4": { "MyApp\\": "app/src/" } }
 ```
-**In v6:** the README instructed you to create/copy `kettle.inc.php` and add the `addPsr4()` line by hand — required for table-backed migrations to work at all.
+The entry is only added when it isn't already there, so re-running `app:init` won't duplicate it. If Composer isn't on your `PATH`, init still completes and warns you to run `composer dump-autoload` yourself. The other half of what `kettle.inc.php` was used for — extra routes — is covered by `create:command` classes, which are auto-discovered.
+**In v6:** the README walked you through creating `kettle.inc.php` and adding the `addPsr4()` line by hand, and it was required for table-backed migrations to resolve at all.
 
 ### Optional database and optional namespace at `app:init`
 The namespace argument is optional (defaulting to `MyApp`), the URL prompt only appears for `--web`/`--api`, and answering "N" to the database prompt genuinely skips it: no `database/` folder, no `app/config/database.php`, and the `'database' => include ...` line is stripped from the app configs.
@@ -2593,6 +2603,7 @@ The namespace argument is optional (defaulting to `MyApp`), the URL prompt only 
 - New PHP API: `Model\Queue` — `configure()`, `buildWorker()`, `clear()`, `jobsSummary()`, `tasksSummary()`; `Model\Application::createCommand()` and `resolveAppInstance()`.
 - `queue:jobs`, `queue:tasks`, `queue:work` and `queue:scheduler` are exempt from the "Application in Production" confirmation prompt.
 - `Event\Console::maintenanceDisplay()`/`productionDisplay()` accept an injected `Console`.
+- An unrecognized command now prints a `Try './kettle help' for help` hint; scaffolded CLI apps print the same line using their own script name.
 - `app:init` creates a writable `data/` folder and `.empty` placeholders under `database/`.
 - Scaffolded app `Application` classes gain `NAME`/`FULL_NAME`/`VERSION` constants and multi-connection `initDb()`; the `api-cli` and `web-api-cli` scaffolds now emit an `Application` class instead of a `Module`.
 - The `.env` template ships `QUEUE_ADAPTER`/`QUEUE_PRIORITY`/`QUEUE_LEASE`; queue/db config reloads `$_ENV` via Dotenv so a chained `db:install` sees freshly written values.
