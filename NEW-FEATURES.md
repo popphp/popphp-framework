@@ -4,7 +4,7 @@
 
 Everything **Pop PHP Framework v7.0.0** gives you that **v6.0.0** did not, component by component.
 
-**266 new features** across the bundled components, plus one entirely new package.
+**269 new features** across the bundled components, plus one entirely new package.
 
 This is the companion to [`BC-BREAKS.md`](BC-BREAKS.md). That document tells you what will break; this one
 tells you what you get for it.
@@ -119,14 +119,14 @@ queues (`pop-queue`), syslog/stdout/NDJSON logging (`pop-log`), NDJSON debug sto
 | pop-http | 5.3.8 → 6.0.0 | 17 |
 | popphp (core) | 4.4.4 → 5.0.0 | 17 |
 | pop-code | 5.0.8 → 6.0.0 | 14 |
-| pop-kettle | 2.3.4 → 3.0.0 | 12 |
+| pop-kettle | 2.3.4 → 3.0.0 | 14 |
 | pop-pdf | 5.2.12 → 6.0.0 | 11 |
 | pop-queue | 2.1.3 → 3.0.0 | 11 |
 | pop-log | 4.0.4 → 5.0.0 | 10 |
 | pop-mail | 4.0.7 → 5.0.0 | 10 |
 | pop-mime | 2.0.3 → 3.0.0 | 10 |
+| pop-console | 4.2.6 → 5.0.0 | 10 |
 | pop-cache | 4.0.3 → 5.0.0 | 9 |
-| pop-console | 4.2.6 → 5.0.0 | 9 |
 | pop-color | 1.0.3 → 2.0.0 | 8 |
 | pop-db | 6.8.15 → 7.0.0 | 8 |
 | pop-storage | 2.1.3 → 3.0.0 | 8 |
@@ -1109,7 +1109,7 @@ class MyConfig extends Config {
 ## pop-console — 4.2.6 → 5.0.0
 
 **Summary:** From an output/help-screen helper into a small CLI toolkit: table and progress-bar renderers, a standalone command registry with directory-based discovery, commands that are themselves dispatchable, namespace-filtered help screens, and testable prompts via an injectable input stream.
-**Feature count:** 9
+**Feature count:** 10
 
 ### Table renderer
 New `Pop\Console\Table` plus a `Console::table()` facade renders headers and rows into a bordered grid with configurable border characters, optional header colorization, and column widths computed from content. Passing `null` for the vertical character drops the column dividers.
@@ -1218,6 +1218,16 @@ $console->displayHelp(false, 'db');
 ```
 Matching is a plain prefix check against each command's own bare name, so it is not tied to `:` as a delimiter and works just as well for space-separated names like `user list`/`user edit`. To make that reliable, `CommandRegistry` now records the script name a command was registered under (`setScriptName()`/`getScriptName()`/`hasScriptName()`) and strips it by exact value before matching — so a script named `dbapp` can't make `'db'` match every command it owns. A `$subCommand` that matches nothing renders an empty list instead of throwing.
 **In v6:** not possible — `displayHelp()` rendered the entire registry, and there was no way to scope it.
+
+### `promptMulti()` — one prompt, several answers
+`promptMulti()` is a `prompt()` that accepts a comma-separated list and hands back an array. It validates the whole list against the allowed options before accepting it, so a single bad token re-prompts the entire answer rather than letting a partial selection through.
+
+```php
+$types = $console->promptMulti('Select one or more, comma-separated: ', ['1', '2', '3']);
+// '1, 3' => ['1', '3']
+```
+Whitespace around tokens is trimmed and duplicates are collapsed, so `1, 3, 3` and `1,3` give the same result. Matching is case-insensitive unless you pass `true` for `$caseSensitive`. Empty input returns an empty array instead of re-prompting — which is what makes it usable as an "accept the default" answer, and also what stops a closed input stream from spinning the retry loop forever.
+**In v6:** `prompt()` accepted exactly one value from the option list; offering a multi-select meant asking repeatedly in your own loop and deduplicating the answers yourself.
 
 ### Non-exiting `confirm()`
 `confirm()` gained a trailing `bool $exit = true`. Passing `false` returns the response so the caller can branch on it, instead of the method calling `exit(127)` on a "no" answer.
@@ -2452,10 +2462,10 @@ try {
 ## pop-kettle — 2.3.4 → 3.0.0
 
 **Summary:** A front-end build system scaffolded straight into your app at `app:init` (AlpineJS, Vue or React, each with Tailwind CSS), a full `queue:*` command family, project-defined `create:command` commands that can be auto-discovered and dispatched through Kettle or through your own stand-alone CLI application, multi-connection database config, Composer-registered app autoloading, and opt-in stand-alone CLI app scaffolding.
-**Feature count:** 12
+**Feature count:** 14
 
 ### Front-end scaffolding at `app:init` — AlpineJS, Vue or React, each with Tailwind
-`app:init` now offers to install a complete front-end build system alongside your PHP app. The prompt appears for any install flavor that includes web — `--web`, `--web --api`, `--web --cli`, `--web --api --cli`, or no flavor flags at all, since web is the default. (An API-only or CLI-only install is never asked.)
+`app:init` now offers to install a complete front-end build system alongside your PHP app. The prompt appears whenever your application-type selection includes web — `1` on its own, `1,2`, `1,3`, all three, or a blank answer, since web is the default. (An API-only or CLI-only install is never asked.)
 
 ```text
 Would you like to install a front-end? [Y/N] y
@@ -2573,11 +2583,12 @@ Also new: `Application::NAME`/`FULL_NAME`/`VERSION` constants, `getConsole()` fo
 **In v6:** a second `db:config <name>` clobbered the single `DB_*` block; only `database['default']` was ever connected.
 
 ### Opt-in stand-alone CLI application at `app:init`
-`--cli` no longer forces a second console application on you. You're prompted; accept and you get `script/<namespace>` (chmod 755) plus `app/src/Console/Controller`; decline and neither is created, keeping everything as Kettle Commands.
+Selecting CLI no longer forces a second console application on you. You're prompted; accept and you get `script/<slug>` (chmod 755) plus `app/src/Console/Controller`; decline and neither is created, keeping everything as Kettle Commands.
 
-```bash
-./kettle app:init --web --cli MyApp
-# Initialize a stand-alone CLI application? [Y/N]
+```text
+Select one or more, comma-separated: [1] 1,3
+...
+Initialize a stand-alone CLI application? [Y/N]
 ```
 If you declined, `create:ctrl --cli` fails explicitly rather than scaffolding into a directory that doesn't exist.
 **In v6:** every `--cli` install unconditionally copied `script/myapp` and the console controller folder; no prompt, no choice.
@@ -2591,13 +2602,46 @@ Autoloading is Composer's job now. `app:init` adds your namespace to `composer.j
 The entry is only added when it isn't already there, so re-running `app:init` won't duplicate it. If Composer isn't on your `PATH`, init still completes and warns you to run `composer dump-autoload` yourself. The other half of what `kettle.inc.php` was used for — extra routes — is covered by `create:command` classes, which are auto-discovered.
 **In v6:** the README walked you through creating `kettle.inc.php` and adding the `addPsr4()` line by hand, and it was required for table-backed migrations to resolve at all.
 
-### Optional database and optional namespace at `app:init`
-The namespace argument is optional (defaulting to `MyApp`), the URL prompt only appears for `--web`/`--api`, and answering "N" to the database prompt genuinely skips it: no `database/` folder, no `app/config/database.php`, and the `'database' => include ...` line is stripped from the app configs.
+### `app:init` is a guided interview — no flags, no arguments
+`app:init` takes nothing on the command line anymore. Every decision it used to read from flags and arguments is now a prompt, which means the command is self-documenting: run it and it tells you what it needs, instead of you reading the README to find out.
 
-```bash
-./kettle app:init --cli        # no namespace, no URL prompt, DB optional
+```text
+What is the namespace of your app? [MyApp]
+What is the name of your app? [My App]
+
+Which application type(s)?
+
+1: Web
+2: API
+3: CLI
+
+Select one or more, comma-separated: [1]
 ```
-**In v6:** `<namespace>` was required, the URL was always asked, and the database config file was copied in regardless.
+Application type is a `promptMulti()` multi-select, so `--web --api` is now `1,2` and a blank answer keeps web as the default. The prompts that follow are conditional on it — the URL question only appears for web/API, the stand-alone-CLI question only for CLI, and the front-end question only when web is in the mix. Answering "N" to the database prompt genuinely skips it: no `database/` folder, no `app/config/database.php`, and the `'database' => include ...` line is stripped from the app configs.
+**In v6:** `<namespace>` was a required argument, install flavor came from `--web`/`--api`/`--cli`, the URL was always asked, and the database config file was copied in regardless.
+
+### Namespaces are normalized however you type them
+Whatever you enter at the namespace prompt is parsed into three forms: a valid PHP namespace, a kebab-case slug, and a human-readable display name. Segments are split on `\`, `/`, hyphens, underscores and camelCase boundaries, then re-cased.
+
+```text
+typed in         namespace      slug           display name
+my-user-app  ->  MyUserApp      my-user-app    My User App
+MyApp        ->  MyApp          my-app         My App
+"My\Users\App" ->  My\Users\App   my-users-app   My Users App
+```
+The namespace form is what lands in `composer.json` and your class files, the slug names the stand-alone CLI script (`script/my-users-app`), and the display name becomes the default app name and the generated `Application::FULL_NAME`. A namespace that can't yield a valid segment throws rather than scaffolding something broken.
+**In v6:** the namespace was used as typed, and the script name was a flat `strtolower(str_replace('\\', '-', ...))` — so `MyApp` produced `script/myapp` and a `FULL_NAME` of `MyApp`.
+
+### `composer create-project` offers to initialize the app for you
+The `popphp/framework` skeleton registers `Pop\Kettle\Application::check` as a `post-autoload-dump` script, so installing the framework ends by asking whether to scaffold:
+
+```text
+composer create-project popphp/framework my-project
+
+Do you want to initialize your application now? [Y/N]
+```
+Answer `y` and `app:init` runs immediately, in the folder Composer just created — one command from nothing to a running application. The check is guarded on there being no `.env` yet, so it stays quiet on every later `composer install` or `composer update` in an already-initialized project. That guard is also why `app:init`'s own `composer dump-autoload` doesn't re-trigger it: `.env` is written before the dump runs.
+**In v6:** `create-project` left you at a bare skeleton, and you had to know to copy the `kettle` script and run `app:init` yourself as a separate documented step.
 
 ### Smaller additions
 - New PHP API: `Model\Queue` — `configure()`, `buildWorker()`, `clear()`, `jobsSummary()`, `tasksSummary()`; `Model\Application::createCommand()` and `resolveAppInstance()`.

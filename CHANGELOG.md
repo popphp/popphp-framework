@@ -64,6 +64,7 @@ CHANGELOG
       application commands directly to pop-kettle (without the need to use a Controller.)
     - Added table rendering
     - Added progress bar functionality
+    - Added a multi-select prompt
     - Added ability to display help for sub-commands to filter a help screen down to a smaller set of commands
   + `pop-crypt`
     - Added Sodium/XChaCha20 support
@@ -121,11 +122,15 @@ CHANGELOG
     - Added support to manage queues directly from the kettle helper script
     - Added autoloading of commands in the application namespace
     - Added new `pop-console` functionality to display help for sub-commands
+    - Moved the `app:init` command options and `<namespace>` parameter into prompts within the command;
+      application type is now a multi-select, and the namespace is normalized into a valid PHP namespace,
+      a script slug and a display name
     - Added the `--set` flag to the `app:env` command to change the application environment;
       `app:init` no longer prompts for it
     - Removed the `kettle.inc.php` file; `app:init` now registers the application namespace in
       `composer.json` and runs `composer dump-autoload` instead
     - Renamed the `orig.env` template file to `.env.example`
+    - Added Composer-based install hook to run the `app:init` command post-install
   + `pop-log`
     - Added PSR Interoperability
       + PSR-3: Logger interface

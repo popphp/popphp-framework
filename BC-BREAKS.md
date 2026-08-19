@@ -5,7 +5,7 @@
 Everything that will break when you upgrade an application from **Pop PHP Framework v6.0.0** to **v7.0.0**,
 and what to change in your code for each one.
 
-**338 breaks** across the bundled components — **125 high**, **121 medium**, **92 low**.
+**339 breaks** across the bundled components — **125 high**, **122 medium**, **92 low**.
 
 This is the companion to [`NEW-FEATURES.md`](NEW-FEATURES.md). This document tells you what will break; that
 one tells you what you get for it.
@@ -87,7 +87,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 | pop-http | 5.3.8 → 6.0.0 | 19 (5/9/5) |
 | pop-i18n | 4.0.3 → 5.0.0 | 9 (0/3/6) |
 | pop-image | 4.1.3 → 5.0.0 | 2 (1/0/1) |
-| pop-kettle | 2.3.4 → 3.0.0 | 16 (4/8/4) |
+| pop-kettle | 2.3.4 → 3.0.0 | 17 (4/9/4) |
 | pop-log | 4.0.4 → 5.0.0 | 12 (6/4/2) |
 | pop-mail | 4.0.7 → 5.0.0 | 22 (11/7/4) |
 | pop-mime | 2.0.3 → 3.0.0 | 16 (10/4/2) |
@@ -135,7 +135,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 
 ## Cross-cutting patterns
 
-Four themes account for most of the 338 breaks. Recognizing them makes the per-component sections faster to read.
+Four themes account for most of the 339 breaks. Recognizing them makes the per-component sections faster to read.
 
 **1. `declare(strict_types=1)` everywhere.** Strict mode is decided by the *calling* file, so your own code is
 mostly unaffected — but wherever a component passes your loosely-typed value into *its own* strict internals,
@@ -2531,7 +2531,7 @@ $token = unserialize($_SESSION['pop_captcha']);
 ## pop-kettle
 
 **Scope:** Kettle is re-architected from a `Pop\Module\Module` plugged into a generic `Pop\Application` into its own `Pop\Kettle\Application` class with a new `prepare()/load()/run()` bootstrap, a rewritten `kettle` script that no longer has an include hook, restructured scaffolding templates, a regrouped `web:*` command namespace, and a new `queue:*`/`create:command` command surface.
-**Break count:** 16 (4 high, 8 medium, 4 low)
+**Break count:** 17 (4 high, 9 medium, 4 low)
 
 ### `Pop\Kettle\Module` removed and replaced by `Pop\Kettle\Application`
 **Severity:** High — **Affects:** any `kettle` script, custom console script, or code that registers Kettle as a module or reads `Module::VERSION`
@@ -2607,6 +2607,23 @@ Flags are unchanged: `--host` still defaults to `localhost`, `--port` to `8000`,
 
 **Migration:** Change `serve` to `web:serve` everywhere it's invoked. Grep for it outside your PHP source too — this one usually lives in tooling and docs rather than code.
 
+### `app:init` no longer takes any flags or a namespace argument
+**Severity:** Medium — **Affects:** every scripted, documented or CI invocation of `app:init` — the first command in the v6 quick start
+The route dropped from `app:init [--web] [--api] [--cli] <namespace>` to a bare `app:init`. Everything it used to take on the command line is now asked interactively, and the router matches the command exactly — so any leftover argument makes it miss the route entirely. `<namespace>` was **required** in v6, which means every invocation written against the v6 README breaks.
+
+```bash
+# v6
+./kettle app:init --web --api MyApp
+
+# v7 — no arguments; namespace and application type are prompted for
+./kettle app:init
+```
+The failure is loud rather than silent: you get Kettle's "Invalid Command" box and the `Try ./kettle help for help` hint, and nothing is scaffolded. The application-type flags became a comma-separated multi-select (`1: Web  2: API  3: CLI`, blank for web), so `--web --api` is now answered as `1,2`.
+
+`Controller\ApplicationController::init()` lost both parameters to match (`init(?string $namespace, array $options = [])` → `init()`). A subclass still overriding it with the v6 signature is a fatal `Declaration must be compatible` error, since an override cannot introduce a required parameter the parent doesn't have.
+
+**Migration:** Drop the flags and the namespace from every `app:init` call and answer the prompts instead. There is no non-interactive equivalent — automation that needs one should call `Model\Application::init()` directly, which still takes all of it as arguments.
+
 ### `Event\Console::header()` and `::footer()` removed
 **Severity:** Medium — **Affects:** anything that registered these as `app.route.pre` / `app.dispatch.post` listeners
 Replaced by `maintenanceDisplay()` and `productionDisplay()`; banner printing moved into `Application::load()`.
@@ -2673,7 +2690,7 @@ v6 only handled `$database['default']` and connected immediately. v7 loops every
 
 ### `X_POP_CONSOLE_INPUT_2/3/4` prompt-override hooks removed
 **Severity:** Low — **Affects:** external harnesses that drove Kettle prompts via `$_SERVER`
-The `app:init` prompt sequence also changed, so any script feeding it canned answers is off by more than one. v6 asked four questions — app name, environment, URL, configure-a-database. v7 asks up to six: the environment question is gone, and three new ones appear — a stand-alone-CLI-app question for `--cli`, and, for any install flavor including web, a front-end question followed by a framework choice.
+The `app:init` prompt sequence also changed, so any script feeding it canned answers is off by more than one. v6 asked four questions — app name, environment, URL, configure-a-database — with the namespace and install flavor supplied as command-line arguments. v7 asks up to eight, in this order: namespace, app name, application type(s), URL (web/API only), stand-alone CLI app (CLI only), configure-a-database, install-a-front-end (web only), and the framework choice. The environment question is gone entirely.
 
 **Migration:** Feed prompts through `Console::setInputStream()`, and re-record the answer sequence against a v7 `app:init` run.
 
