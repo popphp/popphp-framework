@@ -20,6 +20,7 @@
     ],
     "require": {
         "php": ">=8.4.0",
+        "popphp/popphp": "^5.0.1",
         "popphp/pop-acl": "^5.0.0",
         "popphp/pop-audit": "^3.0.0",
         "popphp/pop-auth": "^5.0.0",
@@ -27,7 +28,7 @@
         "popphp/pop-code": "^6.0.0",
         "popphp/pop-color": "^2.0.0",
         "popphp/pop-config": "^5.0.0",
-        "popphp/pop-console": "^5.0.0",
+        "popphp/pop-console": "^5.0.2",
         "popphp/pop-cookie": "^5.0.0",
         "popphp/pop-crypt": "^4.0.0",
         "popphp/pop-css": "^3.0.0",
@@ -38,10 +39,10 @@
         "popphp/pop-dom": "^5.0.0",
         "popphp/pop-filter": "^5.0.0",
         "popphp/pop-form": "^5.0.0",
-        "popphp/pop-http": "^6.0.0",
+        "popphp/pop-http": "^6.0.2",
         "popphp/pop-i18n": "^5.0.0",
         "popphp/pop-image": "^5.0.0",
-        "popphp/pop-kettle": "^3.0.0",
+        "popphp/pop-kettle": "^3.0.9",
         "popphp/pop-log": "^5.0.0",
         "popphp/pop-mail": "^5.0.0",
         "popphp/pop-mime": "^3.0.0",
@@ -55,7 +56,6 @@
         "popphp/pop-utils": "^3.0.0",
         "popphp/pop-validator": "^5.0.0",
         "popphp/pop-view": "^5.0.0",
-        "popphp/popphp": "^5.0.0",
         "vlucas/phpdotenv": "^5.6.4"
     },
     "extra": {

@@ -66,6 +66,8 @@ CHANGELOG
     - Added progress bar functionality
     - Added a multi-select prompt
     - Added ability to display help for sub-commands to filter a help screen down to a smaller set of commands
+    - Refactored the Console class, breaking the prompt, header, alert and help rendering out into
+      separate, stand-alone `Prompt`, `Header`, `Alert` and `Help` classes (public API unchanged)
   + `pop-crypt`
     - Added Sodium/XChaCha20 support
     - Improved security fixes
@@ -106,6 +108,7 @@ CHANGELOG
       + Improvements to the Curl and Stream handler classes
       + Improvements to the Client functionality
       + Improvements to the Server functionality
+      + Added support for content negotiation via the `Accept` request header
     - Improvements to the Curl command functionality
     - Added Mock Transport Handler
   + `pop-image`
@@ -122,15 +125,18 @@ CHANGELOG
     - Added support to manage queues directly from the kettle helper script
     - Added autoloading of commands in the application namespace
     - Added new `pop-console` functionality to display help for sub-commands
-    - Moved the `app:init` command options and `<namespace>` parameter into prompts within the command;
-      application type is now a multi-select, and the namespace is normalized into a valid PHP namespace,
-      a script slug and a display name
-    - Added the `--set` flag to the `app:env` command to change the application environment;
-      `app:init` no longer prompts for it
-    - Removed the `kettle.inc.php` file; `app:init` now registers the application namespace in
+    - Moved the `kettle app:*` commands to `kettle pop:*` to free up the `app` (`App`) namespace for the
+      installed application
+    - Simplified the `kettle pop:init` command options and converted them into prompts within the command;
+      the namespace is normalized into a valid PHP namespace, a script slug and a display name
+    - Consolidated the separate web and API scaffolding into a single set of `Http` controllers that
+      negotiate an HTML or JSON response off the request's `Accept` header, reducing the six install
+      flavors down to a full application or a CLI-only one
+    - Added the `--set` flag to the `pop:env` command to change the application environment
+    - Removed the `kettle.inc.php` file; `pop:init` now registers the application namespace in
       `composer.json` and runs `composer dump-autoload` instead
     - Renamed the `orig.env` template file to `.env.example`
-    - Added Composer-based install hook to run the `app:init` command post-install
+    - Added Composer-based install hook to run the `pop:init` command post-install
   + `pop-log`
     - Added PSR Interoperability
       + PSR-3: Logger interface

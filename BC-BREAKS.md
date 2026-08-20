@@ -5,7 +5,7 @@
 Everything that will break when you upgrade an application from **Pop PHP Framework v6.0.0** to **v7.0.0**,
 and what to change in your code for each one.
 
-**339 breaks** across the bundled components — **125 high**, **122 medium**, **92 low**.
+**341 breaks** across the bundled components — **125 high**, **123 medium**, **93 low**.
 
 This is the companion to [`NEW-FEATURES.md`](NEW-FEATURES.md). This document tells you what will break; that
 one tells you what you get for it.
@@ -73,7 +73,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 | pop-code | 5.0.8 → 6.0.0 | 10 (4/3/3) |
 | pop-color | 1.0.3 → 2.0.0 | 6 (3/1/2) |
 | pop-config | 4.0.4 → 5.0.0 | 8 (3/2/3) |
-| pop-console | 4.2.6 → 5.0.0 | 8 (3/3/2) |
+| pop-console | 4.2.6 → 5.0.0 | 9 (3/3/3) |
 | pop-cookie | 4.0.4 → 5.0.0 | 6 (2/3/1) |
 | pop-crypt | 3.0.1 → 4.0.0 | 9 (3/4/2) |
 | pop-css | 2.0.3 → 3.0.0 | 6 (1/2/3) |
@@ -87,7 +87,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 | pop-http | 5.3.8 → 6.0.0 | 19 (5/9/5) |
 | pop-i18n | 4.0.3 → 5.0.0 | 9 (0/3/6) |
 | pop-image | 4.1.3 → 5.0.0 | 2 (1/0/1) |
-| pop-kettle | 2.3.4 → 3.0.0 | 17 (4/9/4) |
+| pop-kettle | 2.3.4 → 3.0.0 | 18 (4/10/4) |
 | pop-log | 4.0.4 → 5.0.0 | 12 (6/4/2) |
 | pop-mail | 4.0.7 → 5.0.0 | 22 (11/7/4) |
 | pop-mime | 2.0.3 → 3.0.0 | 16 (10/4/2) |
@@ -135,7 +135,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 
 ## Cross-cutting patterns
 
-Four themes account for most of the 339 breaks. Recognizing them makes the per-component sections faster to read.
+Four themes account for most of the 341 breaks. Recognizing them makes the per-component sections faster to read.
 
 **1. `declare(strict_types=1)` everywhere.** Strict mode is decided by the *calling* file, so your own code is
 mostly unaffected — but wherever a component passes your loosely-typed value into *its own* strict internals,
@@ -1235,7 +1235,7 @@ v7 gates every format on `is_file()` first, which does not consult `include_path
 ## pop-console
 
 **Scope:** `Command` was rebuilt on top of `popphp` 5's new `Pop\Dispatch` stack (making it dispatchable, with `Application`/`Console` now leading its constructor), command storage was extracted into a new `CommandRegistry`, `Table`/`ProgressBar` were added, strict types were enabled, `isWindows()`'s return value was inverted, and the `X_POP_CONSOLE_INPUT` prompt hook was replaced by an injectable stream.
-**Break count:** 8 (3 high, 3 medium, 2 low)
+**Break count:** 9 (3 high, 3 medium, 3 low)
 
 ### `Command` constructor signature changed — `$name` is no longer the first argument
 **Severity:** High — **Affects:** any code that constructs `Pop\Console\Command` (or a subclass) positionally
@@ -1333,6 +1333,23 @@ The new hierarchy injects `dispatch()`, `setDefaultAction()`, `getDefaultAction(
 Callers are unaffected, since the parameter is optional. A subclass that **overrides** either method is the exception — PHP requires an override to accept at least as many parameters as its parent, so a v6 override fatals with an incompatible-declaration error. Overriding `displayHelp()` to customize the help screen is the likely case here.
 
 **Migration:** Nothing to do for plain callers. Add the trailing `?string $subCommand = null` to any override and pass it through.
+
+### `Console` rendering moved into collaborator classes — subclass overrides stop being called
+**Severity:** Low — **Affects:** `Console` subclasses that overrode `alert()`, `header()`, `calculatePad()` or `getPromptInput()` to customize output
+`Console` was split up: prompting, headers, alerts and the help screen now live in `Pop\Console\Prompt`, `Header`, `Alert` and `Help`, and `Console` constructs one of them per call. Every public method kept its name and signature, so callers see no change — but the internal call graph they hung off is gone.
+
+```php
+// v6 — alertDanger() called $this->alert(), so this override changed all eight variants
+class MyConsole extends Pop\Console\Console {
+    public function alert(string $message, ...): Console|string { … }
+}
+$console->alertDanger('Nope');   // v6: your override ran. v7: it does not.
+```
+The same applies to `headerLeft()`/`headerCenter()`/`headerRight()`, which no longer route through `header()`. Two protected helpers were removed from `Console` outright — `calculatePad()` (now on the `MessageTrait` the renderers use) and `getPromptInput()` (now on `Prompt`) — so an override of either is dead code that PHP will not complain about.
+
+Nothing fatals here; the customization simply stops taking effect, which is why it is worth grepping for rather than waiting to notice.
+
+**Migration:** Override the specific public method you actually want to change (`alertDanger()` rather than `alert()`), or subclass the renderer itself and use it directly — `Prompt`, `Header`, `Alert` and `Help` are all usable stand-alone.
 
 ---
 
@@ -2530,8 +2547,8 @@ $token = unserialize($_SESSION['pop_captcha']);
 
 ## pop-kettle
 
-**Scope:** Kettle is re-architected from a `Pop\Module\Module` plugged into a generic `Pop\Application` into its own `Pop\Kettle\Application` class with a new `prepare()/load()/run()` bootstrap, a rewritten `kettle` script that no longer has an include hook, restructured scaffolding templates, a regrouped `web:*` command namespace, and a new `queue:*`/`create:command` command surface.
-**Break count:** 17 (4 high, 9 medium, 4 low)
+**Scope:** Kettle is re-architected from a `Pop\Module\Module` plugged into a generic `Pop\Application` into its own `Pop\Kettle\Application` class with a new `prepare()/load()/run()` bootstrap, a rewritten `kettle` script that no longer has an include hook, restructured scaffolding templates, a regrouped `web:*` command namespace, `app:*` renamed to `pop:*`, and a new `queue:*`/`create:command` command surface.
+**Break count:** 18 (4 high, 10 medium, 4 low)
 
 ### `Pop\Kettle\Module` removed and replaced by `Pop\Kettle\Application`
 **Severity:** High — **Affects:** any `kettle` script, custom console script, or code that registers Kettle as a module or reads `Module::VERSION`
@@ -2575,7 +2592,7 @@ $autoloader->addPsr4('MyApp\\', __DIR__ . '/app/src');
 ```
 Autoloading is now Composer's job for every entry point at once — `kettle`, `public/index.php` and a stand-alone `script/<app>` all read the same generated autoloader, and the `addPsr4()` calls are gone from the scaffolded scripts too. Custom commands replace the routes half: classes under `app/src/Console/Command/Kettle` are discovered by `CommandRegistry::loadRoutes()` on every run.
 
-**Migration:** Add your namespace to `composer.json` under `autoload.psr-4` (`"MyApp\\": "app/src/"`), run `composer dump-autoload`, move any custom routes to `create:command` classes, and delete `kettle.inc.php`. Re-running `app:init` does the composer.json edit and the dump for you.
+**Migration:** Add your namespace to `composer.json` under `autoload.psr-4` (`"MyApp\\": "app/src/"`), run `composer dump-autoload`, move any custom routes to `create:command` classes, and delete `kettle.inc.php`. Re-running `pop:init` does the composer.json edit and the dump for you.
 
 ### Controller constructor params are no longer injected by Kettle
 **Severity:** High — **Affects:** custom Kettle controllers reached through routes you added yourself
@@ -2607,22 +2624,40 @@ Flags are unchanged: `--host` still defaults to `localhost`, `--port` to `8000`,
 
 **Migration:** Change `serve` to `web:serve` everywhere it's invoked. Grep for it outside your PHP source too — this one usually lives in tooling and docs rather than code.
 
-### `app:init` no longer takes any flags or a namespace argument
+### The `app:*` command namespace is now `pop:*`
+**Severity:** Medium — **Affects:** every invocation of `app:init`, `app:env`, `app:status`, `app:down` or `app:up` — in scripts, Makefiles, deploy jobs, cron entries and docs
+All five application-level commands moved namespace wholesale. There are no aliases, so a v6 invocation misses the route and prints "Invalid Command" without doing anything.
+
+```bash
+# v6                    # v7
+./kettle app:init       ./kettle pop:init
+./kettle app:env        ./kettle pop:env
+./kettle app:status     ./kettle pop:status
+./kettle app:down       ./kettle pop:down
+./kettle app:up         ./kettle pop:up
+```
+The one to check your deployment scripts for is `app:down` / `app:up` — a maintenance-mode wrapper that silently stops working leaves the site live through a deployment that assumed it was down. `--secret` on `pop:down` is otherwise unchanged; `pop:env` additionally gained a `--set` flag it did not have in v6.
+
+`app:` was vacated deliberately: the scaffolded application's default namespace is now `App`, so the commands *you* write with `create:command` get to be `app:*` without colliding with Kettle's own.
+
+**Migration:** `s/app:/pop:/` across your tooling for those five commands only — `create:*`, `db:*`, `migrate:*`, `queue:*` and `web:*` are untouched.
+
+### `pop:init` takes no flags and no namespace argument
 **Severity:** Medium — **Affects:** every scripted, documented or CI invocation of `app:init` — the first command in the v6 quick start
-The route dropped from `app:init [--web] [--api] [--cli] <namespace>` to a bare `app:init`. Everything it used to take on the command line is now asked interactively, and the router matches the command exactly — so any leftover argument makes it miss the route entirely. `<namespace>` was **required** in v6, which means every invocation written against the v6 README breaks.
+On top of the namespace rename above, the route dropped from `app:init [--web] [--api] [--cli] <namespace>` to a bare `pop:init`. Everything it used to take on the command line is now asked interactively, and the router matches the command exactly — so any leftover argument makes it miss the route entirely. `<namespace>` was **required** in v6, which means every invocation written against the v6 README breaks twice over.
 
 ```bash
 # v6
 ./kettle app:init --web --api MyApp
 
-# v7 — no arguments; namespace and application type are prompted for
-./kettle app:init
+# v7 — no arguments; everything is prompted for
+./kettle pop:init
 ```
-The failure is loud rather than silent: you get Kettle's "Invalid Command" box and the `Try ./kettle help for help` hint, and nothing is scaffolded. The application-type flags became a comma-separated multi-select (`1: Web  2: API  3: CLI`, blank for web), so `--web --api` is now answered as `1,2`.
+The failure is loud rather than silent: you get Kettle's "Invalid Command" box and the `Try ./kettle help for help` hint, and nothing is scaffolded. The three application-type flags collapsed to a single yes/no question — `Is this a CLI-only application? [Y/N]` — because there is no longer a web-versus-API choice to make: a non-CLI install scaffolds one `Http\Controller` that answers both, picking HTML or JSON off the request's `Accept` header. `--web`, `--api` and `--web --api` are all just "N".
 
 `Controller\ApplicationController::init()` lost both parameters to match (`init(?string $namespace, array $options = [])` → `init()`). A subclass still overriding it with the v6 signature is a fatal `Declaration must be compatible` error, since an override cannot introduce a required parameter the parent doesn't have.
 
-**Migration:** Drop the flags and the namespace from every `app:init` call and answer the prompts instead. There is no non-interactive equivalent — automation that needs one should call `Model\Application::init()` directly, which still takes all of it as arguments.
+**Migration:** Drop the flags and the namespace from every call and answer the prompts instead. There is no non-interactive equivalent — automation that needs one should call `Model\Application::init()` directly, which still takes all of it as arguments.
 
 ### `Event\Console::header()` and `::footer()` removed
 **Severity:** Medium — **Affects:** anything that registered these as `app.route.pre` / `app.dispatch.post` listeners
@@ -2643,9 +2678,9 @@ $app->on('app.route.pre', fn() => Pop\Kettle\Event\Console::maintenanceDisplay($
 
 **Migration:** Update any `Pop\Model\AbstractModel` type-hint or `instanceof` covering these models to `Pop\Utils\AbstractModel`.
 
-### `Model\Application::init()` / `install()` dropped `$env` from the middle of the signature
+### `Model\Application::init()` / `install()` re-signatured — `$env` is gone and the three type flags collapsed to one bool
 **Severity:** Medium — **Affects:** programmatic scaffolding callers, and any subclass overriding either method
-`app:init` no longer sets the environment, so the `string $env` parameter is gone — and it was **not** the last one. Every argument after it shifts left by one position.
+Two changes land on the same signature. `pop:init` no longer sets the environment, so `string $env` is gone — and it was **not** the last parameter, so everything after it shifts left. Separately, `?bool $web, ?bool $api, ?bool $cli` collapsed into a single `bool $cliOnly`, since a non-CLI install now scaffolds one `Http\Controller` that serves both HTML and JSON.
 
 ```php
 // v6
@@ -2653,21 +2688,29 @@ public function init(string $location, string $namespace, ?bool $web = null, ?bo
     string $name = 'Pop', string $env = 'local', string $url = 'http://localhost'): void
 
 // v7
-public function init(string $location, string $namespace, ?bool $web = null, ?bool $api = null, ?bool $cli = null,
-    string $name = 'MyApp', string $url = '', bool $cliApp = false, bool $createDb = false,
+public function init(string $location, string $namespace, bool $cliOnly = false,
+    string $name = 'App', string $url = '', bool $cliApp = false, bool $createDb = false,
     ?string $frontend = null): void
 ```
-A v6 call that passed seven positional arguments now feeds its environment string into `$url` — **silently**, since both are strings. Passing eight fatals instead, because the old `$url` value lands in `bool $cliApp`. `install()` shifts the same way, one position earlier (`$env` was its fifth parameter).
+The dangerous case is positional. In a v6 call, argument 3 was `$web` and it now lands in `bool $cliOnly` — so `init($loc, $ns, true, ...)`, which meant "web app", now means **"CLI-only app"**: exactly inverted, both types check, and nothing warns. What happens to argument 4 (`$api`, a bool, now hitting `string $name`) depends on the calling file: `declare(strict_types=1)` makes it a `TypeError`, and a v6 file without it coerces the bool to `''` or `'1'` and names your app that.
 
-Alongside that: the three trailing parameters are new (`$frontend` being `'alpine'`, `'vue'`, `'react'` or `null`), defaults changed — `$name` `'Pop'` → `'MyApp'`, `$url` `'http://localhost'` → `''` — and the template root moved to `config/templates/codebase/<install>`. A subclass that **overrides** either method also fatals until it matches the new parameter count.
+`install()` changed the same way and is worse, because its first parameter changed type: `string $install` (the flavor name, e.g. `'web-api'`) became `bool $cliOnly`, so a v6 call fatals on argument 1 rather than misbehaving quietly. `Model\Application::resolveInstallType()`, which mapped the three flags onto a flavor string, is gone with it.
 
-**Migration:** Drop the `$env` argument from every call and re-check the positions after it; switch to named arguments if you pass more than the first few. To set the environment, use `app:env --set` or write `APP_ENV` yourself.
+Alongside that: the three trailing parameters are new (`$frontend` being `'alpine'`, `'vue'`, `'react'` or `null`), defaults changed — `$name` `'Pop'` → `'App'`, `$url` `'http://localhost'` → `''` — and the template root is now `config/templates/codebase/cli` or `.../full`. A subclass that **overrides** either method also fatals until it matches the new signature.
 
-### `create:ctrl --cli` no longer also creates an HTTP controller, and now requires `script/`
-**Severity:** Medium — **Affects:** `./kettle create:ctrl --cli <ctrl>`
-v6 passed `false` for unset flags and gated on `empty()`, so a `--cli`-only invocation created **both** controllers. v7 gates on `null` and additionally throws if no `script/` folder exists.
+**Migration:** Switch to named arguments — this signature has now moved twice, and positional calls are what make the failure silent. Pass `cliOnly: true` where you previously passed `cli: true` with no `web`/`api`; everything else is `cliOnly: false`. To set the environment, use `pop:env --set` or write `APP_ENV` yourself.
 
-**Migration:** Run `create:ctrl` a second time with no flags if you also want the HTTP controller.
+### `create:ctrl` lost its `--web` and `--api` flags, and `--cli` no longer also creates an HTTP controller
+**Severity:** Medium — **Affects:** `./kettle create:ctrl` with any flag
+The route went from `create:ctrl [--web] [--api] [--cli] <ctrl>` to `create:ctrl [--cli] <ctrl>`. `--web` and `--api` are no longer recognized, so passing either misses the route and prints "Invalid Command" — there is no separate `Http\Web\Controller` / `Http\Api\Controller` namespace left to target. A bare `create:ctrl <ctrl>` writes the one HTTP controller under `app/src/Http/Controller/`.
+
+That matters even though your v6 app's existing `Http\Web` and `Http\Api` classes keep working untouched: you can no longer **generate** new controllers into those folders. Kettle only knows about the consolidated layout.
+
+`--cli` changed too. v6 passed `false` for unset flags and gated on `empty()`, so a `--cli`-only invocation created **both** controllers; v7 gates on `null` and additionally throws if no `script/` folder exists.
+
+`Model\Application::createController()` follows the route: `(string $ctrl, string $location, ?bool $web, ?bool $api, ?bool $cli): array` is now `(string $ctrl, string $location, ?bool $cli = null): string`. It returns the one class name it created rather than a list, so a v6 caller doing `foreach ($model->createController(...) as $class)` iterates the characters of a string.
+
+**Migration:** Drop `--web`/`--api`; run `create:ctrl <ctrl>` for the HTTP controller and `create:ctrl --cli <ctrl>` for the console one, as two separate calls. Programmatic callers should stop treating the return value as an array.
 
 ### `create:model` generates different parent classes
 **Severity:** Medium — **Affects:** `./kettle create:model` and `--data`
@@ -2685,18 +2728,22 @@ v6 only handled `$database['default']` and connected immediately. v7 loops every
 
 **Migration:** Pull connections from `$app->services()['database']` rather than assuming an eager `Record` binding.
 
-### Scaffolding template directory layout restructured
+### Scaffolding template directory layout restructured — six install flavors became two
 **Severity:** Low — **Affects:** only code referencing `config/templates/…` paths directly
+v6 shipped one codebase template per flag combination: `web`, `api`, `web-api`, `web-cli`, `api-cli` and `web-api-cli`. v7 ships `cli` and `full`. `config/templates/script/myapp` is likewise now `config/templates/script/app`.
+
+Nothing in your application reads these paths — they are Kettle's own scaffolding source — so this only bites code that reached into `vendor/popphp/pop-kettle/config/templates/` to copy or patch a template.
+
 
 ### `X_POP_CONSOLE_INPUT_2/3/4` prompt-override hooks removed
 **Severity:** Low — **Affects:** external harnesses that drove Kettle prompts via `$_SERVER`
-The `app:init` prompt sequence also changed, so any script feeding it canned answers is off by more than one. v6 asked four questions — app name, environment, URL, configure-a-database — with the namespace and install flavor supplied as command-line arguments. v7 asks up to eight, in this order: namespace, app name, application type(s), URL (web/API only), stand-alone CLI app (CLI only), configure-a-database, install-a-front-end (web only), and the framework choice. The environment question is gone entirely.
+The init prompt sequence also changed, so any script feeding it canned answers is off by more than one. v6 asked four questions — app name, environment, URL, configure-a-database — with the namespace and install flavor supplied as command-line arguments. v7 asks up to seven, in this order: namespace, app name, CLI-only yes/no, URL (skipped for CLI-only), stand-alone CLI app, configure-a-database, install-a-front-end plus the framework choice (both skipped for CLI-only). The environment question is gone entirely.
 
-**Migration:** Feed prompts through `Console::setInputStream()`, and re-record the answer sequence against a v7 `app:init` run.
+**Migration:** Feed prompts through `Console::setInputStream()`, and re-record the answer sequence against a v7 `pop:init` run.
 
 ### `.env` template: `APP_NAME` default changed, and `APP_ENV` is no longer written
-**Severity:** Low — **Affects:** re-running `app:init` over a pre-existing `.env`
-`APP_NAME` defaults to `MyApp` instead of `Pop`, and since `.env` is only copied when absent, an existing v6 `.env` will no longer have its app name substituted. `APP_ENV` is not substituted at all any more — a new app always starts at `local`, and `app:env --set` changes it afterward. The template also gained `QUEUE_ADAPTER`, `QUEUE_PRIORITY`, `QUEUE_LEASE`, and the packaged file was renamed `orig.env` → `.env.example` (in the `popphp/framework` skeleton too, where it sits in your project root).
+**Severity:** Low — **Affects:** re-running init over a pre-existing `.env`
+`APP_NAME` defaults to the display name derived from your namespace — `App` if you accept every default — instead of `Pop`, and since `.env` is only copied when absent, an existing v6 `.env` will no longer have its app name substituted. `APP_ENV` is not substituted at all any more — a new app always starts at `local`, and `pop:env --set` changes it afterward. The template also gained `QUEUE_ADAPTER`, `QUEUE_PRIORITY`, `QUEUE_LEASE`, and the packaged file was renamed `orig.env` → `.env.example` (in the `popphp/framework` skeleton too, where it sits in your project root).
 
 ### `db:reset` uses `DELETE FROM` instead of `TRUNCATE` on SQLite
 **Severity:** Low — **Affects:** `./kettle db:reset` against SQLite
