@@ -5,7 +5,7 @@
 Everything that will break when you upgrade an application from **Pop PHP Framework v6.0.0** to **v7.0.0**,
 and what to change in your code for each one.
 
-**342 breaks** across the bundled components — **127 high**, **122 medium**, **93 low**.
+**344 breaks** across the bundled components — **127 high**, **123 medium**, **94 low**.
 
 This is the companion to [`NEW-FEATURES.md`](NEW-FEATURES.md). This document tells you what will break; that
 one tells you what you get for it.
@@ -68,7 +68,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 | popphp (core) | 4.4.4 → 5.0.0 | 21 (11/9/1) |
 | pop-acl | 4.1.4 → 5.0.0 | 4 (2/2/0) |
 | pop-audit | 2.0.3 → 3.0.0 | 6 (3/1/2) |
-| pop-auth | 4.0.3 → 5.0.0 | 6 (3/1/2) |
+| pop-auth | 4.0.3 → 5.0.0 | 7 (3/2/2) |
 | pop-cache | 4.0.3 → 5.0.0 | 12 (5/4/3) |
 | pop-code | 5.0.8 → 6.0.0 | 10 (4/3/3) |
 | pop-color | 1.0.3 → 2.0.0 | 6 (3/1/2) |
@@ -78,7 +78,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 | pop-crypt | 3.0.1 → 4.0.0 | 9 (3/4/2) |
 | pop-css | 2.0.3 → 3.0.0 | 6 (1/2/3) |
 | pop-csv | 4.2.5 → 5.0.0 | 6 (0/2/4) |
-| pop-db | 6.8.15 → 7.0.0 | 18 (7/9/2) |
+| pop-db | 6.8.15 → 7.0.0 | 19 (7/9/3) |
 | pop-debug | 3.0.0 → 4.0.0 | 4 (3/1/0) |
 | pop-dir | 4.0.3 → 5.0.0 | 7 (1/3/3) |
 | pop-dom | 4.0.7 → 5.0.0 | 6 (3/0/3) |
@@ -135,7 +135,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 
 ## Cross-cutting patterns
 
-Four themes account for most of the 342 breaks. Recognizing them makes the per-component sections faster to read.
+Four themes account for most of the 344 breaks. Recognizing them makes the per-component sections faster to read.
 
 **1. `declare(strict_types=1)` everywhere.** Strict mode is decided by the *calling* file, so your own code is
 mostly unaffected — but wherever a component passes your loosely-typed value into *its own* strict internals,
@@ -691,7 +691,7 @@ A response object that exposes the right methods but is not that class now makes
 ## pop-auth
 
 **Scope:** Security-hardening pass on the remaining auth adapters: a new `needsRehash()` contract, adapters now throw `Pop\Auth\Exception` on infrastructure failures instead of silently returning `0`. The `Ldap`, `Table`, and `Http` adapters have also been removed entirely — `Table` moved to `pop-db`, `Http` is superseded by using `pop-http`'s `Client`/`Auth` directly — and a new `Jwt` adapter has been added, verifying a token's signature (via a new `pop-crypt` primitive) and claims. `AuthInterface::authenticate()`'s signature also widened to accommodate `Jwt`'s single-token credential.
-**Break count:** 6 (3 high, 1 medium, 2 low)
+**Break count:** 7 (3 high, 2 medium, 2 low)
 
 ### `Auth\Ldap` has been removed
 **Severity:** High — **Affects:** any app using `Auth\Ldap`
@@ -719,7 +719,11 @@ $auth->authenticate('admin', 'password');
 // v7
 // class Pop\Auth\Table does not exist
 ```
-**Migration:** Database-backed authentication now lives in `pop-db`; switch to its replacement, or pin your app to `pop-auth` v6.
+**Migration:** Database-backed authentication now lives in `pop-db` as `Pop\Db\Record\Auth`, but it is not a
+drop-in swap: the replacement is a `Record` subclass your table class extends, not an adapter you construct
+around a table class, and `authenticate()` returns `false`, `true`, or the loaded record (when issuing an MFA code) rather than
+`0`/`1`. Or pin
+your app to `pop-auth` v6.
 
 ### `Auth\Http` has been removed
 **Severity:** High — **Affects:** any app using `Auth\Http`
@@ -734,6 +738,19 @@ $auth->authenticate('admin', 'password');
 // class Pop\Auth\Http does not exist
 ```
 **Migration:** Use `pop-http`'s `Client` and `Auth` classes directly — build the request, send it, and check `$response->isSuccess()` yourself. Or pin your app to `pop-auth` v6.
+
+### `pop-db` and `pop-http` are no longer `pop-auth` dependencies
+**Severity:** Medium — **Affects:** apps that require only `popphp/pop-auth` and use `Pop\Db` or `Pop\Http` classes that arrived transitively
+With the `Table` and `Http` adapters gone, `pop-auth`'s `require` block drops `popphp/pop-db` and `popphp/pop-http` and picks up `popphp/pop-crypt` in their place. Neither package is installed alongside `pop-auth` any more, so an app that never declared them itself loses them on `composer update`.
+
+```json
+// v6
+"require": { "php": ">=8.3.0", "popphp/pop-db": "^6.7.0", "popphp/pop-http": "^5.3.8" }
+
+// v7
+"require": { "php": ">=8.4.0", "popphp/pop-crypt": "^4.0.0" }
+```
+**Migration:** Add `popphp/pop-db` and/or `popphp/pop-http` to your own `composer.json` if you use either.
 
 ### `AuthInterface::authenticate()` signature widened to accommodate token-based credentials
 **Severity:** Medium — **Affects:** any class implementing `AuthInterface` directly (not extending `AbstractAuth`)
@@ -1693,7 +1710,7 @@ Csv::serializeData([['a' => '0123abc']], ['limit' => 4, 'fields' => false]);
 ## pop-db
 
 **Scope:** Deep rework of the shorthand-condition parser (new structured syntax + deprecation of the old shapes), relationship eager-loading (composite keys, nested `with()`, empty-relationship values), a new `Pop\Db\Model` namespace absorbed from `popphp`, subquery/JSON predicates in the SQL builder, plus a PHP 8.4 requirement and dependency swaps.
-**Break count:** 18 (7 high, 9 medium, 2 low)
+**Break count:** 19 (7 high, 9 medium, 3 low)
 
 ### `popphp/pop-debug` removed from `pop-db`'s requirements
 **Severity:** Medium — **Affects:** apps using the query profiler's debugger integration
@@ -1872,6 +1889,21 @@ $sql->select()->where("note = 'salt AND pepper'");
 // v7 — kept as a single predicate
 ```
 **Migration:** Generally a fix; a column literally named e.g. `brand` is no longer mistaken for `AND`.
+
+### `Record::reset()` and `Record\Encoded::needsRehash()` / `rehash()` are now taken method names
+**Severity:** Low — **Affects:** table classes that already declare a method under one of those names
+`Record` gained `reset(string $column, mixed $value = null): void`, and `Record\Encoded` gained `needsRehash(): bool` and `rehash(string $key, string $value): void` plus a protected `$needsRehash` property. A subclass method of the same name with a different signature is now an incompatible override and fatals at class-load. `reset()` is the likely collision — it is a natural name for a password-reset or state-reset helper on a user table. *(uncertain — depends on your table classes)*
+
+```php
+// v6 — fine, Record had no reset()
+class Users extends Record {
+    public function reset(): static { ... }
+}
+
+// v7 — Fatal error: Declaration of Users::reset(): static must be compatible with
+//      Pop\Db\Record::reset(string $column, mixed $value = null): void
+```
+**Migration:** Rename your method, or adopt the new signature. Note `Record::reset()` calls `save()`, as `increment()` and `decrement()` already did.
 
 ### `PredicateSet::render()` no longer emits a leading conjunction
 **Severity:** Low · **Bug fix** — **Affects:** predicate sets containing only nested sets

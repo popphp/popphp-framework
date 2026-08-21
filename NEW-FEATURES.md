@@ -4,7 +4,7 @@
 
 Everything **Pop PHP Framework v7.0.0** gives you that **v6.0.0** did not, component by component.
 
-**276 new features** across the bundled components, plus one entirely new package.
+**278 new features** across the bundled components, plus one entirely new package.
 
 This is the companion to [`BC-BREAKS.md`](BC-BREAKS.md). That document tells you what will break; this one
 tells you what you get for it.
@@ -123,12 +123,12 @@ queues (`pop-queue`), syslog/stdout/NDJSON logging (`pop-log`), NDJSON debug sto
 | pop-pdf | 5.2.12 → 6.0.0 | 11 |
 | pop-queue | 2.1.3 → 3.0.0 | 11 |
 | pop-console | 4.2.6 → 5.0.0 | 11 |
+| pop-db | 6.8.15 → 7.0.0 | 10 |
 | pop-log | 4.0.4 → 5.0.0 | 10 |
 | pop-mail | 4.0.7 → 5.0.0 | 10 |
 | pop-mime | 2.0.3 → 3.0.0 | 10 |
 | pop-cache | 4.0.3 → 5.0.0 | 9 |
 | pop-color | 1.0.3 → 2.0.0 | 8 |
-| pop-db | 6.8.15 → 7.0.0 | 8 |
 | pop-storage | 2.1.3 → 3.0.0 | 8 |
 | pop-crypt | 3.0.1 → 4.0.0 | 8 |
 | pop-acl | 4.1.4 → 5.0.0 | 7 |
@@ -1631,8 +1631,8 @@ $data = Pop\Csv\Csv::unserializeString($string); // unique temp file per call
 
 ## pop-db — 6.8.15 → 7.0.0
 
-**Summary:** The shorthand condition array becomes a real structured query language (operators, OR/AND groups, subqueries, JSON paths), plus record safety and extensibility — mass-assignment guards, lifecycle hooks, composite-key and multi-path eager loading — and a `Pop\Db\Model` data-model layer.
-**Feature count:** 8
+**Summary:** The shorthand condition array becomes a real structured query language (operators, OR/AND groups, subqueries, JSON paths), plus record safety and extensibility — mass-assignment guards, lifecycle hooks, composite-key and multi-path eager loading — a `Pop\Db\Model` data-model layer, and an `Auth` record that absorbs `pop-auth`'s table adapter and builds attempt lockout and MFA on top of it.
+**Feature count:** 10
 
 ### Structured shorthand condition syntax
 Every `Record` finder now parses its `$columns` array through the new `Sql\Parser\Condition`, which accepts an explicit `[OPERATOR, ...values]` tuple per column plus reserved `'OR'`/`'AND'` keys for nested boolean groups. Operators are arity-validated, so a wrong number of values (or an empty `IN` array) throws instead of silently rendering something unintended. Supported: `=`, `!=`, `>`, `>=`, `<`, `<=`, `LIKE`, `NOT LIKE`, `IN`, `NOT IN`, `BETWEEN`, `NOT BETWEEN`, `IS NULL`, `IS NOT NULL`, `CONTAINS`.
@@ -1750,6 +1750,56 @@ $user  = User::createNew($userData);
 ```
 **In v6:** not available from `pop-db` — the class lived in `popphp` as `Pop\Model\AbstractDataModel` (removed there in v7). What is new for `pop-db` users is that it ships here and extends `Pop\Utils\AbstractModel`; `filter()` also returns `static`, so it chains into subclass methods.
 
+### Auth records — authentication, attempt lockout and MFA on a table class
+`Pop\Db\Record\Auth` extends `Record\Encoded` and turns a user table into a complete username/password authentication flow: credential verification against the hashed password column, failed-attempt lockout, and optional multi-factor code issuance and verification. The constructor adds `$passwordField` to `$hashFields` itself, so a table class cannot forget to hash its password column.
+
+```php
+use Pop\Db\Record\Auth;
+
+class Users extends Auth {}
+
+$user = new Users();
+
+// $mfa = false — authenticate outright
+if ($user->authenticate($username, $attemptedPassword, false)) {
+    // logged in
+} else {
+    echo $user->getAuthFailureMessage();   // "Invalid credentials", "The user does not exist", ...
+}
+
+// $mfa = true (the default) — on success a fresh code and expiration are saved to the
+// record and the record is returned, so the app can deliver the code however it likes
+$result = $user->authenticate($username, $attemptedPassword);
+if ($result !== false) {
+    $mailer->send($result->email, $result->mfa_code);
+}
+
+// later, with the user record loaded
+$user->authenticateMfa($attemptedCode);    // clears the stored code on success, so it cannot be replayed
+```
+
+Every failure path sets a reason constant, readable via `getAuthFailure()` and `getAuthFailureMessage()`: `USER_DOES_NOT_EXIST`, `INVALID_CREDENTIALS`, `ATTEMPTS_EXCEEDED`, `INVALID_MFA_CODE`, `MFA_CODE_EXPIRED`. A bad password, a wrong MFA code and an expired MFA code all increment the same `$attemptsField`, so a locked-out account is locked out of MFA guessing too. Lockout at `$attemptsLimit` (default `3`) is permanent by design — there is no timed unlock; an admin calls `resetAttempts()`. Codes are compared with `hash_equals()`.
+
+Field names, the attempt limit, and the MFA code length, expiry and alphabet are all plain property overrides: `$usernameField`, `$passwordField`, `$attemptsField`, `$attemptsLimit`, `$mfaConfig`.
+
+**In v6:** `Pop\Auth\Table` checked the password and nothing else — it took a table class name, compared one column, and returned `0`/`1`. Attempt counting, lockout and MFA were entirely the application's job. That adapter is gone; see [`BC-BREAKS.md`](BC-BREAKS.md).
+
+### Transparent password rehashing on `Record\Encoded`
+`verify()` now records whether the hash it just checked was made with an outdated algorithm or cost, so an app can upgrade stored hashes on the next successful login — while it still holds the plaintext.
+
+```php
+if ($user->verify('password', $attemptedPassword)) {
+    if ($user->needsRehash()) {
+        // re-hashes under the current $hashOptions and saves
+        $user->rehash('password', $attemptedPassword);
+    }
+}
+```
+
+`rehash()`'s value parameter is marked `#[\SensitiveParameter]`, so the plaintext stays out of stack traces. `Record\Auth::authenticate()` runs this automatically on every successful login.
+
+**In v6:** `verify()` returned a bare `bool`. Raising a bcrypt cost left every existing hash at the old cost indefinitely unless you re-implemented the check by hand.
+
 ### Smaller additions
 - New `Sql\Parser\Keyword` with public `indexOf()`/`split()` — quote-aware AND/OR splitting, so `where('name = "a AND b"')` no longer splits inside a quoted literal.
 - New `Sql\Parser\Condition` helpers `isNewSyntax()` and `isPlainEquality()` for code that needs to classify a shorthand entry.
@@ -1759,6 +1809,7 @@ $user  = User::createNew($userData);
 - `Select::render()` split into overridable `buildColumnsClause()`, `buildFromClause()`, `buildJoinsClause()`, `buildLimitOffsetClause()`, `quoteByColumn()`; `Record` gained overridable `parseFindWhereArguments()`, `buildWhereConditionColumns()`, `newUnfilteredRecord()`.
 - `PredicateSet::getParameters()`/`hasParameters()` now recurse into nested sets, so parameters bound inside an OR/AND group reach the prepared statement.
 - `Adapter\Profiler\Profiler` types its debugger as `Pop\Utils\DebuggerInterface`, so any debugger implementation plugs in — and the `pop-debug` dependency was dropped.
+- `Record::reset(string $column, mixed $value = null)` sets a column and saves in one call — the counterpart to the existing `increment()`/`decrement()`.
 
 ---
 

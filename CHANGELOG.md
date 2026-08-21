@@ -99,8 +99,12 @@ CHANGELOG
     - Subquery support
     - EXISTS support
     - Moved AbstractDataModel to `pop-db` (from `popphp`)
+    - Moved and refactors the Auth\Table functionality from `pop-auth` into `pop-db`. Now supports auth, attempts and MFA natively.
     - Fillable/guarded support
     - Removed circular dependency to `pop-debug`
+    - Added `reset()` to the Record class to reset a column value
+    - Added `needsRehash()`/`rehash()` to `Record\Encoded` to transparently upgrade outdated password
+      hashes on a successful `verify()`
   + `pop-debug`
     - Refactor for new `pop-log` compatibility
     - Support NDJson
