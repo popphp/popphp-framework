@@ -4,7 +4,7 @@
 
 Everything **Pop PHP Framework v7.0.0** gives you that **v6.0.0** did not, component by component.
 
-**274 new features** across the bundled components, plus one entirely new package.
+**276 new features** across the bundled components, plus one entirely new package.
 
 This is the companion to [`BC-BREAKS.md`](BC-BREAKS.md). That document tells you what will break; this one
 tells you what you get for it.
@@ -130,8 +130,8 @@ queues (`pop-queue`), syslog/stdout/NDJSON logging (`pop-log`), NDJSON debug sto
 | pop-color | 1.0.3 → 2.0.0 | 8 |
 | pop-db | 6.8.15 → 7.0.0 | 8 |
 | pop-storage | 2.1.3 → 3.0.0 | 8 |
+| pop-crypt | 3.0.1 → 4.0.0 | 8 |
 | pop-acl | 4.1.4 → 5.0.0 | 7 |
-| pop-crypt | 3.0.1 → 4.0.0 | 7 |
 | pop-view | 4.0.4 → 5.0.0 | 7 |
 | pop-config | 4.0.4 → 5.0.0 | 7 |
 | pop-dir | 4.0.3 → 5.0.0 | 7 |
@@ -150,7 +150,7 @@ queues (`pop-queue`), syslog/stdout/NDJSON logging (`pop-log`), NDJSON debug sto
 | pop-image | 4.1.3 → 5.0.0 | 4 |
 | pop-nav | 4.1.5 → 5.0.0 | 4 |
 | pop-utils | 2.4.2 → 3.0.0 | 4 |
-| pop-auth | 4.0.3 → 5.0.0 | 3 |
+| pop-auth | 4.0.3 → 5.0.0 | 4 |
 | pop-audit | 2.0.3 → 3.0.0 | 0 |
 
 ---
@@ -592,15 +592,15 @@ changes it used to miss.
 
 ## pop-auth — 4.0.3 → 5.0.0
 
-**Summary:** Transparent password-hash upgrade detection, timing-safe plaintext credential comparison, and typed exceptions that separate "the check couldn't run" from "the credentials were wrong."
-**Feature count:** 3
+**Summary:** Transparent password-hash upgrade detection, timing-safe plaintext credential comparison, typed exceptions that separate "the check couldn't run" from "the credentials were wrong," and a new `Jwt` adapter that verifies a token's signature and claims with no network or database dependency.
+**Feature count:** 4
 
 ### Typed `Pop\Auth\Exception` for infrastructure failures
-Every adapter's `authenticate()` now throws when it cannot perform the credential check at all — an unreadable access file, a DB query/connection failure, or a missing HTTP client or transport error. **A `0` return now unambiguously means "credentials checked and rejected,"** so an app can log and alert on outages instead of silently reporting a bad password. Wrapped causes are preserved as `$previous`.
+Every adapter's `authenticate()` now throws when it cannot perform the credential check at all — an unreadable access file, or malformed/unusable key material for the `Jwt` adapter. **A `0` return now unambiguously means "credentials checked and rejected,"** so an app can log and alert on outages instead of silently reporting a bad password. Wrapped causes are preserved as `$previous`.
 
 ```php
 // v7
-$auth = new Auth\Table('MyApp\Table\Users');
+$auth = new Auth\File('/path/to/.htmyauth');
 
 try {
     if ($auth->authenticate('admin', 'password')) {
@@ -609,13 +609,13 @@ try {
         // credentials genuinely didn't match
     }
 } catch (Auth\Exception $e) {
-    // adapter couldn't run the check (DB down, file unreadable, no client)
+    // adapter couldn't run the check (unreadable file, malformed JWT key material)
 }
 ```
-**In v6:** not possible to distinguish. `File::authenticate()` called `file()` unguarded and fell into `foreach (false)`. `Http::authenticate()` called `send()` on a possibly-null client, and `Table::authenticate()` let the raw PDO exception escape untyped. The only `throw` anywhere in v6's `src/` was for a nonexistent access file at construction.
+**In v6:** not possible to distinguish. `File::authenticate()` called `file()` unguarded and fell into `foreach (false)` on an unreadable file. The only `throw` anywhere in v6's `src/` was for a nonexistent access file at construction.
 
 ### `needsRehash()` on `AbstractAuth` / `AuthInterface`
-After a successful `verify()`, the adapter records whether the stored hash should be upgraded — either because it was stored unhashed, or because `password_needs_rehash()` reports it as out of date against `PASSWORD_DEFAULT`. This lets an app migrate legacy plaintext or weak-cost hashes on the next successful login, **while it still holds the cleartext password**. It is part of the interface contract, so it is available on every adapter, and is reset at the start of each `authenticate()`.
+After a successful `verify()`, the adapter records whether the stored hash should be upgraded — either because it was stored unhashed, or because `password_needs_rehash()` reports it as out of date against `PASSWORD_DEFAULT`. This lets an app migrate legacy plaintext or weak-cost hashes on the next successful login, **while it still holds the cleartext password**. It is part of the interface contract, so it is available on every adapter — though only `File` ever has a hash to compare against; `Jwt` verifies a signature instead, so `needsRehash()` is always `false` there.
 
 ```php
 // v7
@@ -629,7 +629,7 @@ if ($auth->isAuthenticated() && $auth->needsRehash()) {
 **In v6:** not possible. `verify()` returned only a bool and discarded the `password_get_info()` result; an app wanting this had to re-fetch the stored hash itself and call `password_needs_rehash()` outside the adapter.
 
 ### Timing-safe comparison of unhashed stored credentials
-When the stored credential is not a recognized password hash (plaintext access-file entries, legacy DB columns), `verify()` compares it with `hash_equals()` instead of `===`, removing the early-exit byte leak that made the comparison time-dependent on how many leading characters matched.
+When the stored credential is not a recognized password hash (plaintext access-file entries), `verify()` compares it with `hash_equals()` instead of `===`, removing the early-exit byte leak that made the comparison time-dependent on how many leading characters matched.
 
 ```php
 // v7 — src/AbstractAuth.php
@@ -638,11 +638,24 @@ $result     = $isUnhashed ? hash_equals($hash, $password) : password_verify($pas
 ```
 **In v6:** a plain `($password === $hash)` on the unhashed path; nothing in the component called `hash_equals()`.
 
+### `Jwt` adapter — signature and claims verification
+A new adapter that authenticates a bearer token by verifying its signature (`HS256`/`RS256`/`ES256`, via a new `Pop\Crypt\Signature\Verifier` primitive) and claims (`exp`/`nbf` always checked with an optional leeway, `aud`/`iss` opt-in), with no network call and no stored credential lookup. The algorithm is fixed at construction and never read from the token itself, avoiding the JWT "alg confusion" vulnerability class. Successfully verified claims are available via `getUser()`.
+
+```php
+// v7
+$auth = new Auth\Jwt('HS256', $secret);
+$auth->setAudience('my-api')->setLeeway(30);
+
+if ($auth->authenticate($token)) {
+    $claims = $auth->getUser();
+}
+```
+**In v6:** not possible — no token-based adapter existed; JWT verification had to be implemented outside `pop-auth` entirely.
+
 ### Smaller additions
-- `Http::authenticate()` fails fast with an exception when no client has been set, rather than fataling on a null-object `send()`.
-- `Table::authenticate()` and `Http::authenticate()` chain the originating `\Throwable` as `$previous`, so the underlying PDO/transport error stays inspectable.
 - `AuthInterface::authenticate()` and each implementation carry `@throws Exception` docblocks, making the new failure mode part of the published contract.
-- README gains "Handling Exceptions" and "Rehashing Passwords" sections, plus previously undocumented behavior: `File`'s realm-scoped `username:realm:hash` entries and custom delimiter.
+- `AuthInterface::authenticate()`'s signature widened to `authenticate(string $credential, ?string $secondary = null): int`, so `File`'s two-part credential and `Jwt`'s single token share one contract.
+- README gains "Handling Exceptions," "Using a JWT," and "Rehashing Passwords" sections, plus previously undocumented behavior: `File`'s realm-scoped `username:realm:hash` entries and custom delimiter.
 
 ---
 
@@ -1362,8 +1375,8 @@ $cookie->rememberMe;   // true (bool)
 
 ## pop-crypt — 3.0.1 → 4.0.0
 
-**Summary:** A libsodium XChaCha20-Poly1305 encrypter alongside the OpenSSL one, AES-CBC hardened with HKDF-separated encryption/MAC keys and verify-before-decrypt, a hasher input cap, and `EncrypterInterface` conformance across both encrypters.
-**Feature count:** 7
+**Summary:** A libsodium XChaCha20-Poly1305 encrypter alongside the OpenSSL one, AES-CBC hardened with HKDF-separated encryption/MAC keys and verify-before-decrypt, a hasher input cap, `EncrypterInterface` conformance across both encrypters, and a new `Signature\Verifier` for HMAC/RSA/EC signature verification.
+**Feature count:** 8
 
 ### `SodiumEncrypter` — XChaCha20-Poly1305 AEAD
 A second concrete encrypter built on the bundled `sodium` extension instead of OpenSSL. It is authenticated encryption by construction (no separate HMAC step to get wrong), and its 24-byte nonce is large enough that a fresh random nonce per message is safe at any realistic volume — unlike AES-GCM's 96-bit nonce, which has a birthday-bound collision risk under a single key at high volume, where reuse is catastrophic. It shares the same key/previous-key/`$raw` conventions as `Encrypter`, minus any cipher argument.
@@ -1452,6 +1465,19 @@ $encrypter->setCipher('aes-128-cbc'); // throws if key is 32 bytes
 $encrypter->setKey($shortKey);        // throws
 ```
 **In v6:** validation happened only in the constructor; both setters assigned unconditionally, so post-construction mutation bypassed every check.
+
+### `Signature\Verifier` — HMAC/RSA/EC signature verification
+A new `Pop\Crypt\Signature\Verifier` class providing bare signature-verification primitives: `hmac()` (via `hash_hmac()` + `hash_equals()`), and `rsa()`/`ec()` (via `openssl_verify()`). A malformed or unusable key throws `Pop\Crypt\Exception`; a signature that simply doesn't match returns `false` — a bad signature and a bad key are distinguishable failure modes. This is the primitive `pop-auth`'s new `Jwt` adapter builds its token-signature verification on.
+
+```php
+// v7
+use Pop\Crypt\Signature\Verifier;
+
+Verifier::hmac($data, $signature, $secret);              // bool
+Verifier::rsa($data, $signature, $publicKeyPem);          // bool, throws on bad key
+Verifier::ec($data, $signature, $publicKeyPem);           // bool, throws on bad key
+```
+**In v6:** not possible — no signature-verification primitive existed in this component; a consumer would call `openssl_verify()`/`hash_hmac()` directly with no exception-typed error handling.
 
 ### Smaller additions
 - `SodiumEncrypter::decrypt()` catches `\SodiumException` inside the key-rotation loop and treats it as a decryption failure, so a malformed payload throws the library's own exception.
