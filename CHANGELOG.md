@@ -18,10 +18,13 @@ CHANGELOG
 - Upgrades & Improvements to the following packages:
   + `popphp`
     - Added `Dispatch` functionality, to allow for other things besides controllers to be dispatched by the application object.
+    - Tighter integration of CallableObject, which allows a controller to be direct "callable strings" supported
+      by CallableObject or an instance of CallableObject itself. This is now normalized in one place across every
+      route-registration path, and a malformed callable string throws at route-registration time instead of
+      registering a route that can never dispatch.
     - Added PSR-14 interoperability to the Event functionality
     - Added PSR-15 interoperability to the Middleware functionality
-    - Added PSR-11 interoperability to the Service functionality
-    - Added the ability to directly consume a CallableObject as a controller
+    - Added PSR-11 interoperability to the Service functionality    
     - Changed the thrown error in Pop\Application::run() from Pop\Exception to Throwable
     - Patched a number of bugs and general issues throughout.
     - Moved AbstractModel to `pop-utils`
@@ -179,6 +182,9 @@ CHANGELOG
   + `pop-utils`
     - Added debug interfaces (to break circular dependency between `pop-db` and `pop-debug`)
     - Moved AbstractModel to `pop-utils` (from `popphp`)
+    - Fixed `CallableObject` dropping its parameters for the `'new Class'` form, which returned null and
+      constructed nothing. It now matches the bare `'Class'` form. An already-instantiated object passed
+      with parameters returns the object instead of null.
   + `pop-view`
     - Major refactor/upgrade to the stream template
 - Deprecated/Removed:

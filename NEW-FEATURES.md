@@ -4,7 +4,7 @@
 
 Everything **Pop PHP Framework v7.0.0** gives you that **v6.0.0** did not, component by component.
 
-**273 new features** across the bundled components, plus one entirely new package.
+**274 new features** across the bundled components, plus one entirely new package.
 
 This is the companion to [`BC-BREAKS.md`](BC-BREAKS.md). That document tells you what will break; this one
 tells you what you get for it.
@@ -117,7 +117,7 @@ queues (`pop-queue`), syslog/stdout/NDJSON logging (`pop-log`), NDJSON debug sto
 | Component | v6 → v7 | New features |
 |---|---|---|
 | pop-http | 5.3.8 → 6.0.0 | 18 |
-| popphp (core) | 4.4.4 → 5.0.0 | 17 |
+| popphp (core) | 4.4.4 → 5.0.0 | 18 |
 | pop-kettle | 2.3.4 → 3.0.0 | 16 |
 | pop-code | 5.0.8 → 6.0.0 | 14 |
 | pop-pdf | 5.2.12 → 6.0.0 | 11 |
@@ -160,7 +160,7 @@ queues (`pop-queue`), syslog/stdout/NDJSON logging (`pop-log`), NDJSON debug sto
 ## popphp (framework core) — 4.4.4 → 5.0.0
 
 **Summary:** The core absorbed Popcorn's HTTP-verb routing natively, grew a reusable `Pop\Dispatch` namespace, added PSR-11/14/15 interoperability, and gained cross-application state merging.
-**Feature count:** 17
+**Feature count:** 18
 
 ### Popcorn-style method-grouped route configs
 **If your v6 app groups its routes by verb, that config still works — the core router understands the shape
@@ -413,6 +413,26 @@ A route's `controller` can now be any plain string/array callable that isn't an 
 ],
 ```
 **In v6:** Not possible — only a `Closure` or a `ControllerInterface` implementation; anything else threw.
+
+### Route target shorthand strings, on every registration path
+A route target no longer has to be split into `controller`/`action` keys. The route value itself can be a single pop-utils pseudo-callable string, and every registration path normalizes it identically — array configs, wildcard/default routes, the fluent verb methods, and method-group nested routes — through one shared `Match\AbstractMatch::normalizeController()`.
+
+```php
+// v7 — all four register the same target
+'routes' => ['/users' => 'MyApp\Handler->listUsers'],
+
+$app->get('/users', 'MyApp\Handler->listUsers');
+$router->addRoute('/users/*', 'MyApp\Handler->listUsers');
+$app->addRoutes(['get,post' => ['/users' => 'MyApp\Handler->listUsers']]);
+```
+
+`'Class->method'` instantiates then calls the method, `'Class::method'` calls it statically, and a bare `'Class'` — or its alternate spelling `'new Class'` — constructs, with route params going to the *constructor*. Arrays are passed through untouched, so an existing `['controller' => ..., 'action' => ...]` config and a nested-route sub-array are unaffected.
+
+Shorthand is not a shorter spelling of a controller route. It dispatches through `CallableObject`, so the target is built with a plain `new Class()` and gets no application injected — a controller routed that way has no `$this->application()`, `$this->request` or `$this->response`, and falls back to the generic maintenance response instead of its own `dispatchMaintenance()`. A class extending `Dispatch\AbstractDispatcher` only takes the dispatcher path when it is named by the `controller` key with an explicit `action`. Use shorthand for plain handlers; keep `controller`/`action` for anything that wants the framework wiring.
+
+Detection now runs through `Pop\Utils\CallableObject::isCallable()` rather than PHP's `is_callable()`, which also means a malformed target fails loudly at *registration* time — `'MyApp\NoSuchHandler->listUsers'` throws `Pop\Utils\Exception` naming the missing class or method, instead of quietly registering a route that can never dispatch.
+
+**In v6:** `is_callable()` was the gate, and it is false for every one of these forms — `'Class->method'`, `'new Class'`, a bare class name, and even `'Class::method'` when the method isn't static. Only real PHP callables (closures, function names, genuinely-static method strings) were accepted; everything else was stored raw and silently failed to match a dispatchable.
 
 ### Uniform maintenance mode for every route target shape
 Maintenance handling moved into `Application::run()`, checked once right after `getDispatchable()`. A `MaintenanceInterface` target gets `dispatchMaintenance()`; anything that can't implement an interface (a closure, a callable-object route) gets the new `renderMaintenanceResponse()` — an HTTP 503 page or a CLI `Service Unavailable.` line.

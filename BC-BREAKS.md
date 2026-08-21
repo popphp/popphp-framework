@@ -5,7 +5,7 @@
 Everything that will break when you upgrade an application from **Pop PHP Framework v6.0.0** to **v7.0.0**,
 and what to change in your code for each one.
 
-**341 breaks** across the bundled components — **125 high**, **123 medium**, **93 low**.
+**342 breaks** across the bundled components — **125 high**, **123 medium**, **94 low**.
 
 This is the companion to [`NEW-FEATURES.md`](NEW-FEATURES.md). This document tells you what will break; that
 one tells you what you get for it.
@@ -97,7 +97,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 | pop-queue | 2.1.3 → 3.0.0 | 12 (7/5/0) |
 | pop-session | 4.0.4 → 5.0.0 | 5 (0/3/2) |
 | pop-storage | 2.1.3 → 3.0.0 | 17 (6/7/4) |
-| pop-utils | 2.4.2 → 3.0.0 | 7 (2/1/4) |
+| pop-utils | 2.4.2 → 3.0.0 | 8 (2/1/5) |
 | pop-validator | 4.8.1 → 5.0.0 | 15 (5/5/5) |
 | pop-view | 4.0.4 → 5.0.0 | 5 (1/2/2) |
 
@@ -135,7 +135,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 
 ## Cross-cutting patterns
 
-Four themes account for most of the 341 breaks. Recognizing them makes the per-component sections faster to read.
+Four themes account for most of the 342 breaks. Recognizing them makes the per-component sections faster to read.
 
 **1. `declare(strict_types=1)` everywhere.** Strict mode is decided by the *calling* file, so your own code is
 mostly unaffected — but wherever a component passes your loosely-typed value into *its own* strict internals,
@@ -163,7 +163,7 @@ codebase, listed next.
 
 ## Bug fixes you may have coded around
 
-20 breaks are corrections rather than redesigns: the v6 behavior was defective and v7 fixes it. They are
+21 breaks are corrections rather than redesigns: the v6 behavior was defective and v7 fixes it. They are
 still breaks, because a workaround written against the v6 bug stops being correct once the bug is gone. If you
 never hit the bug, skip them. Each is tagged **Bug fix** in its component section (the two `pop-i18n`
 fixes share a row below).
@@ -188,6 +188,7 @@ fixes share a row below).
 | `pop-i18n` | duplicate `<locale region>` blocks and repeated `<source>` strings resolved to the wrong match | Low |
 | `pop-mail` | `Client\Google::getMessage()` mis-decoded raw base64url payloads | Low |
 | `pop-session` | a session started by another library left `Session::__construct()` half-initialized, so sweeps never ran | Low |
+| `pop-utils` | `CallableObject` with a `'new Class'` target and parameters returned `null` and constructed nothing | Low |
 | `pop-view` | `Template\File` caught only `\Exception` (an `Error` bypassed it) and mismanaged the output buffer | Low |
 
 ---
@@ -3801,7 +3802,7 @@ A raw `TypeError` escapes instead of the documented `Pop\Storage\Exception\*`, a
 ## pop-utils
 
 **Scope:** No classes, interfaces, traits, constants, properties or methods were removed or renamed; the breaks come from `Pop\Model\AbstractModel` relocating into this package as `Pop\Utils\AbstractModel`, `declare(strict_types=1)` in `functions.php`, the `popphp/popphp` dependency being dropped, and a PHP 8.4 floor.
-**Break count:** 7 (2 high, 1 medium, 4 low)
+**Break count:** 8 (2 high, 1 medium, 5 low)
 
 ### `Pop\Model\AbstractModel` is now `Pop\Utils\AbstractModel`
 **Severity:** High — **Affects:** every application model class, since Pop apps conventionally extend it
@@ -3875,6 +3876,21 @@ new Collection('foo');   // silently => []
 The body is byte-identical, but `Str.php` gained strict types, so the internal calls with a `null` separator now throw instead of emitting a deprecation and returning garbage. All 100 legitimate conversion combinations were exercised on both branches and produce byte-identical output.
 
 **Migration:** Use the real API (`Str::createRandom()`, `Str::createSlug()`) — this only surfaces calls that were already wrong.
+
+### `CallableObject` with a `'new Class'` target no longer discards its parameters
+**Severity:** Low · **Bug fix** — **Affects:** `new CallableObject('new MyClass', $params)`, and any route or service wired that way
+`prepare()` appends `_PARAMS` to the resolved call type whenever parameters are present, but `call()`'s switch had no `NEW_OBJECT_PARAMS` case — so the synthesized type matched nothing and `call()` returned `null` without constructing anything. The same applied to an already-instantiated object passed with parameters (`OBJECT_PARAMS`).
+
+```php
+// v6
+(new CallableObject('new MyClass', 'Hello World'))->call();   // null — nothing constructed
+
+// v7
+(new CallableObject('new MyClass', 'Hello World'))->call();   // MyClass instance, ctor got 'Hello World'
+```
+`'new MyClass'` now behaves identically to the bare `'MyClass'` form, which always honored its parameters. `OBJECT_PARAMS` returns the object instead of `null`. Both types now have real constants on `AbstractCallable`.
+
+**Migration:** None needed if you avoided the broken form. If you branched on the `null` return, or switched to bare `'MyClass'` to work around it, that code now sees a constructed object.
 
 ---
 
