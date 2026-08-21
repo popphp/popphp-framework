@@ -5,7 +5,7 @@
 Everything that will break when you upgrade an application from **Pop PHP Framework v6.0.0** to **v7.0.0**,
 and what to change in your code for each one.
 
-**342 breaks** across the bundled components — **125 high**, **123 medium**, **94 low**.
+**342 breaks** across the bundled components — **127 high**, **122 medium**, **93 low**.
 
 This is the companion to [`NEW-FEATURES.md`](NEW-FEATURES.md). This document tells you what will break; that
 one tells you what you get for it.
@@ -68,7 +68,7 @@ number, so a caret range on any v6 constraint will refuse the v7 release rather 
 | popphp (core) | 4.4.4 → 5.0.0 | 21 (11/9/1) |
 | pop-acl | 4.1.4 → 5.0.0 | 4 (2/2/0) |
 | pop-audit | 2.0.3 → 3.0.0 | 6 (3/1/2) |
-| pop-auth | 4.0.3 → 5.0.0 | 6 (1/2/3) |
+| pop-auth | 4.0.3 → 5.0.0 | 6 (3/1/2) |
 | pop-cache | 4.0.3 → 5.0.0 | 12 (5/4/3) |
 | pop-code | 5.0.8 → 6.0.0 | 10 (4/3/3) |
 | pop-color | 1.0.3 → 2.0.0 | 6 (3/1/2) |
@@ -690,8 +690,8 @@ A response object that exposes the right methods but is not that class now makes
 
 ## pop-auth
 
-**Scope:** Security-hardening pass on all four auth adapters: a new `needsRehash()` contract, adapters now throw `Pop\Auth\Exception` on infrastructure failures instead of silently returning `0`. The `Ldap` adapter has also been removed entirely.
-**Break count:** 6 (1 high, 2 medium, 3 low)
+**Scope:** Security-hardening pass on the remaining auth adapters: a new `needsRehash()` contract, adapters now throw `Pop\Auth\Exception` on infrastructure failures instead of silently returning `0`. The `Ldap`, `Table`, and `Http` adapters have also been removed entirely — `Table` moved to `pop-db`, `Http` is superseded by using `pop-http`'s `Client`/`Auth` directly — and a new `Jwt` adapter has been added, verifying a token's signature (via a new `pop-crypt` primitive) and claims. `AuthInterface::authenticate()`'s signature also widened to accommodate `Jwt`'s single-token credential.
+**Break count:** 6 (3 high, 1 medium, 2 low)
 
 ### `Auth\Ldap` has been removed
 **Severity:** High — **Affects:** any app using `Auth\Ldap`
@@ -707,29 +707,46 @@ $auth->authenticate('cn=admin,dc=example,dc=com', 'password');
 ```
 **Migration:** If you authenticate against LDAP, either pin your app to `pop-auth` v6 or call `ldap_bind()`/a maintained LDAP client directly outside `pop-auth`.
 
-### `Table::authenticate()` wraps all database errors in `Pop\Auth\Exception`
-**Severity:** Medium — **Affects:** apps catching `Pop\Db\Exception`, `PDOException`, or `\Error` around the authenticate call
-The `findOne()` call is now inside `try { } catch (\Throwable $e)` and rethrown with the original as `$previous`. `$this->user` is also no longer assigned when the query fails.
+### `Auth\Table` has been removed
+**Severity:** High — **Affects:** any app using `Auth\Table`
+Database-table authentication (`Table::class`, backed by a `Pop\Db\Record` model's `findOne()`) is no longer part of `pop-auth`. `pop-auth` no longer depends on `pop-db` at all as a result.
 
 ```php
 // v6
-catch (Pop\Db\Exception $e) { /* caught */ }
+$auth = new Auth\Table('MyApp\Table\Users');
+$auth->authenticate('admin', 'password');
 
 // v7
-catch (Pop\Auth\Exception $e) { $orig = $e->getPrevious(); }
+// class Pop\Auth\Table does not exist
 ```
-**Migration:** Catch `Pop\Auth\Exception`; use `getPrevious()` to reach the original database exception.
+**Migration:** Database-backed authentication now lives in `pop-db`; switch to its replacement, or pin your app to `pop-auth` v6.
 
-### `Http::authenticate()` wraps all transport errors in `Pop\Auth\Exception`
-**Severity:** Medium — **Affects:** apps catching `pop-http` exceptions around the authenticate call
-Any curl/stream/client exception is no longer visible under its original type.
+### `Auth\Http` has been removed
+**Severity:** High — **Affects:** any app using `Auth\Http`
+Delegated/remote authentication (`Http::class`, forwarding credentials through a `Pop\Http\Client` and checking for a `200` response) is no longer part of `pop-auth`. There is no replacement adapter in this component — constructing `new Auth\Http(...)` now fatals with a class-not-found error.
 
-**Migration:** Catch `Pop\Auth\Exception` and unwrap via `getPrevious()`.
+```php
+// v6
+$auth = new Auth\Http(new Client('https://www.domain.com/auth', ['method' => 'post']));
+$auth->authenticate('admin', 'password');
 
-### `Http::authenticate()` throws `Pop\Auth\Exception` instead of `\Error` when no client is set
-**Severity:** Low — **Affects:** edge-case code that constructed `Auth\Http` without a client and caught `\Error`
+// v7
+// class Pop\Auth\Http does not exist
+```
+**Migration:** Use `pop-http`'s `Client` and `Auth` classes directly — build the request, send it, and check `$response->isSuccess()` yourself. Or pin your app to `pop-auth` v6.
 
-**Migration:** Catch `Pop\Auth\Exception`, or check `hasClient()` first.
+### `AuthInterface::authenticate()` signature widened to accommodate token-based credentials
+**Severity:** Medium — **Affects:** any class implementing `AuthInterface` directly (not extending `AbstractAuth`)
+The abstract contract changed from `authenticate(string $username, string $password): int` to `authenticate(string $credential, ?string $secondary = null): int`, to let the new `Jwt` adapter share the interface with `File`'s two-part credential. A direct implementer with the old signature no longer satisfies the interface and fatals on class-load.
+
+```php
+// v6
+public function authenticate(string $username, string $password): int { ... }
+
+// v7
+public function authenticate(string $credential, ?string $secondary = null): int { ... }
+```
+**Migration:** Widen your implementation's second parameter to `?string $secondary = null`.
 
 ### `File::authenticate()` throws when the access file cannot be read
 **Severity:** Low — **Affects:** `Auth\File` users whose file exists at construction but is unreadable or removed later

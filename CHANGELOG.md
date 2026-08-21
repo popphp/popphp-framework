@@ -37,6 +37,15 @@ CHANGELOG
     - Security-hardening pass on all adapters, including a new `needsRehash()` contract and adapters throwing
       `Pop\Auth\Exception` on infrastructure failures instead of silently returning `0`
     - Removed the LDAP adapter
+    - Removed the database table adapter; database-backed authentication has moved to `pop-db`, and `pop-auth`
+      no longer depends on `pop-db`
+    - Removed the HTTP adapter; use `pop-http`'s `Client`/`Auth` classes directly for delegated/remote
+      authentication, and `pop-auth` no longer depends on `pop-http`
+    - Added a `Jwt` adapter that verifies a token's signature (via a new `pop-crypt` signature-verification
+      primitive) and claims (`exp`/`nbf` always, `aud`/`iss` opt-in)
+    - Widened `AuthInterface::authenticate()`'s signature to
+      `authenticate(string $credential, ?string $secondary = null): int` to accommodate `Jwt`'s single-token
+      credential
   + `pop-cache`
     - Added PSR Interoperability
       + PSR-6/PSR-16: Caching interface
@@ -74,6 +83,8 @@ CHANGELOG
   + `pop-crypt`
     - Added Sodium/XChaCha20 support
     - Improved security fixes
+    - Added `Signature\Verifier` for HMAC/RSA/EC signature verification, consumed by `pop-auth`'s new `Jwt`
+      adapter
   + `pop-css`
     - Improved color support via upgraded `pop-color` component
     - Improved CSS support
@@ -191,6 +202,8 @@ CHANGELOG
   + `popcorn` - no longer supported. The functionality has officially been baked directly into the `Pop\Application` class.
   + `pop-ftp` - no longer supported.
   + `pop-auth` - LDAP adapter removed and no longer supported.
+  + `pop-auth` - Database table adapter removed; moved to `pop-db`.
+  + `pop-auth` - HTTP adapter removed; use `pop-http` directly.
   + `popphp-skeleton` - no longer supported. Replaced by pop-kettle as for defacto/easy application scaffolding
   + `popphp-tutorial` - no longer supported. Please see the documentation for code examples.
 
