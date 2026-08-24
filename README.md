@@ -1,7 +1,7 @@
 Pop PHP Framework
 =================
 
-<img src="https://media.popphp.org/img/pop-php-logo.png" width="180" height="180" />
+<img src="https://media.popphp.org/img/pop-php-logo.jpg" width="180" height="180" />
 
 [![Join the chat at https://discord.gg/TZjgT74U7E](https://media.popphp.org/img/discord.svg)](https://discord.gg/TZjgT74U7E)
 
