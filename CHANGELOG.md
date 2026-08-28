@@ -166,10 +166,22 @@ CHANGELOG
     - Removed native message/part functionality and replaced with refactored functionality in `pop-mime`
     - `Message::parse()` now throws `Pop\Mail\Exception` on content with no header/body delimiter
       instead of surfacing a `TypeError` from `pop-mime`
+    - Patched `Client\Imap::isOpen()` always returning `false`; it checked `is_resource()`, but `imap_open()`
+      returns an `IMAP\Connection` object as of PHP 8.1
+    - The `Transport\Smtp` constructor now accepts an options array as its first argument, matching the other
+      transports and the usage documented in the README (positional arguments still supported)
+    - `Message::parse()` no longer silently drops the body of a non-multipart (no MIME boundary) parsed
+      message; it now falls back to the message's own body when `pop-mime`'s `parseMessage()` reports no
+      nested parts
   + `pop-mime`
     - Built out native message/part functionality, to be consumed by `pop-mail`
     - Patched `Message::parseMessage()` throwing a `TypeError` on content with no `\r\n\r\n`
       header/body delimiter; such content is now parsed as a header-less, body-only message
+    - Patched `Part::getBody()` throwing a `TypeError` instead of returning `null` on a part with no body;
+      the return type is now correctly nullable, matching `hasBody()`
+    - Patched `Message::parseMessage()` always nesting a non-multipart message's content into a synthetic
+      child `Part` instead of setting it directly on the parsed message; `getBody()`/`getContents()` on a
+      non-multipart parsed message now return the content directly, with `hasParts()` correctly `false`
   + `pop-pdf`
     - Patched known error bug that displayed in strict readers (e.g., Adobe Acrobat)
     - Added native text extract
