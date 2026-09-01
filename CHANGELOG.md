@@ -15,6 +15,14 @@ CHANGELOG
       entry of `popphp/framework` instead of 30+ `requires` entries from original `popphp-framework` repo.
   + `pop-parser`
     - A package that provides simple parsing of name and address strings into individual data points.
+    - `parse()` returns an immutable result object (`AddressResult`/`NameResult`) that carries the parsed
+      fields; the parser itself holds none.
+    - Both results carry a confidence score (`getConfidence()`, `isConfident()`) reflecting how much of the
+      input was matched outright rather than guessed.
+    - Both parsers title-case an all-uppercase or all-lowercase field, so dirty imports ("MAIN ST", "john
+      smith") come back readable, while any existing mixed case is left exactly as typed.
+    - `NameParser` recognizes professional credentials (PhD, MD, Esq, JD, MBA, RN, and others) as a field of
+      their own, separate from generational suffixes.
 - Upgrades & Improvements to the following packages:
   + `popphp`
     - Added `Dispatch` functionality, to allow for other things besides controllers to be dispatched by the application object.
@@ -26,6 +34,15 @@ CHANGELOG
     - Added PSR-15 interoperability to the Middleware functionality
     - Added PSR-11 interoperability to the Service functionality    
     - Changed the thrown error in Pop\Application::run() from Pop\Exception to Throwable
+    - Added native HTTP-method-aware routing: a route's config can carry a `method` constraint, a fluent verb
+      API (`get()`/`post()`/etc.) and custom-HTTP-method support are available on the application, router and
+      `Http` match object, and a path match with no accepted method now returns 405 (with an `Allow` header)
+      instead of 404.
+    - Fixed route match ordering so the most specific route always wins regardless of declaration order,
+      scored by walking each route's segments left to right instead of by a global required/optional parameter
+      count - the previous count-based scoring could rank a wildcard route (`/orders/:id`) above a more
+      specific literal route with a trailing optional parameter (`/orders/trash[/:id]`), silently routing
+      requests to the wrong controller.
     - Patched a number of bugs and general issues throughout.
     - Moved AbstractModel to `pop-utils`
     - Moved AbstractDataModel to `pop-db`
@@ -88,6 +105,10 @@ CHANGELOG
   + `pop-css`
     - Improved color support via upgraded `pop-color` component
     - Improved CSS support
+    - Patched `parseCssUri()` to throw `Pop\Css\Exception` when the URI cannot be fetched, instead of
+      passing the failure through and parsing nothing
+    - Patched `addSelector()` to merge into an existing same-name selector's properties rather than
+      replacing the selector outright, matching the CSS cascade for repeated rules
   + `pop-csv`
     - Added support for escaped formulas
     - Improved file streaming
@@ -188,6 +209,15 @@ CHANGELOG
     - Added native PDF merge
     - Finished HTML-to-PDF functionality, including HTML tables
     - CID font support (Cyrillic, Greek, Arabic, etc.)
+    - Added encryption and password protection - AES-256 (default) or AES-128 via `Document\Security`, with
+      reader permissions via `Document\Permissions`, and a password argument on every method that reads an
+      existing PDF
+    - Added a color to `Document\Style`, applied as the fill color of any text drawn under that style name
+    - Character wrapping now works with any font, standard or embedded, through multibyte-aware word wrapping
+    - `Page::addImage()` accepts an image filename string as well as a `Page\Image` object
+    - Improved inline `style` attribute and `<style>`/linked-stylesheet parsing in the HTML parser
+    - Added page-size control to HTML parsing, on the `Build\Html\Parser` constructor and its static
+      methods as well as the `Pdf::importFromHtml*()` facade methods
   + `pop-queue`
     - Full refactor
       + New adapter contracts

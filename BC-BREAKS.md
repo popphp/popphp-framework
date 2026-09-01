@@ -5,7 +5,7 @@
 Everything that will break when you upgrade an application from **Pop PHP Framework v6.0.0** to **v7.0.0**,
 and what to change in your code for each one.
 
-**344 breaks** across the bundled components — **127 high**, **123 medium**, **94 low**.
+**346 breaks** across the bundled components — **127 high**, **124 medium**, **95 low**.
 
 This is the companion to [`NEW-FEATURES.md`](NEW-FEATURES.md). This document tells you what will break; that
 one tells you what you get for it.
@@ -1569,7 +1569,7 @@ v6 passed `PASSWORD_ARGON2I` (a bug), so it returned `true` for every argon2id h
 ## pop-css
 
 **Scope:** No classes added or removed; breaks come from rendered-CSS ordering/format changes, string-normalization of selector property values, removed `AbstractCss` bucket properties, and parser behavior fixes.
-**Break count:** 6 (1 high, 2 medium, 3 low)
+**Break count:** 8 (1 high, 3 medium, 4 low)
 
 ### Selectors now render in insertion order instead of element → ID → class order
 **Severity:** High — **Affects:** every `render()` / `__toString()` / `writeToFile()` call on a stylesheet that mixes selector types
@@ -1614,6 +1614,42 @@ Css::parseString(".icon { background: url(data:image/png;base64,iVBOR=); color: 
 // ['background' => 'url(data:image/png;base64,iVBOR=)', 'color' => '#fff']
 ```
 **Migration:** Expect richer (and larger) parsed selectors; update assertions that encoded the old lossy behavior.
+
+### `addSelector()` merges into an existing same-name selector instead of replacing it
+**Severity:** Medium — **Affects:** code that adds the same selector name twice to build a stylesheet up
+v6 assigned into `$this->selectors[$name]`, so the second `Selector` for a given name discarded the first outright. v7 merges the incoming properties into the selector already registered — last value for a given property wins — which is what the CSS cascade does with repeated rules. Properties set on the first object and absent from the second now survive instead of disappearing.
+
+```php
+$a = new Selector('.btn');
+$a['color']   = '#fff';
+$a['padding'] = '10px';
+$b = new Selector('.btn');
+$b['color']   = '#000';
+
+$css->addSelector($a);
+$css->addSelector($b);
+
+// v6
+$css->getSelector('.btn')->getProperties(); // ['color' => '#000']  <- padding lost
+
+// v7
+// ['color' => '#000', 'padding' => '10px']
+```
+**Migration:** Where the old wholesale replacement was the intent, remove the selector first, or build the final `Selector` before adding it.
+
+### `parseCssUri()` throws when the URI cannot be fetched
+**Severity:** Low — **Affects:** code parsing stylesheets from a URL or a path that may not resolve
+v6 passed `file_get_contents()` straight into `parseCss()` without checking it. A 404, a timeout or a missing file therefore produced a stylesheet with no selectors and no indication anything had gone wrong. v7 raises `Pop\Css\Exception` naming the URI.
+
+```php
+// v6
+$css = (new Css())->parseCssUri('https://example.com/missing.css');
+count($css); // 0 — silently empty
+
+// v7
+// throws Pop\Css\Exception: Error: Unable to fetch CSS from the URI 'https://example.com/missing.css'.
+```
+**Migration:** Wrap `parseCssUri()` in try/catch where the source may be unreachable. Code that was relying on the silent empty result was almost certainly not doing what it intended.
 
 ### `Selector::__isset()` / `offsetExists()` now report synthesized margin/padding longhands
 **Severity:** Low — **Affects:** `isset($sel['margin-top'])`-style guards
@@ -3535,9 +3571,11 @@ Tables now go through a new layout engine (colspan/rowspan, repeating headers, c
 
 ### Encrypted and malformed PDFs now throw on import and extraction
 **Severity:** Low — **Affects:** apps that fed arbitrary/untrusted PDFs to `importFromFile()` or the extract methods
-The new reader raises `Extract\Exception` for encrypted PDFs, missing/malformed `startxref`, unresolvable catalogs, circular references, and a 64 MB decode budget. v6's regex-based parser silently produced a garbage document instead.
+The new reader raises `Extract\Exception` for missing/malformed `startxref`, unresolvable catalogs, circular references, and a 64 MB decode budget. v6's regex-based parser silently produced a garbage document instead.
 
-**Migration:** Wrap import/extraction of untrusted PDFs in try/catch.
+An encrypted PDF also throws, but now only when no password is given, or the wrong one is — every method that reads an existing PDF takes a password, and AES-128 and AES-256 documents open normally with it. RC4 and revision-5 encryption are refused outright rather than opened.
+
+**Migration:** Wrap import/extraction of untrusted PDFs in try/catch, and pass the password where you have one — see the encryption entries in [`NEW-FEATURES.md`](NEW-FEATURES.md).
 
 ### `Document\Page\Text::escape()` is now static
 **Severity:** Low — **Affects:** subclasses of `Page\Text` that override `escape()`

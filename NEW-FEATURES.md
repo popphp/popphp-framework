@@ -4,7 +4,7 @@
 
 Everything **Pop PHP Framework v7.0.0** gives you that **v6.0.0** did not, component by component.
 
-**278 new features** across the bundled components, plus one entirely new package.
+**290 new features** across the bundled components, plus one entirely new package.
 
 This is the companion to [`BC-BREAKS.md`](BC-BREAKS.md). That document tells you what will break; this one
 tells you what you get for it.
@@ -1487,10 +1487,10 @@ Verifier::ec($data, $signature, $publicKeyPem);           // bool, throws on bad
 
 ---
 
-## pop-css — 2.0.3 → 3.0.0
+## pop-css — 2.0.3 → 3.0.2
 
-**Summary:** First-class `Pop\Color` integration on selector properties, comment removal, non-string property values, and a parser that no longer breaks on values containing `:` or `;`.
-**Feature count:** 6
+**Summary:** First-class `Pop\Color` integration on selector properties, comment removal, non-string property values, and a parser that no longer breaks on values containing `:` or `;`, loses a repeated rule, or swallows an unreachable stylesheet.
+**Feature count:** 8
 
 ### Color objects as property values, and `getColorProperty()` to read them back
 `Selector::setProperty()` (and `__set`/`ArrayAccess`) accepts any `Pop\Color\Color\ColorInterface` and normalizes it to valid CSS at set time via `render('CSS')` — including spaces like CMYK/Grayscale/HSV that have no native CSS syntax and get converted through RGB. The new `getColorProperty()` runs the stored string back through `Color::parse()` and returns a `ColorInterface` (or `null`), so colors from a parsed stylesheet can be manipulated as objects.
@@ -1558,6 +1558,39 @@ class MyCss extends Css {
 }
 ```
 **In v6:** not possible — all of this lived inline inside `parseMediaQueries()`, `parseComments()`, `parseSelectors()` and `Selector::__get()`.
+
+### Repeated rules for one selector cascade instead of clobbering
+`addSelector()` merges an incoming `Selector`'s properties into the one already registered under that name — last value for a given property wins — rather than replacing the object outright. Building a stylesheet up from several sources, a base rule plus an override, now behaves the way a browser does with two rules for the same selector.
+
+```php
+// v7
+$base = new Selector('.btn');
+$base['color']   = '#fff';
+$base['padding'] = '10px';
+
+$theme = new Selector('.btn');
+$theme['color']  = '#000';
+
+$css->addSelector($base);
+$css->addSelector($theme);
+
+$css->getSelector('.btn')->getProperties(); // ['color' => '#000', 'padding' => '10px']
+```
+**In v6:** the second `addSelector()` discarded the first selector entirely, taking `padding` with it — merging meant reading the existing selector out and copying properties across by hand.
+
+### `parseCssUri()` fails loudly on an unreachable stylesheet
+A URI that 404s, times out or does not exist now raises `Pop\Css\Exception` naming it, instead of handing `file_get_contents()`'s failure value to the parser and producing an empty stylesheet.
+
+```php
+// v7
+try {
+    $css = (new Css())->parseCssUri('https://example.com/missing.css');
+} catch (\Pop\Css\Exception $e) {
+    echo $e->getMessage();
+    // Error: Unable to fetch CSS from the URI 'https://example.com/missing.css'.
+}
+```
+**In v6:** the call returned a `Css` object with no selectors and no warning, so a broken stylesheet URL looked exactly like an empty one.
 
 ### Smaller additions
 - `Css::removeMedia()` re-indexes the media array after unsetting, so `getMedia(0)` stays valid after a removal.
@@ -2705,7 +2738,7 @@ $app->prepare()   // may return YOUR MyApp\Application
     ->load()      // db init, header, maintenance/production events
     ->run();
 ```
-Also new: `Application::NAME`/`FULL_NAME`/`VERSION` constants, `getConsole()` for the shared 120-column console, and controllers using `Pop\Dispatch\ConsoleTrait`.
+Also, new: `Application::NAME`/`FULL_NAME`/`VERSION` constants, `getConsole()` for the shared 120-column console, and controllers using `Pop\Dispatch\ConsoleTrait`.
 **In v6:** `Pop\Kettle\Module` registered against a generic `Pop\Application`; there was no way to hand a command off to the project's own application — Kettle was explicitly "unaware of your application."
 
 ### Multiple named database connections
@@ -2736,7 +2769,7 @@ The entry is only added when it isn't already there, so re-running `pop:init` wo
 **In v6:** the README walked you through creating `kettle.inc.php` and adding the `addPsr4()` line by hand, and it was required for table-backed migrations to resolve at all.
 
 ### `pop:init` is a guided interview — no flags, no arguments
-`pop:init` takes nothing on the command line. Every decision it used to read from flags and arguments is now a prompt, which means the command is self-documenting: run it and it tells you what it needs, instead of you reading the README to find out.
+`pop:init` takes nothing on the command line. Every decision it used to read from flags and arguments is now a prompt, which means the command is self-documenting: run it, and it tells you what it needs, instead of you reading the README to find out.
 
 ```text
 What is the namespace of your app? [App]
@@ -3334,10 +3367,10 @@ echo $paginator->getClassOn(); // '' — no exception
 
 ---
 
-## pop-pdf — 5.2.12 → 6.0.0
+## pop-pdf — 5.2.12 → 6.1.0
 
-**Summary:** A native `Pop\Pdf\Extract` engine replaces the third-party PDF reader, and native PDF merging, image-only/OCR page detection, real HTML table layout and Unicode CID font embedding are built on top of it.
-**Feature count:** 11
+**Summary:** A native `Pop\Pdf\Extract` engine replaces the third-party PDF reader, with native PDF merging, image-only/OCR page detection, real HTML table layout and Unicode CID font embedding built on top of it — and, in 6.1.0, AES encryption with reader permissions.
+**Feature count:** 17
 
 ### Native `Pop\Pdf\Extract` PDF reader / text-extraction engine
 An entirely new, dependency-free namespace (39 new classes) that parses xref tables *and* xref streams, object streams (PDF 1.5+ compressed), all standard stream filters (Flate, LZW, ASCII85, ASCIIHex, RunLength), and falls back to a brute-force repair scan for damaged files. On top sits a content-stream interpreter (text/graphics matrices, `q`/`Q`, marked content, `/ActualText`, nested Form XObjects) and a font/encoding resolver (`/ToUnicode` CMaps, Type0/CID fonts, WinAnsi/MacRoman/Standard/Symbol encodings, Adobe Glyph List, cmap/post fallback). `smalot/pdfparser` is removed.
@@ -3452,13 +3485,80 @@ $document = Pdf::importFromHtmlFile('invoice.html');
 `Standard\CourierNew`, `CourierNewBold`, `CourierNewItalic`, `CourierNewBoldItalic` metric classes were added.
 **In v6:** The `Font::COURIER_NEW*` constants existed but the backing classes did not, so using them threw "That standard font class was not found."
 
+### Encryption, passwords and reader permissions
+`Document\Security` on a document encrypts everything written — page content streams, embedded images, embedded font files, and the literal strings the library authors. AES-256 by default, AES-128 on request. A `Document\Permissions` object narrows what a reader allows once the document is open; all eight permissions start allowed, so only what is taken away needs naming.
+
+```php
+// v7
+$security = new Security('open-me', 'admin123');
+$security->setPermissions((new Permissions())->allowPrinting(false)->allowCopying(false));
+
+$document->setSecurity($security);
+Pdf::writeToFile($document, filename: 'protected.pdf');
+```
+**In v6:** not available — there was no encryption of any kind, and no way to set a password or a permission flag on generated output. An owner password left unset is generated for you, so the permissions cannot be bypassed by leaving it blank.
+
+### Opening password-protected PDFs
+Every method that reads an existing PDF takes an optional password: `importFromFile()`, `importRawData()`, `extractTextFromFile()`, `extractTextFromData()` and the four image-only classification methods. `merge()` and `mergeRawData()` take an array keyed the same way as the sources, so a batch can mix protected and unprotected files. Either the user or the owner password opens a document.
+
+```php
+// v7
+$document = Pdf::importFromFile('protected.pdf', password: 'open-me');
+$text     = Pdf::extractTextFromFile('protected.pdf', password: 'open-me');
+$merged   = Pdf::merge(['plain.pdf', 'protected.pdf'], new Document(), [1 => 'open-me']);
+```
+**In v6:** not available — an encrypted PDF could not be read at all. Opening is transparent: the resulting `Document` reports `hasSecurity()` as `false`, so writing it back out produces an unencrypted file unless `setSecurity()` is called again.
+
+### A color on a named style
+`Document\Style` takes a `Pop\Color` implementation as a fourth argument, or through `setColor()`, and it becomes the fill color of every string drawn under that style name. The color is written inside its own graphics-state save and restore, so it paints the text it belongs to and nothing drawn after it.
+
+```php
+// v7
+$document->addStyle(
+    Style::create('heading', font: Font::HELVETICA_BOLD, size: 20, color: new Rgb(0, 102, 204))
+);
+$page->addText(new Text('Report'), 'heading', x: 100, y: 700);
+```
+**In v6:** a style carried a font and a size only; color had to be set on each `Text` object individually.
+
+### Character wrapping works with any font
+`Page\Text::setCharWrap()` wraps on a multibyte-aware word wrap, so the count is in characters rather than bytes and accented text and CJK break where you would expect — with a standard font or an embedded one.
+
+```php
+// v7
+$text = new Text($paragraph, size: 11);
+$text->setCharWrap(80, leading: 14);
+```
+**In v6:** character wrapping ran on a byte-based wrap that mis-split multibyte text.
+
+### Page size control for HTML parsing
+`Build\Html\Parser` takes a page size as its second constructor argument, and `parseString()`, `parseFile()`, `parseUri()`, `Pdf::importFromHtml()`, `importFromHtmlFile()` and `importFromHtmlUri()` all take it as a third — either a `Page` size constant or a `[width, height]` array. Pages default to `LETTER`.
+
+```php
+// v7
+$parser   = new Parser(new Document(), pageSize: Page::A4);
+$document = Pdf::importFromHtmlFile('invoice.html', new Document(), Page::A4);
+```
+**In v6:** HTML parsing had no page-size control at the entry point; the size had to be set on the parser after constructing it.
+
+### `Pdf::importFromHtmlUri()`
+The facade gained the URL counterpart to `importFromHtml()` and `importFromHtmlFile()`, returning a finished `Document` from a remote page in one call.
+
+```php
+// v7
+$document = Pdf::importFromHtmlUri('https://example.com/report.html');
+```
+**In v6:** not available on the facade — `Build\Html\Parser::parseUri()` had to be driven directly.
+
 ### Smaller additions
+- `Page::addImage()` accepts an image filename string as well as a `Page\Image` object, so a one-line image placement no longer needs `Image::createImageFromFile()` first.
+- Inline `style` attributes, `<style>` blocks and linked stylesheets now apply correctly in the HTML parser, including `setDefaultStyle()` overrides.
 - `Page\Text::setFont()`/`hasFont()`/`getFont()` — a resolved `Document\Font` attached to a text object, selecting the CID vs. WinAnsi vs. literal output path.
 - `Page\Text::escape()` is now `static`, callable without an instance.
 - `Page\Text\Stream::measureHeight(array $fonts): float` — measure a stream's real wrapped height without rendering, so pagination decisions match actual output.
 - `Build\Html\Parser::getPage()`, `setYOverride()`, and public `getCurrentY()`/`newPage()`/`getStringLines()`/`prepareNodeStyles()` — cursor/page control for custom layout.
 - `Build\Font\TrueType` retains the codepoint→glyph-ID map, and `AbstractFont` scales metrics for fonts whose `unitsPerEm` isn't 1000.
-- Encrypted PDFs raise a clear `Extract\Exception` instead of producing garbage.
+- Encrypted PDFs raise a clear `Extract\Exception` when no password is supplied, or the wrong one is, instead of producing garbage; RC4 and revision-5 encryption are refused by name.
 - Resource-exhaustion guards throughout the reader: a per-document 64 MB decode budget shared across every stream, per-filter output caps, recursion depth caps, CMap range caps, and per-page exception isolation so one corrupt page doesn't abort a whole document.
 
 ---
@@ -4028,10 +4128,10 @@ new Stream('{{@include ../../../etc/passwd}}'); // throws Pop\View\Template\Stre
 
 ---
 
-## pop-parser — NEW in v7 (1.0.0)
+## pop-parser — NEW in v7 (1.0.4)
 
-**Summary:** A new, dependency-free component (`Pop\Parser`) that breaks free-form US/CA street addresses and personal names down into their component fields.
-**Feature count:** 6
+**Summary:** A new, dependency-free component (`Pop\Parser`) that breaks free-form US/CA street addresses and personal names down into their component fields, returning an immutable result object that reports how confident the parse was.
+**Feature count:** 10
 
 > This package is new in v7 and bundled in the metapackage. There is nothing to migrate — no v6 component offered address or name parsing.
 
@@ -4040,20 +4140,19 @@ Parses a one-line or multi-line address into street number, street name, route t
 
 ```php
 // v7
-$parser = new AddressParser();
-$parser->parse('123 Main St Apt 4B, Springfield, IL 62704');
+$result = (new AddressParser())->parse('123 Main St Apt 4B, Springfield, IL 62704');
 
-$parser->getStreetNumber(); // '123'
-$parser->getStreetName();   // 'Main'
-$parser->getRouteType();    // 'St'
-$parser->getUnit();         // 'Apt 4B'
-$parser->getCity();         // 'Springfield'
-$parser->getStateCode();    // 'IL'
-$parser->getStateName();    // 'Illinois'
-$parser->getPostalCode();   // '62704'
-$parser->getCountry();      // 'US'
+$result->getStreetNumber(); // '123'
+$result->getStreetName();   // 'Main'
+$result->getRouteType();    // 'St'
+$result->getUnit();         // 'Apt 4B'
+$result->getCity();         // 'Springfield'
+$result->getStateCode();    // 'IL'
+$result->getStateName();    // 'Illinois'
+$result->getPostalCode();   // '62704'
+$result->getCountry();      // 'US'
 
-$parser->getFullAddress();  // '123 Main St, Apt 4B, Springfield, IL 62704'
+$result->getFullAddress();  // '123 Main St, Apt 4B, Springfield, IL 62704'
 ```
 **In v6:** not available — parsing a free-form address meant hand-rolling regexes or pulling in a third-party library.
 
@@ -4062,17 +4161,17 @@ Parses a name into salutation, firstname, initials, middlename, nickname, lastna
 
 ```php
 // v7
-$parser = new NameParser();
-$parser->parse('Dr. John Michael Smith Jr.');
+$result = (new NameParser())->parse('Dr. John Michael Smith Jr.');
 
-$parser->toArray();
+$result->toArray();
 // [
 //     'salutation' => 'Dr.', 'firstname' => 'John', 'initials' => null,
 //     'middlename' => 'Michael', 'nickname' => null, 'lastnamePrefix' => null,
-//     'lastname' => 'Smith', 'suffix' => 'Jr',
+//     'lastname' => 'Smith', 'suffix' => 'Jr', 'credentials' => null,
+//     'confidence' => 1.0,
 // ]
 
-$parser->getFullName(); // 'John Michael Smith'
+$result->getFullName(); // 'John Michael Smith'
 ```
 **In v6:** not available at all — an app had to add a third-party name parser or split names by hand.
 
@@ -4081,12 +4180,12 @@ A comma anywhere in the input automatically switches `NameParser` to `"Last, Fir
 
 ```php
 // v7
-$parser->parse('Smith, John Michael, Jr');
+$result = (new NameParser())->parse('Smith, John Michael, Jr');
 
-$parser->getFirstname();  // 'John'
-$parser->getMiddlename(); // 'Michael'
-$parser->getLastname();   // 'Smith'
-$parser->getSuffix();     // 'Jr'
+$result->getFirstname();  // 'John'
+$result->getMiddlename(); // 'Michael'
+$result->getLastname();   // 'Smith'
+$result->getSuffix();     // 'Jr'
 ```
 **In v6:** not available — comma-inverted names had to be detected and split by the application before parsing.
 
@@ -4108,34 +4207,90 @@ $values->getUnitTypes();         // ['DEPARTMENT', 'APARTMENT', 'PENTHOUSE', ...
 
 ```php
 // v7
-$parser = (new AddressParser())->parse('PO Box 1234, Springfield, IL 62704');
-$parser->isPoBox();       // true
-$parser->getStreetName(); // 'PO Box 1234'
+$result = (new AddressParser())->parse('PO Box 1234, Springfield, IL 62704');
+$result->isPoBox();       // true
+$result->getStreetName(); // 'PO Box 1234'
 
-$parser = (new AddressParser())->parse('55 Yonge St, Toronto, ON M4B 1B3');
-$parser->getPostalCode(); // 'M4B1B3'
-$parser->getStateName();  // 'Ontario'
-$parser->getCountry();    // 'CA'
+$result = (new AddressParser())->parse('55 Yonge St, Toronto, ON M4B 1B3');
+$result->getPostalCode(); // 'M4B1B3'
+$result->getStateName();  // 'Ontario'
+$result->getCountry();    // 'CA'
 ```
 **In v6:** not available — PO Box detection and CA/ZIP+4 normalization had to be written per-application.
 
 ### Shared `AbstractParser` / `ParserInterface` contract
-Both parsers extend `Pop\Parser\AbstractParser`, which holds the `data`/`result`/`error` state with `getData()`, `setData()`, `getResult()`, `hasError()` and `getErrorMessage()`. Every parser therefore has the same shape — construct with or without data, call `parse()`, read fields off with `get*()`/`has*()` — which makes it straightforward to add a new parser to the component.
+Both parsers extend `Pop\Parser\AbstractParser`, which holds the `data`/`result`/`error` state with `getData()`, `setData()`, `getResult()`, `hasError()` and `getErrorMessage()`. Every parser therefore has the same shape — construct with or without data, call `parse()`, read the fields off the result it hands back — which makes it straightforward to add a new parser to the component.
 
 ```php
 // v7
 $parser = new AddressParser('123 Main St, Springfield, IL 62704');
-$parser->parse();          // returns static, so calls chain
-$parser->getData();        // the original string back
+$result = $parser->parse();      // the result object
+$parser->getResult() === $result; // true — the parser keeps the last one
+$parser->getData();               // the original string back
 // parse() with no data set anywhere throws Pop\Parser\Exception
 ```
 **In v6:** not available — there was no shared parser contract to implement against.
+
+### `parse()` returns an immutable result object
+`AddressParser::parse()` and `NameParser::parse()` return an `AddressResult` or `NameResult` rather than the parser itself, and the parser holds no parsed fields at all. Every `get*()`/`has*()`, `toArray()` and the string cast live on that result, so two parses on one parser produce two independent results instead of one object whose state is overwritten by whichever call ran last.
+
+```php
+// v7
+$parser = new NameParser();
+$first  = $parser->parse('Jane Doe');
+$second = $parser->parse('John Smith');
+
+$first->getFirstname();  // 'Jane' — unaffected by the second parse
+$second->getFirstname(); // 'John'
+```
+**In v6:** not available. Both results share a `Pop\Parser\ResultInterface` (`toArray()`, `getConfidence()`, `isConfident()`) and an `AbstractResult` base.
+
+### Confidence scoring on every result
+Every result reports how much of the input it matched outright rather than guessed, as a `0.0`–`1.0` score, with `isConfident()` for a threshold check (default `0.7`). It starts at `1.0` and drops only for specific, individually identifiable guesses, so an address that genuinely has no city still scores `1.0` rather than being penalized for a field that was never there.
+
+```php
+// v7
+(new AddressParser())->parse('123 Main St, Springfield, IL 62704')->getConfidence();        // 1.0
+(new AddressParser())->parse('123 Main St Apt 4B, Springfield, IL 62704')->getConfidence(); // 0.75
+$loose = (new AddressParser())->parse('Main St Springfield IL');
+$loose->getConfidence();  // 0.5
+$loose->isConfident();    // false — below the 0.7 default
+```
+**In v6:** not available — a parse either produced fields or did not, with no way to tell a confident result from a guess short of inspecting every field yourself.
+
+### Case normalization for dirty imports
+An all-uppercase or all-lowercase field is title-cased on the way out, so data exported from a legacy system in screaming caps comes back readable. Anything already carrying mixed case is left exactly as typed, which is what keeps `McDonald`, `O'Brien` and `van der Berg` intact rather than flattened to `Mcdonald`.
+
+```php
+// v7
+$result = (new NameParser())->parse('JOHN SMITH');
+$result->getFirstname(); // 'John'
+$result->getLastname();  // 'Smith'
+
+(new NameParser())->parse('McDonald, RonalD')->getFirstname(); // 'RonalD' — mixed case untouched
+(new AddressParser())->parse('456 oak avenue, portland, or 97201')->getCity(); // 'Portland'
+```
+**In v6:** not available — normalizing case was the application's job, and doing it naively broke the names that need an interior capital.
+
+### Professional credentials on a name
+`NameParser` recognizes credentials and degrees — PhD, MD, Esq, JD, MBA, RN, DDS, DVM, CPA, CFA, PE, RPh, DNP among them — as a field of their own, so they no longer have to be mistaken for a generational suffix or left stuck on the lastname.
+
+```php
+// v7
+$result = (new NameParser())->parse('Dr. John Q. Smith Jr, PhD');
+
+$result->getSuffix();       // 'Jr'
+$result->getCredentials();  // 'PhD'
+$result->hasCredentials();  // true
+(string) $result;           // 'Dr. John Q. Smith Jr PhD'
+```
+**In v6:** not available.
 
 ### Smaller additions
 - **Zero third-party runtime dependencies** — `composer.json` requires only `php >=8.4.0`. A `theiconic/name-parser` dependency present during early development was removed once `NameParser` was written natively.
 - `getStreetName(false)` returns the bare street name with the directional stripped; `getStreetName()` re-applies it in its original prefix or suffix position (`N Elm` vs `Elm N`).
 - `getNickname(true)` returns the nickname wrapped in parentheses, matching how `__toString()` renders it.
-- `NameParser::parse()` resets all fields first, so re-parsing on the same instance never appends onto prior results.
+- Each `parse()` builds a fresh result, so re-parsing on the same instance can never append onto or overwrite a prior one — the earlier result object stays valid.
 - Multi-word state and province names resolve (`New York`, `District of Columbia`, `Prince Edward Island`), not just two-letter codes.
 - Country is recognized only from an unambiguous standalone segment (`USA`, `United States`, `CAN`, `Canada`); a bare two-letter `CA` is never promoted to a country.
 - `AddressParser::parseStreetAddress()` parses just a street line and returns the street fields as an array.
