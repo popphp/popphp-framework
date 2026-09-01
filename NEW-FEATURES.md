@@ -221,7 +221,7 @@ Verb lists are normalized and sorted, so `'post,options'` and `'options,post'` a
 > **Note:** `'*'` is *not* a method group in the core router — it is the wildcard/default-route key. A Popcorn
 > `'*'` block does not register the routes inside it. See the BC-breaks document.
 
-**In v6:** the core router had no concept of a method group, so this config silently registered an unmatchable
+**Previously:** the core router had no concept of a method group, so this config silently registered an unmatchable
 route literally named `'options,get/users'`. Getting verb-scoped routing meant installing `popphp/popcorn` and
 bootstrapping through `Popcorn\Pop` instead of `Pop\Application`.
 
@@ -235,7 +235,7 @@ The other way to constrain verbs is per route, rather than by group: any HTTP ro
     '/users' => ['controller' => UsersController::class, 'action' => 'create', 'method' => 'post,put'],
 ],
 ```
-**In v6:** Not possible. A route pattern matched any verb, so you branched on `$_SERVER['REQUEST_METHOD']` inside the action; registering the same path twice silently overwrote the first entry.
+**Previously:** Not possible. A route pattern matched any verb, so you branched on `$_SERVER['REQUEST_METHOD']` inside the action; registering the same path twice silently overwrote the first entry.
 
 ### Fluent verb API on `Application`, `Router` and `Match\Http`
 Nine declared verb methods — `get()`, `head()`, `post()`, `put()`, `delete()`, `trace()`, `options()`, `connect()`, `patch()` — each `(string $route, mixed $controller): static`, exist at all three layers as thin proxies. Guards (`Router::httpMatch()`, `Application::httpRouter()`) throw when the active router isn't HTTP-mode, so `Application` stays HTTP/CLI-agnostic everywhere else.
@@ -245,7 +245,7 @@ Nine declared verb methods — `get()`, `head()`, `post()`, `put()`, `delete()`,
 $app->get('/users', 'MyApp\Controller\UsersController')
     ->post('/users', 'MyApp\Controller\UsersController');
 ```
-**In v6:** Not possible in the core — only the separate `popphp/popcorn` package offered a verb API, and its per-verb route tree could not generate named-route URLs for any verb other than the one being handled.
+**Previously:** Not possible in the core — only the separate `popphp/popcorn` package offered a verb API, and its per-verb route tree could not generate named-route URLs for any verb other than the one being handled.
 
 ### Custom HTTP verbs
 `addCustomMethod()`, `addCustomMethods()` and `hasCustomMethod()` maintain a whitelist, proxied up through `Router` and `Application`. A whitelisted verb is then callable as a fluent method via `__call()`, which returns `static` so custom verbs chain like the standard nine.
@@ -255,7 +255,7 @@ $app->get('/users', 'MyApp\Controller\UsersController')
 $app->addCustomMethod('propfind');
 $app->propfind('/dav', 'MyApp\Controller\DavController');
 ```
-**In v6:** Not possible in the core (Popcorn-only, and its `__call()` returned `void`, breaking the chain).
+**Previously:** Not possible in the core (Popcorn-only, and its `__call()` returned `void`, breaking the chain).
 
 ### 404 vs. 405 Method Not Allowed
 Matching no longer stops at the first path match whose method is rejected — it keeps scanning and records every verb a path-matching-but-rejected route would have accepted. `Match\Http` exposes `hasMethodMismatch()`, `getAllowedMethods()` and `methodNotAllowed()` (sending `405` plus an `Allow:` header), which `Application::run()` consults. A wildcard `'*'` fallback still wins over a 405.
@@ -268,7 +268,7 @@ if ($this->router->isHttp() && $this->router->hasMethodMismatch()) {
     $this->router->noRouteFound($exit);
 }
 ```
-**In v6:** Not possible — every unmatched request collapsed into `noRouteFound()`'s 404.
+**Previously:** Not possible — every unmatched request collapsed into `noRouteFound()`'s 404.
 
 ### Content-negotiated 404 and 405 bodies
 Both built-in error responses now check the request's `Accept` header and emit JSON instead of the HTML stub
@@ -286,7 +286,7 @@ override the handler.
     "allowed": ["POST"]
 }
 ```
-**In v6:** both handlers emitted a fixed HTML document regardless of `Accept`, so an API client had to
+**Previously:** both handlers emitted a fixed HTML document regardless of `Accept`, so an API client had to
 override `noRouteFound()` to get anything parseable.
 
 ### `Pop\Dispatch` — dispatchability decoupled from controllers
@@ -305,7 +305,7 @@ class ApiHandler extends AbstractDispatcher
     public function index(): void { $this->response()->setBody('ok'); }
 }
 ```
-**In v6:** Dispatch logic lived inline in `AbstractController::dispatch()` and `Router::route()` threw unless the target implemented `Pop\Controller\ControllerInterface`, so nothing outside the controller hierarchy could be routed to.
+**Previously:** Dispatch logic lived inline in `AbstractController::dispatch()` and `Router::route()` threw unless the target implemented `Pop\Controller\ControllerInterface`, so nothing outside the controller hierarchy could be routed to.
 
 ### `Event\Manager` is itself a PSR-14 dispatcher
 `Pop\Event\Manager` implements `Psr\EventDispatcher\EventDispatcherInterface` and
@@ -336,7 +336,7 @@ Two behaviors worth knowing:
   builds a generic `Pop\Event\Event`, so a same-named `trigger('app.dispatch.pre')` from your own code will
   not reach a `listen(DispatchPreEvent::class, ...)` listener.
 
-**In v6:** only string-keyed `$app->on('app.route.pre', ...)` existed — no PSR-14 interfaces, no
+**Previously:** only string-keyed `$app->on('app.route.pre', ...)` existed — no PSR-14 interfaces, no
 `psr/event-dispatcher` dependency, and no way to hand Pop's dispatcher to a library expecting the standard.
 ### Propagation control and a clean abort for listeners
 A listener can stop later listeners for the same event by calling `stopPropagation()` on the event object,
@@ -355,7 +355,7 @@ $app->on('app.route.pre', function($application) {
     }
 });
 ```
-**In v6:** a listener returned the `Manager::STOP` constant to halt propagation, and `Manager::KILL` to end the
+**Previously:** a listener returned the `Manager::STOP` constant to halt propagation, and `Manager::KILL` to end the
 run — except `KILL` only set an internal `$alive` flag that nothing in the framework ever read, so it never
 stopped anything.
 
@@ -368,7 +368,7 @@ use Pop\Middleware\Psr15\MiddlewareAdapter;
 
 $app->middleware->addHandler(new MiddlewareAdapter(new SomeThirdPartyPsr15Middleware()));
 ```
-**In v6:** Not possible — no way to run a PSR-15 handler in Pop's queue.
+**Previously:** Not possible — no way to run a PSR-15 handler in Pop's queue.
 
 ### PSR-11 service container
 `Pop\Service\Locator` now implements `Psr\Container\ContainerInterface`, gaining `has(string $id): bool`. A new `Pop\Service\NotFoundException` (implementing `NotFoundExceptionInterface`) is thrown by `get()` for an unregistered name, and `Service\Exception` implements `ContainerExceptionInterface` — both still catchable as their original types.
@@ -380,7 +380,7 @@ function boot(\Psr\Container\ContainerInterface $c) { /* ... */ }
 boot($app->services());
 $app->services()->has('foo');
 ```
-**In v6:** Not possible — `Locator` implemented no standard interface.
+**Previously:** Not possible — `Locator` implemented no standard interface.
 
 ### Cross-application state merging
 `mergeServices()`, `mergeMiddleware()`, `mergeEvents()` and the one-call `mergeApplication()`. Services/middleware merge overwrite-by-name; `mergeEvents()` clones each source priority queue and re-registers every listener at its original priority so both apps' listeners survive. `mergeConfig()` gained a third `array $exclude = []` that strips named top-level keys from the *incoming* config.
@@ -389,7 +389,7 @@ $app->services()->has('foo');
 // v7
 $kettleApp->mergeApplication($customApp, false, ['routes']);
 ```
-**In v6:** Not possible — no merge methods, and no way to protect a key, so an incoming config's `routes` always clobbered the host app's.
+**Previously:** Not possible — no merge methods, and no way to protect a key, so an incoming config's `routes` always clobbered the host app's.
 
 ### Specificity-based route ordering
 Each prepared route gets a specificity score — `1000 - (requiredParams * 5) - (optionalParams * 10) - (hasArrayParam ? 500 : 0)` — and both matchers sort most-specific-first using PHP 8's stable sort, so declaration order remains the tiebreaker.
@@ -401,7 +401,7 @@ Each prepared route gets a specificity score — `1000 - (requiredParams * 5) - 
     '/users/new' => [...],   // specificity 1000 — wins for /users/new
 ],
 ```
-**In v6:** First match in declaration order won, so config ordering decided whether `/users/new` hit the literal route or was swallowed by `/users/:id`.
+**Previously:** First match in declaration order won, so config ordering decided whether `/users/new` hit the literal route or was swallowed by `/users/:id`.
 
 ### Callable-object route targets
 A route's `controller` can now be any plain string/array callable that isn't an `AbstractDispatcher` subclass; `Application` invokes it through `Pop\Utils\CallableObject` with the route params, in both the direct and middleware paths.
@@ -412,7 +412,7 @@ A route's `controller` can now be any plain string/array callable that isn't an 
     '/user/:id' => ['controller' => 'MyApp\Handler::showUser'],
 ],
 ```
-**In v6:** Not possible — only a `Closure` or a `ControllerInterface` implementation; anything else threw.
+**Previously:** Not possible — only a `Closure` or a `ControllerInterface` implementation; anything else threw.
 
 ### Route target shorthand strings, on every registration path
 A route target no longer has to be split into `controller`/`action` keys. The route value itself can be a single pop-utils pseudo-callable string, and every registration path normalizes it identically — array configs, wildcard/default routes, the fluent verb methods, and method-group nested routes — through one shared `Match\AbstractMatch::normalizeController()`.
@@ -432,7 +432,7 @@ Shorthand is not a shorter spelling of a controller route. It dispatches through
 
 Detection now runs through `Pop\Utils\CallableObject::isCallable()` rather than PHP's `is_callable()`, which also means a malformed target fails loudly at *registration* time — `'MyApp\NoSuchHandler->listUsers'` throws `Pop\Utils\Exception` naming the missing class or method, instead of quietly registering a route that can never dispatch.
 
-**In v6:** `is_callable()` was the gate, and it is false for every one of these forms — `'Class->method'`, `'new Class'`, a bare class name, and even `'Class::method'` when the method isn't static. Only real PHP callables (closures, function names, genuinely-static method strings) were accepted; everything else was stored raw and silently failed to match a dispatchable.
+**Previously:** `is_callable()` was the gate, and it is false for every one of these forms — `'Class->method'`, `'new Class'`, a bare class name, and even `'Class::method'` when the method isn't static. Only real PHP callables (closures, function names, genuinely-static method strings) were accepted; everything else was stored raw and silently failed to match a dispatchable.
 
 ### Uniform maintenance mode for every route target shape
 Maintenance handling moved into `Application::run()`, checked once right after `getDispatchable()`. A `MaintenanceInterface` target gets `dispatchMaintenance()`; anything that can't implement an interface (a closure, a callable-object route) gets the new `renderMaintenanceResponse()` — an HTTP 503 page or a CLI `Service Unavailable.` line.
@@ -441,7 +441,7 @@ Maintenance handling moved into `Application::run()`, checked once right after `
 // v7 — a closure route is now covered too, with no extra setup
 $app->get('/status', function() { echo 'up'; });  // returns 503 while MAINTENANCE_MODE is on
 ```
-**In v6:** Only controller routes honored maintenance mode; closure routes dispatched normally while the app was "down".
+**Previously:** Only controller routes honored maintenance mode; closure routes dispatched normally while the app was "down".
 
 ### Forced routes with real params, and repeatable `run()`
 `run()` and `Router::route()` now accept an array of pre-split segments as well as a string, and both matchers re-`seed()` their segments from the forced route, so a forced route's `:params`/`<params>`/`[--options]` parse through the same path a real request uses. Both also clear per-match state at the top of every call, making repeated dispatch against one booted `Application` (a queue worker) safe.
@@ -451,7 +451,7 @@ $app->get('/status', function() { echo 'up'; });  // returns 503 while MAINTENAN
 $app->run(false, 'send:email --quiet 1001');
 $app->run(false, ['send:email', '-q', 'John Smith']);  // array form: values with spaces
 ```
-**In v6:** `$forceRoute` was `?string` only, and it was matched against the regex while params were still parsed from the real request — forced routes silently lost their params.
+**Previously:** `$forceRoute` was `?string` only, and it was matched against the regex while params were still parsed from the real request — forced routes silently lost their params.
 
 ### Application full name
 `setFullName()`, `getFullName()` and `hasFullName()` — a human-readable display name alongside the existing slug-like `name` and `version`.
@@ -460,7 +460,7 @@ $app->run(false, ['send:email', '-q', 'John Smith']);  // array form: values wit
 // v7
 $app->setName('my-app')->setFullName('My Application')->setVersion('1.2.0');
 ```
-**In v6:** Only `name`/`version` existed.
+**Previously:** Only `name`/`version` existed.
 
 ### Smaller additions
 - `Dispatch\HttpTrait` gained `getApplication()`, `setApplication()`, `setRequest()`, `setResponse()`, `hasApplication()`, `hasRequest()`, `hasResponse()`; `ConsoleTrait` gained the console equivalents. Both now take a *nullable* `?Application` first argument.
@@ -488,7 +488,7 @@ $acl->allow($admin, $page, '*')       // can do anything to a page...
 $acl->isAllowed($admin, $page, 'edit');   // true
 $acl->isAllowed($admin, $page, 'delete'); // false
 ```
-**In v6:** not possible — `'*'` was a literal permission name with no special meaning. You enumerated every permission in an `allow()` array, or left the list empty (blanket allow) and lost the ability to carve out exceptions.
+**Previously:** not possible — `'*'` was a literal permission name with no special meaning. You enumerated every permission in an `allow()` array, or left the list empty (blanket allow) and lost the ability to carve out exceptions.
 
 ### `removeRole()` and `removeResource()`
 `removeRole()` reparents the role's children onto its own parent (or makes them roots), detaches it from its parent, and purges every allow/deny rule, assertion and policy referencing it. `removeResource()` purges that resource's rules and assertions across *every* role, plus any policies naming it, dropping now-empty role entries so no accidental blanket rule is left behind.
@@ -499,7 +499,7 @@ $acl->removeRole($admin);
 $acl->removeResource($page);
 var_dump($acl->hasRole('admin'), $acl->hasResource('page')); // false, false
 ```
-**In v6:** not possible — the only removal API was `removeAllowRule()`/`removeDenyRule()`, which strip rules but leave the role/resource registered and leave orphaned children, assertions and policies behind.
+**Previously:** not possible — the only removal API was `removeAllowRule()`/`removeDenyRule()`, which strip rules but leave the role/resource registered and leave orphaned children, assertions and policies behind.
 
 ### `getAllowedPermissions()` / `getDeniedPermissions()`
 Introspection into the effective rule set for a role on a resource, merged up the parent chain. Returns `['*']` when access is unrestricted at any level, or `[]` when no rule exists — useful for rendering UI, debugging, or exporting an ACL without probing `isAllowed()` permission-by-permission.
@@ -510,7 +510,7 @@ $acl->allow($editor, $page, 'read');
 $acl->allow($reader, $page, 'comment');   // reader is a child of editor
 print_r($acl->getAllowedPermissions($reader, $page)); // ['comment', 'read']
 ```
-**In v6:** not possible — the rule arrays were protected with no accessor, so the only way to learn a role's permissions was to guess names and call `isAllowed()` for each, reimplementing inheritance merging by hand.
+**Previously:** not possible — the rule arrays were protected with no accessor, so the only way to learn a role's permissions was to guess names and call `isAllowed()` for each, reimplementing inheritance merging by hand.
 
 ### Array permissions now work in `isAllowed()` / `isDenied()`
 Passing an array of permissions to a check now works end to end; the assertion-key methods widened `$permission` from `?string` to `mixed` and join arrays internally.
@@ -520,7 +520,7 @@ Passing an array of permissions to a check now works end to end; the assertion-k
 $acl->isAllowed($admin, $page, ['edit', 'delete']); // true — all must be allowed
 $acl->isDenied($admin, $page, ['edit', 'delete']);  // true if any is denied
 ```
-**In v6:** always threw. `isDenied()` called an assertion-key method typed `?string`, so an array raised a `TypeError` before any evaluation; `isAllowed()` calls `isDenied()` first, so it threw too. The array-handling code in `allow()`/`deny()` existed but was unreachable from a check.
+**Previously:** always threw. `isDenied()` called an assertion-key method typed `?string`, so an array raised a `TypeError` before any evaluation; `isAllowed()` calls `isDenied()` first, so it threw too. The array-handling code in `allow()`/`deny()` existed but was unreachable from a check.
 
 ### `AclRole::removeChild()` and `clearParent()`
 The role hierarchy can now be torn down, not just built up. `removeChild()` detaches a child and clears its back-reference; `clearParent()` detaches a role from its parent, making it a root.
@@ -530,7 +530,7 @@ The role hierarchy can now be torn down, not just built up. `removeChild()` deta
 $editor->removeChild($reader);  // $reader->getParent() is now null
 $reader->clearParent();
 ```
-**In v6:** not possible — `AclRole` had only `addChild()`/`setParent()`, with the backing properties protected and no way to unset them, so a hierarchy was write-once for the life of the objects.
+**Previously:** not possible — `AclRole` had only `addChild()`/`setParent()`, with the backing properties protected and no way to unset them, so a hierarchy was write-once for the life of the objects.
 
 ### Rules survive when a policy doesn't match
 `isAllowed()`/`isDenied()` only let a policy override the rule-based result when a policy actually matched. Registering a policy for one role no longer poisons checks for unrelated roles and resources, so rule-based and policy-based authorization can coexist in a single `Acl`.
@@ -541,7 +541,7 @@ $acl->addPolicy('update', $editor, $page); // policy for editor only
 $acl->allow($admin, $page, 'edit');
 $acl->isAllowed($admin, $page, 'edit');    // true — falls back to the rule
 ```
-**In v6:** the policy result overwrote the rule result unconditionally; a non-matching evaluation returned `null`, which the `bool` return type coerced to `false`. **Adding a single policy effectively denied every check that policy didn't cover.**
+**Previously:** the policy result overwrote the rule result unconditionally; a non-matching evaluation returned `null`, which the `bool` return type coerced to `false`. **Adding a single policy effectively denied every check that policy didn't cover.**
 
 ### New protected extension points
 The duplicated allow/deny paths were factored into overridable protected methods, giving subclasses single hook points for custom rule storage or evaluation.
@@ -554,7 +554,7 @@ protected function resolveDenied(mixed $role, mixed $resource, mixed $permission
 protected function getEffectivePermissions(string $type, mixed $role, mixed $resource): array
 protected function deleteRuleAssertions(string $type, string $roleName, string $resourceName, array $permissions): void
 ```
-**In v6:** not possible — `allow()`/`deny()` and the two removal methods each carried a full copy of the logic inline, so overriding behavior meant overriding all four public methods.
+**Previously:** not possible — `allow()`/`deny()` and the two removal methods each carried a full copy of the logic inline, so overriding behavior meant overriding all four public methods.
 
 ### Smaller additions
 - `PolicyTrait::can()` validates that every method in a comma-separated list is callable *before* invoking any of them, throwing with the offending method and class name; v6 silently skipped unknown methods and could return a stale result from a prior method.
@@ -612,7 +612,7 @@ try {
     // adapter couldn't run the check (unreadable file, malformed JWT key material)
 }
 ```
-**In v6:** not possible to distinguish. `File::authenticate()` called `file()` unguarded and fell into `foreach (false)` on an unreadable file. The only `throw` anywhere in v6's `src/` was for a nonexistent access file at construction.
+**Previously:** not possible to distinguish. `File::authenticate()` called `file()` unguarded and fell into `foreach (false)` on an unreadable file. The only `throw` anywhere in v6's `src/` was for a nonexistent access file at construction.
 
 ### `needsRehash()` on `AbstractAuth` / `AuthInterface`
 After a successful `verify()`, the adapter records whether the stored hash should be upgraded — either because it was stored unhashed, or because `password_needs_rehash()` reports it as out of date against `PASSWORD_DEFAULT`. This lets an app migrate legacy plaintext or weak-cost hashes on the next successful login, **while it still holds the cleartext password**. It is part of the interface contract, so it is available on every adapter — though only `File` ever has a hash to compare against; `Jwt` verifies a signature instead, so `needsRehash()` is always `false` there.
@@ -626,7 +626,7 @@ if ($auth->isAuthenticated() && $auth->needsRehash()) {
     // persist $newHash yourself — pop-auth never writes to storage
 }
 ```
-**In v6:** not possible. `verify()` returned only a bool and discarded the `password_get_info()` result; an app wanting this had to re-fetch the stored hash itself and call `password_needs_rehash()` outside the adapter.
+**Previously:** not possible. `verify()` returned only a bool and discarded the `password_get_info()` result; an app wanting this had to re-fetch the stored hash itself and call `password_needs_rehash()` outside the adapter.
 
 ### Timing-safe comparison of unhashed stored credentials
 When the stored credential is not a recognized password hash (plaintext access-file entries), `verify()` compares it with `hash_equals()` instead of `===`, removing the early-exit byte leak that made the comparison time-dependent on how many leading characters matched.
@@ -636,7 +636,7 @@ When the stored credential is not a recognized password hash (plaintext access-f
 $isUnhashed = (($info['algo'] == 0) && ($info['algoName'] == 'unknown'));
 $result     = $isUnhashed ? hash_equals($hash, $password) : password_verify($password, $hash);
 ```
-**In v6:** a plain `($password === $hash)` on the unhashed path; nothing in the component called `hash_equals()`.
+**Previously:** a plain `($password === $hash)` on the unhashed path; nothing in the component called `hash_equals()`.
 
 ### `Jwt` adapter — signature and claims verification
 A new adapter that authenticates a bearer token by verifying its signature (`HS256`/`RS256`/`ES256`, via a new `Pop\Crypt\Signature\Verifier` primitive) and claims (`exp`/`nbf` always checked with an optional leeway, `aud`/`iss` opt-in), with no network call and no stored credential lookup. The algorithm is fixed at construction and never read from the token itself, avoiding the JWT "alg confusion" vulnerability class. Successfully verified claims are available via `getUser()`.
@@ -650,7 +650,7 @@ if ($auth->authenticate($token)) {
     $claims = $auth->getUser();
 }
 ```
-**In v6:** not possible — no token-based adapter existed; JWT verification had to be implemented outside `pop-auth` entirely.
+**Previously:** not possible — no token-based adapter existed; JWT verification had to be implemented outside `pop-auth` entirely.
 
 ### Smaller additions
 - `AuthInterface::authenticate()` and each implementation carry `@throws Exception` docblocks, making the new failure mode part of the published contract.
@@ -675,7 +675,7 @@ function useAnyPsr16Cache(\Psr\SimpleCache\CacheInterface $cache): void {
 }
 useAnyPsr16Cache(new Cache(new Redis(300)));
 ```
-**In v6:** Not possible — `Cache` implemented only `\ArrayAccess`, had no `get`/`set`/`has`/`delete`/`*Multiple` methods and no PSR dependency; you had to write your own bridge class.
+**Previously:** Not possible — `Cache` implemented only `\ArrayAccess`, had no `get`/`set`/`has`/`delete`/`*Multiple` methods and no PSR dependency; you had to write your own bridge class.
 
 ### PSR-6 CacheItemPool with deferred saves
 New `Pop\Cache\Psr6\CacheItemPool` and `Psr6\CacheItem` wrap any `pop-cache` adapter. (It could not be folded into `Cache` because PSR-6 declares `getItem`/`hasItem`/`deleteItem`/`clear` with signatures incompatible with `Cache`'s own.) Deferred items are visible to `getItem()`/`hasItem()` per PSR-6 §1.4, and `__destruct()` commits so pending writes are never silently dropped.
@@ -689,7 +689,7 @@ if (!$item->isHit()) {
     $pool->save($item);
 }
 ```
-**In v6:** Not possible — no `Psr6` namespace, no item objects, no deferred-write buffer.
+**Previously:** Not possible — no `Psr6` namespace, no item objects, no deferred-write buffer.
 
 ### `remember()` with probabilistic early recomputation
 `Cache::remember(string $id, callable $callback, ?int $ttl = null, float $beta = 0.0): mixed` returns the cached value or computes, caches, and returns it. A unique sentinel compared by `===` means a legitimately falsy result (`false`/`null`/`0`/`''`) is cached correctly rather than recomputed forever. `$beta > 0.0` enables XFetch-style stampede protection: as an item nears its TTL, reads have a rising chance of refreshing it early while concurrent readers keep getting the still-valid copy.
@@ -698,7 +698,7 @@ if (!$item->isHit()) {
 // v7
 $value = $cache->remember('expensive-report', fn() => generateExpensiveReport(), 300, 1.0);
 ```
-**In v6:** Not possible as a built-in — you hand-wrote `hasItem()`/`getItem()`/`saveItem()` around every callback, and a cached `false` was indistinguishable from a miss. No stampede mitigation existed.
+**Previously:** Not possible as a built-in — you hand-wrote `hasItem()`/`getItem()`/`saveItem()` around every callback, and a cached `false` was indistinguishable from a miss. No stampede mitigation existed.
 
 ### Tag-based bulk invalidation
 `saveTaggedItem()` associates tags with an item; `invalidateTag()`/`invalidateTags()` delete every item under a tag without knowing its ids. Implemented as pure composition over the adapter's own primitives, so it works identically on all eight adapters with zero adapter changes. Bookkeeping lives under `@`-prefixed keys that user keys can never collide with.
@@ -709,7 +709,7 @@ $cache->saveTaggedItem('product-1', $data, ['products', 'category-electronics'],
 $cache->invalidateTag('category-electronics');       // deletes product-1
 $cache->invalidateTags(['products', 'category-books']);
 ```
-**In v6:** Not possible — you tracked the id list yourself in a separate cache entry and looped `deleteItem()`.
+**Previously:** Not possible — you tracked the id list yourself in a separate cache entry and looped `deleteItem()`.
 
 ### Atomic increment/decrement counters
 `incrementItem(string $id, int $amount = 1, int $initial = 0, ?int $ttl = null): int` and `decrementItem(...)` were added to `Cache`, `AdapterInterface` and every adapter — a counter primitive for rate limiting, view counts and concurrency-safe tallies. `Apc`/`Memcached`/`Redis` get genuine backend-native atomicity (`apcu_add()`+`apcu_inc()`; `Memcached::add()`+`increment()`; a Lua `EVAL` on Redis so a custom initial value is seeded atomically). `File`/`Database`/`Session`/`Memory`/`NullAdapter` do a non-atomic read-modify-write.
@@ -720,7 +720,7 @@ $views    = $cache->incrementItem('page-views-123');                  // creates
 $attempts = $cache->decrementItem('login-attempts-user42', 1, 5, 60); // creates at 5, -1 -> 4
 $current  = $cache->incrementItem('page-views-123', 0);               // peek without mutating
 ```
-**In v6:** Not possible atomically — no increment/decrement in the contract, so a counter meant a racy read/+1/write in user code even on Redis/APCu.
+**Previously:** Not possible atomically — no increment/decrement in the contract, so a counter meant a racy read/+1/write in user code even on Redis/APCu.
 
 ### Injectable clock with `MutableClock`
 New `Clock\ClockInterface` (`now(): int`), `Clock\SystemClock` and the shipped-public `Clock\MutableClock` (`setTime()`/`advance()`). Every adapter constructor takes a trailing optional `$clock`, as does `Cache` itself, replacing hardcoded `time()` calls in the expiration envelope — TTL behavior becomes testable deterministically without `sleep()`.
@@ -733,7 +733,7 @@ $cache->saveItem('foo', 'bar', 10);
 $clock->advance(11);
 $cache->getItem('foo'); // false — expired, no sleep() needed
 ```
-**In v6:** Not possible — every adapter called `time()` directly; testing expiry required real `sleep()`.
+**Previously:** Not possible — every adapter called `time()` directly; testing expiry required real `sleep()`.
 
 ### `Memory` and `NullAdapter` adapters
 Two new dependency-free adapters, always reported as available. `Memory` is an in-memory array store for tests and single-request caching — it never serializes, so a cached object comes back as the exact original instance. `NullAdapter` is a true no-op, disabling caching wholesale without touching call sites.
@@ -743,7 +743,7 @@ Two new dependency-free adapters, always reported as available. `Memory` is an i
 $cache = new Cache(new Pop\Cache\Adapter\Memory(300));      // in-memory, no extension needed
 $cache = new Cache(new Pop\Cache\Adapter\NullAdapter());     // caching disabled entirely
 ```
-**In v6:** Not possible — all six adapters required a real backing store, extension, or writable directory.
+**Previously:** Not possible — all six adapters required a real backing store, extension, or writable directory.
 
 ### Default value on miss for `getItem()`/`getItemTtl()`
 An optional `$default` was threaded through the contract and all eight adapters, finally letting callers distinguish a genuine miss from a legitimately cached `false` — the ambiguity that also made a correct `remember()` impossible in userland.
@@ -754,7 +754,7 @@ $cache->saveItem('feature_enabled', false);
 $cache->getItem('feature_enabled', null);     // false — the real cached value
 $cache->getItem('never_cached_key', null);    // null  — a genuine miss
 ```
-**In v6:** Not possible — `getItem()` returned bare `false` for both cases.
+**Previously:** Not possible — `getItem()` returned bare `false` for both cases.
 
 ### Namespace-scoped `clear()`/`destroy()`
 `Apc`, `Memcached`, `Redis` and `Session` each take a trailing `string $namespace = 'pop_cache'`. The first three scope `clear()`/`destroy()` via generational versioning (a per-namespace version counter folded into every key — `clear()` bumps the version instead of flushing the backend), shared through the new `Adapter\NamespacedVersionedKeys` trait. Multiple apps can now safely share one APCu/memcached/redis instance.
@@ -764,7 +764,7 @@ $cache->getItem('never_cached_key', null);    // null  — a genuine miss
 $cache = new Cache(new Apc(300, 'my-app'));
 $cache->clear(); // only 'my-app' keys — other tenants untouched
 ```
-**In v6:** Not possible — `clear()`/`destroy()` flushed the entire shared instance, taking every other consumer's data with it.
+**Previously:** Not possible — `clear()`/`destroy()` flushed the entire shared instance, taking every other consumer's data with it.
 
 ### Smaller additions
 - `Pop\Cache\InvalidArgumentException` implementing *both* PSR-16 and PSR-6 `InvalidArgumentException`, thrown by the new shared `ValidatesKey` trait.
@@ -793,7 +793,7 @@ $class->addAttribute((new Generator\AttributeGenerator('Table'))->addArgument('p
 // #[Table(name: 'products')]
 // class Product
 ```
-**In v6:** not possible — no attribute class existed anywhere in `src/`.
+**Previously:** not possible — no attribute class existed anywhere in `src/`.
 
 ### Parameter-level attributes
 `addArgument()`/`addPromotedArgument()` take an `array $attributes` as their final argument; these render inline, before the parameter's type.
@@ -805,7 +805,7 @@ $function->addArgument('request', new Generator\NoValue(), 'Request', false, fal
 ]);
 // function handle(#[Autowire] Request $request): Request
 ```
-**In v6:** not possible.
+**Previously:** not possible.
 
 ### Enum generation
 New `Generator\EnumGenerator` and `EnumCaseGenerator`. Supports pure and backed (`int`/`string`) enums via `setBackingType()`, interfaces via `addInterface()`, plus constants, methods, trait `use` and per-case docblocks/attributes. `render()` validates the case/backing-type contract.
@@ -816,7 +816,7 @@ $enum = new Generator\EnumGenerator('Status', 'string', 'HasLabel');
 $enum->addCase(new Generator\EnumCaseGenerator('Active', 'active'));
 // enum Status: string implements HasLabel { case Active = 'active'; }
 ```
-**In v6:** not possible — `ClassGenerator` could only emit `class`.
+**Previously:** not possible — `ClassGenerator` could only emit `class`.
 
 ### Enum reflection
 New `Reflection\EnumReflection` plus `Reflection::createEnum()` reconstruct an existing enum: backing type, cases and values, interfaces (minus the implicit `UnitEnum`/`BackedEnum`), constants, docblocks, attributes and user methods, skipping PHP's synthesized `cases()`/`from()`/`tryFrom()`.
@@ -825,7 +825,7 @@ New `Reflection\EnumReflection` plus `Reflection::createEnum()` reconstruct an e
 // v7
 $enum = Reflection::createEnum('MyApp\Status');
 ```
-**In v6:** not possible; `ClassReflection::parse()` on an enum produced broken `class` output (v7 now throws a clear error pointing at `createEnum()`).
+**Previously:** not possible; `ClassReflection::parse()` on an enum produced broken `class` output (v7 now throws a clear error pointing at `createEnum()`).
 
 ### Readonly classes and readonly properties
 `ClassGenerator::setAsReadonly()` emits a PHP 8.2 `readonly class`; `PropertyGenerator::setAsReadonly()` emits a readonly property. The generator enforces the language rules — readonly is mutually exclusive with `static`, a readonly property must have a type, and it renders with no default. `suppressReadonlyKeyword()` hides the redundant per-property keyword inside a readonly class. Reflection picks both up.
@@ -836,7 +836,7 @@ $class->setAsReadonly();
 (new Generator\PropertyGenerator('id', 'int', null, 'public'))->setAsReadonly();
 // readonly class ...   /   public readonly int $id;
 ```
-**In v6:** not possible — no readonly flag on either generator.
+**Previously:** not possible — no readonly flag on either generator.
 
 ### Constructor property promotion
 `MethodGenerator::addPromotedArgument()` emits a promoted constructor parameter, validating that the method is `__construct`, that visibility is legal, and that a readonly promotion has a type. `MethodReflection` detects `isPromoted()` and round-trips it.
@@ -849,7 +849,7 @@ $ctor->addPromotedArgument('x', 'public', new Generator\NoValue(), 'int')
      ->setBody('');
 // public function __construct(public int $x, private readonly string $label)
 ```
-**In v6:** not possible — promoted parameters had to be hand-written into a method body string.
+**Previously:** not possible — promoted parameters had to be hand-written into a method body string.
 
 ### Variadic and by-reference parameters
 `addArgument()`/`addParameter()` gained `bool $variadic` and `bool $byRef` flags. A variadic argument with a default value throws.
@@ -859,7 +859,7 @@ $ctor->addPromotedArgument('x', 'public', new Generator\NoValue(), 'int')
 $fn->addArgument('numbers', new Generator\NoValue(), 'int', true);        // int ...$numbers
 $fn->addArgument('counter', new Generator\NoValue(), 'int', false, true); // int &$counter
 ```
-**In v6:** not possible — the signature had no such flags.
+**Previously:** not possible — the signature had no such flags.
 
 ### `NoValue` and `Literal` value objects
 `NoValue` is a sentinel meaning "this parameter has no default at all", which plain `null` could not express (v6 always rendered `null` as an actual `= null`). `Literal` wraps a raw PHP source expression emitted verbatim — constants, enum cases, `new Foo()`. Reflection now emits a `Literal` when a default is a constant, preserving `= self::DEFAULT_MODE` instead of inlining the resolved value.
@@ -869,7 +869,7 @@ $fn->addArgument('counter', new Generator\NoValue(), 'int', false, true); // int
 $fn->addArgument('mode', new Generator\Literal('self::DEFAULT_MODE'), 'string');
 // function withDefault(string $mode = self::DEFAULT_MODE): string
 ```
-**In v6:** not possible; every non-null default was rendered by type-guessing and string defaults were unconditionally quoted.
+**Previously:** not possible; every non-null default was rendered by type-guessing and string defaults were unconditionally quoted.
 
 ### Typed class constants and constant visibility
 `ConstantGenerator::setTyped()` emits a PHP 8.3 typed constant, and `render()` now emits the visibility modifier (the inherited `setVisibility()` was silently ignored in v6).
@@ -880,7 +880,7 @@ $fn->addArgument('mode', new Generator\Literal('self::DEFAULT_MODE'), 'string');
     ->setTyped(true)->setVisibility('protected');
 // protected const string STATUS = 'active';
 ```
-**In v6:** v6's `render()` produced only `const STATUS = 'active';` — no type, no visibility.
+**Previously:** v6's `render()` produced only `const STATUS = 'active';` — no type, no visibility.
 
 ### Constant reflection
 New `Reflection\ConstantReflection` and `Reflection::createConstant()` turn a `ReflectionClassConstant` into a `ConstantGenerator`, carrying visibility, declared type, value and attributes. The class/interface/enum reflections all route constants through it, and `ClassReflection` now filters out constants inherited from a parent.
@@ -889,7 +889,7 @@ New `Reflection\ConstantReflection` and `Reflection::createConstant()` turn a `R
 // v7
 $constant = Reflection::createConstant($reflectionClassConstant);
 ```
-**In v6:** constants were reconstructed via `gettype()` from `getConstants()` — no visibility, no declared type, no attributes, and inherited constants were re-emitted.
+**Previously:** constants were reconstructed via `gettype()` from `getConstants()` — no visibility, no declared type, no attributes, and inherited constants were re-emitted.
 
 ### Union, intersection and DNF type support
 New `Reflection\Support\TypeNormalizer` provides `normalize()` (mapping `gettype()`'s `integer`/`boolean`/`double` to valid keywords) and `resolveReflectionType()`, handling named, union, intersection and DNF (`(A&B)|C`) types in one place. The generators complement it by wrapping an intersection in parens when widening to nullable.
@@ -899,7 +899,7 @@ New `Reflection\Support\TypeNormalizer` provides `normalize()` (mapping `gettype
 new Generator\PropertyGenerator('collection', '\Countable&\Traversable', null, 'public');
 // public (\Countable&\Traversable)|null $collection = null;
 ```
-**In v6:** intersection types were unsupported everywhere; parameter reflection called `getName()` directly, which crashes or drops the type on a union, and `gettype()` names like `integer` leaked into type-hint positions as invalid PHP.
+**Previously:** intersection types were unsupported everywhere; parameter reflection called `getName()` directly, which crashes or drops the type on a union, and `gettype()` names like `integer` leaked into type-hint positions as invalid PHP.
 
 ### Shared `ValueFormatter` value rendering
 `Generator\Support\ValueFormatter::format()` is the single value-to-PHP-source path used by properties, constants, enum cases, attributes and argument defaults. Beyond deduplicating three divergent copies, it adds `Literal` passthrough, `\UnitEnum` cases rendered as `Status::Active`, proper quote/backslash escaping, correct member selection for union-typed values, a compact single-line array mode, and an exception on non-`Stringable` objects.
@@ -909,7 +909,7 @@ new Generator\PropertyGenerator('collection', '\Countable&\Traversable', null, '
 ValueFormatter::format(Status::Active);   // Status::Active
 ValueFormatter::format("it's", 'string'); // 'it\'s'
 ```
-**In v6:** each generator had its own inline chain that emitted values unescaped and could not represent enum cases or literals at all.
+**Previously:** each generator had its own inline chain that emitted values unescaped and could not represent enum cases or literals at all.
 
 ### Multiple parent interfaces
 `InterfaceGenerator` models `extends` as a list — `addParent()`, `addParents()`, `getParents()`, `hasParents()`, `hasParent()`, `removeParent()` — and its constructor accepts an array or comma-separated string. `InterfaceReflection` resolves the *direct* parents out of the transitive closure via the new `InterfaceHierarchyResolver`.
@@ -919,7 +919,7 @@ ValueFormatter::format("it's", 'string'); // 'it\'s'
 new Generator\InterfaceGenerator('Countable2', ['Arrayable', 'Traversable']);
 // interface Countable2 extends Arrayable, Traversable
 ```
-**In v6:** a single `?string $parent`, even though PHP allows many.
+**Previously:** a single `?string $parent`, even though PHP allows many.
 
 ### Docblock param lookup and removal
 `DocblockGenerator::findParam(string $var)` and `removeParam(string $var)` address `@param` tags by variable name rather than index, so a re-added argument replaces its stale tag instead of appending a duplicate.
@@ -929,7 +929,7 @@ new Generator\InterfaceGenerator('Countable2', ['Arrayable', 'Traversable']);
 $existing = $docblock->findParam('$foo');
 $docblock->removeParam('$foo');
 ```
-**In v6:** `@param` tags were append-only; there was no way to find or remove one by name.
+**Previously:** `@param` tags were append-only; there was no way to find or remove one by name.
 
 ### Smaller additions
 - `FunctionGenerator` can render a truly anonymous closure (no `$name`), emitting a bare `function(...) {}` instead of throwing.
@@ -957,7 +957,7 @@ $oklch = Color::oklch(0.628, 0.2577, 29);   // also hsv/hsb/hwb/lab/lch/oklab
 echo $oklch;                                 // oklch(0.628 0.2577 29)
 echo $oklch->toRgb();                        // rgb(255, 0, 0)
 ```
-**In v6:** not possible — only `Rgb`, `Hsl`, `Hex`, `Cmyk` and `Grayscale` existed.
+**Previously:** not possible — only `Rgb`, `Hsl`, `Hex`, `Cmyk` and `Grayscale` existed.
 
 ### `Rgb` conversions into every new space
 `Rgb` gained `toHsv()`, `toHsb()`, `toHwb()`, `toLab()`, `toLch()`, `toOklab()` and `toOklch()`, keeping `Rgb` the hub format that reaches every other class in one step. The Lab/Oklab paths implement the real sRGB → linear-light → XYZ (D65) → Lab / LMS → Oklab matrices, so the values are colorimetrically correct rather than approximations.
@@ -967,7 +967,7 @@ echo $oklch->toRgb();                        // rgb(255, 0, 0)
 $lab   = Color::rgb(255, 0, 0)->toLab();     // lab(53.24% 80.09 67.2)
 $oklab = Color::rgb(255, 0, 0)->toOklab();   // oklab(0.628 0.2249 0.1258)
 ```
-**In v6:** not possible — `Rgb` only had `toCmyk()`, `toGray()`, `toHsl()`, `toHex()`.
+**Previously:** not possible — `Rgb` only had `toCmyk()`, `toGray()`, `toHsl()`, `toHex()`.
 
 ### CSS Color 4 parsing — space-separated syntax with `/ alpha`
 `Color::parse()` now recognizes `hsv()`, `hsb()`, `hwb()`, `lab()`, `lch()`, `oklab()` and `oklch()`, and for the CSS-native formats accepts both legacy comma-separated values and modern space-separated syntax with a `/`-alpha suffix (percent signs tolerated). Malformed or out-of-range input is normalized into `Color\Exception` instead of leaking `OutOfRangeException`/`TypeError`.
@@ -978,7 +978,7 @@ $hwb = Color::parse('hwb(210 20% 10% / 0.5)');
 echo $hwb->getW() . ' ' . $hwb->getA();   // 20 0.5
 Color::parse('lab(53.24% 80.09 67.2 / 0.5)');
 ```
-**In v6:** not possible — `parse()` only sniffed `rgb`, `hsl`, `#hex`, space-separated CMYK and bare numeric grayscale, comma-separated only.
+**Previously:** not possible — `parse()` only sniffed `rgb`, `hsl`, `#hex`, space-separated CMYK and bare numeric grayscale, comma-separated only.
 
 ### 4- and 8-digit hex with alpha
 `Hex::setHex()` accepts 4-digit `#RGBA` and 8-digit `#RRGGBBAA` alongside 3- and 6-digit, exposing alpha as the same 0–1 float used elsewhere via `getA()`, `setA()`, `hasA()` and `hasAlpha()`. `Hex::toRgb()` carries alpha through, `Rgb::toHex()` emits the 8-digit form when alpha is set, and `'a'` is a valid channel on `Hex`.
@@ -989,7 +989,7 @@ $hex = Color::hex('#ff880080');
 echo $hex->getA();                          // 0.502
 echo Color::rgb(120, 60, 30, 0.5)->toHex(); // #783c1e80
 ```
-**In v6:** not possible — anything but 3 or 6 digits threw, `Hex` had no alpha at all, and `toHex()` silently dropped it.
+**Previously:** not possible — anything but 3 or 6 digits threw, `Hex` had no alpha at all, and `toHex()` silently dropped it.
 
 ### `toCss()` on every color object
 `AbstractColor::toCss()` returns `render(self::CSS)` regardless of what a class's `__toString()` defaults to. This matters because `Cmyk`, `Grayscale` and `Hex` default to non-CSS output, so a `(string)` cast on an arbitrary `ColorInterface` was not safe to drop into a stylesheet.
@@ -998,7 +998,7 @@ echo Color::rgb(120, 60, 30, 0.5)->toHex(); // #783c1e80
 // v7
 echo Color::cmyk(0, 50, 75, 53)->toCss();  // rgb(120, 60, 30)
 ```
-**In v6:** you had to know the concrete class and call `render(AbstractColor::CSS)` yourself.
+**Previously:** you had to know the concrete class and call `render(AbstractColor::CSS)` yourself.
 
 ### Native CSS Color 4 render output
 `Hwb`, `Lab`, `Lch`, `Oklab` and `Oklch` render true CSS function syntax with the space-separated channel form and a `/ alpha` suffix, so their output is directly usable in modern CSS.
@@ -1008,7 +1008,7 @@ echo Color::cmyk(0, 50, 75, 53)->toCss();  // rgb(120, 60, 30)
 echo Color::hwb(210, 20, 10, 0.5);        // hwb(210 20% 10% / 0.5)
 echo Color::lab(53.24, 80.09, 67.2, 0.5); // lab(53.24% 80.09 67.2 / 0.5)
 ```
-**In v6:** not possible — `rgb()`/`rgba()`/`hsl()`/`hsla()` were the only CSS forms, none supporting the `/ alpha` syntax.
+**Previously:** not possible — `rgb()`/`rgba()`/`hsl()`/`hsla()` were the only CSS forms, none supporting the `/ alpha` syntax.
 
 ### Public sRGB gamma helpers
 `Rgb::linearize(float $value): float` and `Rgb::delinearize(float $value): float` convert a 0–1 channel between gamma-encoded sRGB and linear light. They back the Lab/Oklab math internally but are usable directly for blending, contrast ratios or custom color math.
@@ -1018,7 +1018,7 @@ echo Color::lab(53.24, 80.09, 67.2, 0.5); // lab(53.24% 80.09 67.2 / 0.5)
 $linear = Pop\Color\Color\Rgb::linearize(0.5);       // 0.2140...
 $srgb   = Pop\Color\Color\Rgb::delinearize($linear); // 0.5
 ```
-**In v6:** not possible — you implemented the sRGB transfer function yourself.
+**Previously:** not possible — you implemented the sRGB transfer function yourself.
 
 ### Unified channel access via `AbstractColor`
 `AbstractColor` implements `\ArrayAccess` and the magic accessors once, dispatching through a new `abstract protected function channels(): array` that each class declares. Every color class — including all seven new ones — gets bracket and property access for free, error messages list the actual valid channels, and a custom subclass needs only `channels()` plus matching `get*`/`set*` methods.
@@ -1029,7 +1029,7 @@ $oklch = Color::oklch(0.628, 0.2577, 29);
 echo $oklch['c'];        // 0.2577
 $oklch->h = 200;         // works on every color class
 ```
-**In v6:** each of the five classes duplicated its own offset/magic-method block with a hard-coded `switch`; new channels meant hand-editing every branch.
+**Previously:** each of the five classes duplicated its own offset/magic-method block with a hard-coded `switch`; new channels meant hand-editing every branch.
 
 ### Smaller additions
 - `Hwb`, `Lab`, `Lch`, `Oklab`, `Oklch` support `render(self::PERCENT)` by delegating to `toRgb()`; `Hsv`/`Hsb` delegate both CSS and PERCENT.
@@ -1055,7 +1055,7 @@ $host = $config['database.host'];      // 'localhost'
 $host = $config->{'database.host'};    // 'localhost'
 isset($config['database.port']);       // true
 ```
-**In v6:** not possible — `Config` inherited the accessors verbatim from `Pop\Utils\ArrayObject`, which only did `array_key_exists()`. `$config['database.host']` returned `null`; you wrote `$config['database']['host']`, and since nested arrays are never wrapped, `$config->database->host` did not work either.
+**Previously:** not possible — `Config` inherited the accessors verbatim from `Pop\Utils\ArrayObject`, which only did `array_key_exists()`. `$config['database.host']` returned `null`; you wrote `$config['database']['host']`, and since nested arrays are never wrapped, `$config->database->host` did not work either.
 
 ### Dot-notation writes and unsets
 `__set()` and `__unset()` accept the same dotted paths, backed by a reference-walker. Setting auto-vivifies missing intermediate levels; unsetting removes only the leaf and is a no-op when the path is missing. Because `offsetSet()`/`offsetUnset()` delegate to the magic methods, `$config['a.b'] = …` and `unset($config['a.b'])` work too.
@@ -1067,7 +1067,7 @@ $config = new Config(['database' => ['host' => 'localhost']], true);
 $config['database.port'] = 5432;   // ['database' => ['host' => 'localhost', 'port' => 5432]]
 unset($config['database.host']);   // ['database' => ['port' => 5432]]
 ```
-**In v6:** not possible — writes created a flat literal key `'database.port'` at the top level. Nested writes meant pulling `toArray()`, mutating, and rebuilding the whole config.
+**Previously:** not possible — writes created a flat literal key `'database.port'` at the top level. Nested writes meant pulling `toArray()`, mutating, and rebuilding the whole config.
 
 ### Typed exception classes
 Three subclasses of the existing `Pop\Config\Exception` let callers distinguish failure modes without string-matching messages: `ChangesNotAllowedException` (the immutability gate), `ParseException` (missing file, unparseable content, bad input type) and `UnsupportedFormatException` (unrecognized extension or render format). All still extend the base, so existing catches keep working.
@@ -1080,7 +1080,7 @@ try {
     // missing file or malformed content, specifically
 }
 ```
-**In v6:** not possible — `src/Exception.php` was the only exception class in the component.
+**Previously:** not possible — `src/Exception.php` was the only exception class in the component.
 
 ### Validated parsing (real errors instead of silent `[]` or TypeErrors)
 `parseData()` switches on the file extension, checks `is_file()` up front, and verifies the parse actually produced an array — each failure raising a typed exception at the point of failure.
@@ -1093,7 +1093,7 @@ Config::createFromData('/no/such/file.json');
 Config::createFromData('/path/to/composer.lock');
 // UnsupportedFormatException: ... Supported extensions are .php, .phtml, .json, .yaml, .yml, .ini and .xml.
 ```
-**In v6:** an unknown extension silently returned `[]` with no signal at all; a missing `.json` file produced a warning and then a `TypeError` from the `: array` return type.
+**Previously:** an unknown extension silently returned `[]` with no signal at all; a missing `.json` file produced a warning and then a `TypeError` from the `: array` return type.
 
 ### Array input to `parseData()` / `createFromData()` / `mergeFromData()`
 `parseData()` short-circuits on `is_array($data)` and returns it as-is, so already-loaded arrays flow through the same entry points as file paths — useful for tests, cached config and merging in-memory data.
@@ -1103,7 +1103,7 @@ Config::createFromData('/path/to/composer.lock');
 $config = Config::createFromData(['db' => ['host' => 'localhost']], true);
 $config->mergeFromData(['db' => ['port' => 5432]]);
 ```
-**In v6:** not possible — `parseData()` opened with `substr($data, -6)`, so any array argument was an immediate `TypeError`. This even made `Config::createFromData()` throw with its own default `$data = []`.
+**Previously:** not possible — `parseData()` opened with `substr($data, -6)`, so any array argument was an immediate `TypeError`. This even made `Config::createFromData()` throw with its own default `$data = []`.
 
 ### YAML via `symfony/yaml` (no `ext-yaml`)
 YAML read and write go through `Yaml::parseFile()`/`Yaml::dump()`, with `symfony/yaml` as a hard requirement. YAML config files work on any host without the PECL extension installed, and Symfony's own `ParseException` is caught and rethrown as `Pop\Config\ParseException` with the original as `$previous`.
@@ -1113,7 +1113,7 @@ YAML read and write go through `Yaml::parseFile()`/`Yaml::dump()`, with `symfony
 $config = Config::createFromData('/path/to/config.yml');
 echo $config->render('yaml');
 ```
-**In v6:** `yaml_parse()`/`yaml_emit()` were called directly; without the PECL extension both were fatal undefined-function errors.
+**Previously:** `yaml_parse()`/`yaml_emit()` were called directly; without the PECL extension both were fatal undefined-function errors.
 
 ### `normalizeYamlScalars()` extension hook
 A new `protected static` method recurses the parsed YAML tree and restores YAML 1.1 / libyaml scalar semantics that `symfony/yaml` drops — boolean words (`y`/`n`/`yes`/`no`/`on`/`off`) become real `bool`, and leading-zero octal-looking integers become `int`. Being protected, a subclass can override it to add its own coercion rules on the YAML read path.
@@ -1129,7 +1129,7 @@ class MyConfig extends Config {
     }
 }
 ```
-**In v6:** not possible — there was no post-parse hook of any kind.
+**Previously:** not possible — there was no post-parse hook of any kind.
 
 ### Smaller additions
 - `Config::createFromData()` and `parseData([])` now work with their own default empty-array argument (a `TypeError` in v6).
@@ -1157,7 +1157,7 @@ $console->table(
 // Console::table(array $headers, array $rows, string $h = '-', ?string $v = '|',
 //     ?int $headerFg = null, ?int $headerBg = null, bool $newline = true, bool $return = false)
 ```
-**In v6:** not possible — no tabular output of any kind; you `str_pad()`/`sprintf()`'d rows yourself.
+**Previously:** not possible — no tabular output of any kind; you `str_pad()`/`sprintf()`'d rows yourself.
 
 ### Progress bar
 New `Pop\Console\ProgressBar`, obtained from `Console::progressBar()` (which pre-applies the console's indent). It redraws a single terminal line in place, skipping the redraw when the visible line hasn't changed, and supports custom bar/progress/empty characters, width, a leading message, and color.
@@ -1171,7 +1171,7 @@ foreach ($items as $item) {
 }
 $bar->finish();               // clamps to 100% and prints a trailing newline
 ```
-**In v6:** not possible — no progress rendering; you would hand-roll `"\r"` output.
+**Previously:** not possible — no progress rendering; you would hand-roll `"\r"` output.
 
 ### Dispatchable commands (`Command\AbstractCommand` / `CommandInterface`)
 `Command` now extends the new `Command\AbstractCommand`, which extends `Pop\Dispatch\AbstractDispatcher`, implements `DispatchableInterface` and uses `ConsoleTrait`. A command is therefore a valid route target in its own right — no separate controller/action pair — and carries the `Application` and `Console` it needs.
@@ -1189,7 +1189,7 @@ class UsersCommand extends \Pop\Console\Command
 $command = new UsersCommand(name: 'users', params: '--list [<id>]');
 $command->dispatch(null, ['123']);   // -> handle('123')
 ```
-**In v6:** not possible — `Command` was a plain value object holding only name/params/help; routes had to point at a controller class, and the command object had no application or console reference.
+**Previously:** not possible — `Command` was a plain value object holding only name/params/help; routes had to point at a controller class, and the command object had no application or console reference.
 
 ### `CommandRegistry`
 Command bookkeeping moved out of `Console` into a standalone registry (`add()`, `addAll()`, `all()`, `get()`, `has()`, `fromRoutes()`, `addFromRoutes()`). `Console`'s methods are now thin facades over it, so the registry can be built and unit-tested without a console.
@@ -1201,7 +1201,7 @@ $registry->add(new Command(name: 'users', params: '--list [<id>]', help: 'Users 
 $registry->has('users');   // true
 $registry->all();          // ['users' => $command]
 ```
-**In v6:** not possible as a separate object — commands lived in a protected array inside `Console`.
+**Previously:** not possible as a separate object — commands lived in a protected array inside `Console`.
 
 ### `CommandRegistry::loadRoutes()` directory scanning
 A static helper that scans a directory of one-command-per-file classes and builds a CLI routes config from them: it parses the namespace out of the first file, resolves each class from its filename, instantiates it, keys the route by the command's own string cast, and pulls `help` from `getHelp()`.
@@ -1211,7 +1211,7 @@ A static helper that scans a directory of one-command-per-file classes and build
 $routes = CommandRegistry::loadRoutes($routes, __DIR__ . '/src/Command');
 // loadRoutes(array $routes, string $location, bool $prepend = true): array
 ```
-**In v6:** not possible — every command route had to be written out by hand in the config.
+**Previously:** not possible — every command route had to be written out by hand in the config.
 
 ### Help text sourced from the command class
 When building commands from CLI routes, if a route config has no `'help'` key and the controller implements `CommandInterface`, the class is instantiated and its own `getHelp()` supplies the help string.
@@ -1220,7 +1220,7 @@ When building commands from CLI routes, if a route config has no `'help'` key an
 // v7 — route needs no 'help' key; UsersCommand::getHelp() is used
 $console->addCommandsFromRoutes($cliRouteMatch, './myapp');
 ```
-**In v6:** help came only from the route config; a command with built-in help text had to duplicate it there or show none.
+**Previously:** help came only from the route config; a command with built-in help text had to duplicate it there or show none.
 
 ### Injectable input stream (testable prompts)
 `setInputStream()`/`getInputStream()`/`hasInputStream()` let you supply any readable resource that `prompt()` and `confirm()` read instead of `php://stdin` (the injected stream is not closed after reading).
@@ -1234,7 +1234,7 @@ rewind($stream);
 $console->setInputStream($stream);
 $name = $console->prompt('Please provide your name: ');   // 'Nick', no TTY needed
 ```
-**In v6:** the only override was the undocumented, test-only `$_SERVER['X_POP_CONSOLE_INPUT']` string — one canned answer per process. That hook is gone in v7.
+**Previously:** the only override was the undocumented, test-only `$_SERVER['X_POP_CONSOLE_INPUT']` string — one canned answer per process. That hook is gone in v7.
 
 ### Subcommand-filtered help screens
 `help()` and `displayHelp()` take an optional `$subCommand` that narrows the help screen to the commands under one namespace, so a CLI app with dozens of commands can answer `./myapp help db` instead of dumping everything.
@@ -1250,7 +1250,7 @@ $console->displayHelp(false, 'db');
     db:seed       Seed the database
 ```
 Matching is a plain prefix check against each command's own bare name, so it is not tied to `:` as a delimiter and works just as well for space-separated names like `user list`/`user edit`. To make that reliable, `CommandRegistry` now records the script name a command was registered under (`setScriptName()`/`getScriptName()`/`hasScriptName()`) and strips it by exact value before matching — so a script named `dbapp` can't make `'db'` match every command it owns. A `$subCommand` that matches nothing renders an empty list instead of throwing.
-**In v6:** not possible — `displayHelp()` rendered the entire registry, and there was no way to scope it.
+**Previously:** not possible — `displayHelp()` rendered the entire registry, and there was no way to scope it.
 
 ### `promptMulti()` — one prompt, several answers
 `promptMulti()` is a `prompt()` that accepts a comma-separated list and hands back an array. It validates the whole list against the allowed options before accepting it, so a single bad token re-prompts the entire answer rather than letting a partial selection through.
@@ -1260,7 +1260,7 @@ $types = $console->promptMulti('Select one or more, comma-separated: ', ['1', '2
 // '1, 3' => ['1', '3']
 ```
 Whitespace around tokens is trimmed and duplicates are collapsed, so `1, 3, 3` and `1,3` give the same result. Matching is case-insensitive unless you pass `true` for `$caseSensitive`. Empty input returns an empty array instead of re-prompting — which is what makes it usable as an "accept the default" answer, and also what stops a closed input stream from spinning the retry loop forever.
-**In v6:** `prompt()` accepted exactly one value from the option list; offering a multi-select meant asking repeatedly in your own loop and deduplicating the answers yourself.
+**Previously:** `prompt()` accepted exactly one value from the option list; offering a multi-select meant asking repeatedly in your own loop and deduplicating the answers yourself.
 
 ### Non-exiting `confirm()`
 `confirm()` gained a trailing `bool $exit = true`. Passing `false` returns the response so the caller can branch on it, instead of the method calling `exit(127)` on a "no" answer.
@@ -1272,7 +1272,7 @@ if (strtolower($response) === 'n') {
     $console->write('Cancelled.');
 }
 ```
-**In v6:** a "no" answer always terminated the process with exit code 127.
+**Previously:** a "no" answer always terminated the process with exit code 127.
 
 ### `Prompt`, `Header`, `Alert` and `Help` are stand-alone classes
 The rendering that made `Console` a god object is now four collaborators in `Pop\Console`, each usable on its own. `Console` keeps every method it had, with the same signatures, and delegates — so this costs existing code nothing and buys you the pieces separately.
@@ -1285,7 +1285,7 @@ echo (new Alert('    '))->alertDanger('Deploy failed', 60);
 echo (new Header('    '))->headerCenter('Report', '=', 60);
 ```
 Each takes its own indent/wrap/width/margin, so you can render a boxed alert or a prompt from a class that has no `Console` at all — a value object, a formatter, a test. `Help::render()` takes the command list directly, which is what makes a custom help screen possible without subclassing `Console`. The shared padding and line-wrapping math lives in a `MessageTrait` the renderers use, so `Header` and `Alert` agree on alignment by construction rather than by two copies of the same code.
-**In v6:** all of it was `Console`'s private business — prompting, header drawing, alert boxes and the help screen were methods on one class, reachable only by instantiating a full `Console` (and customizable only by subclassing it). See the BC guide: the old internal call chain between those methods is what changed.
+**Previously:** all of it was `Console`'s private business — prompting, header drawing, alert boxes and the help screen were methods on one class, reachable only by instantiating a full `Console` (and customizable only by subclassing it). See the BC guide: the old internal call chain between those methods is what changed.
 
 ### Smaller additions
 - New `Pop\Console\Command\Exception` for the command namespace.
@@ -1313,7 +1313,7 @@ try {
     // "A 'samesite' value of 'None' requires the 'secure' option to be set to true."
 }
 ```
-**In v6:** not possible — a bad `samesite` value was silently ignored, and `None` without `secure` was happily emitted, producing a cookie the browser would reject with no signal to the application.
+**Previously:** not possible — a bad `samesite` value was silently ignored, and `None` without `secure` was happily emitted, producing a cookie the browser would reject with no signal to the application.
 
 ### `setcookie()` failure is detected and thrown
 Every call site of PHP's native `setcookie()` — `set()`, `delete()`, `clear()` and `__unset()`/`offsetUnset()` — checks the return value and throws on `false`. That catches the common real-world case where output has already been sent and headers can no longer be modified.
@@ -1326,7 +1326,7 @@ try {
     // e.g. headers already sent — the cookie was never written
 }
 ```
-**In v6:** not possible — the return value was discarded in all four methods, so a failed write looked identical to a successful one.
+**Previously:** not possible — the return value was discarded in all four methods, so a failed write looked identical to a successful one.
 
 ### Atomic `setOptions()`
 `setOptions()` resolves all incoming values into locals and runs every validation check before writing anything onto the object; the six properties are assigned only once the whole array has passed. A thrown exception therefore leaves the cookie configuration exactly as it was.
@@ -1340,7 +1340,7 @@ try {
     $cookie->getPath();   // still '/admin' — nothing was committed
 }
 ```
-**In v6:** each option was assigned the moment it was read, in sequence, leaving the object in a mixed old/new state with no way to roll back.
+**Previously:** each option was assigned the moment it was read, in sequence, leaving the object in a mixed old/new state with no way to roll back.
 
 ### `getInstance()` can reconfigure the shared instance
 Passing a non-empty options array to `getInstance()` after the singleton exists now applies those options to it. This makes `getInstance()` usable as the single access point throughout a request, instead of only mattering on the very first call.
@@ -1351,7 +1351,7 @@ $cookie = Cookie::getInstance(['expires' => time() + 3600, 'path' => '/']);
 // ...later, elsewhere in the same request:
 $cookie = Cookie::getInstance(['expires' => time() + 7200]);   // reconfigures the same object
 ```
-**In v6:** the options argument was ignored entirely on every call after the first; you had to keep a reference and call `setOptions()` on it directly.
+**Previously:** the options argument was ignored entirely on every call after the first; you had to keep a reference and call `setOptions()` on it directly.
 
 ### JSON decoding on read widened to arrays and scalar literals
 `__get()` (and `offsetGet()`) now JSON-decodes stored values that start with `[` as well as `{`, plus the exact literals `'true'`, `'false'` and `'null'`. This matches the set of forms `json_encode()` produces on the write side, so lists, booleans and `null` round-trip symmetrically.
@@ -1365,7 +1365,7 @@ $cookie->rememberMe = true;
 $cookie->tags;         // ['php', 'pop']
 $cookie->rememberMe;   // true (bool)
 ```
-**In v6:** only values beginning with `{` were decoded. A JSON-encoded array came back as the literal string and a boolean as `'true'`; you called `json_decode()` yourself and had to know which cookies needed it.
+**Previously:** only values beginning with `{` were decoded. A JSON-encoded array came back as the literal string and a boolean as `'true'`; you called `json_decode()` yourself and had to know which cookies needed it.
 
 ### Smaller additions
 - Values are cast to `string` before being handed to `setcookie()` in all four write paths.
@@ -1391,7 +1391,7 @@ $key       = Encryption\SodiumEncrypter::generateKey(false); // base64
 $encrypter = Encryption\SodiumEncrypter::load();             // APP_KEY / APP_PREVIOUS_KEYS
 $encrypter->setPreviousKeys([$oldKey1, $oldKey2]);
 ```
-**In v6:** not possible — `Encrypter` (OpenSSL AES-CBC/GCM) was the only implementation; libsodium was not used anywhere.
+**Previously:** not possible — `Encrypter` (OpenSSL AES-CBC/GCM) was the only implementation; libsodium was not used anywhere.
 
 ### HKDF-derived encryption and MAC keys for AES-CBC
 For the non-AEAD ciphers, `Encrypter` no longer uses your master key directly. It derives two independent 32-byte subkeys with `hash_hkdf('sha256', ...)` under distinct info strings, one for the cipher and one for the HMAC. **This enforces key separation** — the same secret is never used for two different cryptographic primitives, removing the class of cross-protocol/related-key interactions that arise when one key drives both AES and HMAC-SHA256. GCM is unaffected.
@@ -1403,7 +1403,7 @@ private const HKDF_MAC_INFO        = 'pop-crypt|mac-key';
 
 $encKey = ($aead) ? $this->key : hash_hkdf('sha256', $this->key, 32, self::HKDF_ENCRYPTION_INFO);
 ```
-**In v6:** the raw master key was passed to both `openssl_encrypt()` and `hash_hmac()`. (Note this is also the documented BC break: v6-produced CBC ciphertext will not decrypt under v7.)
+**Previously:** the raw master key was passed to both `openssl_encrypt()` and `hash_hmac()`. (Note this is also the documented BC break: v6-produced CBC ciphertext will not decrypt under v7.)
 
 ### Verify-the-MAC-before-decrypting (CBC)
 `decrypt()` now checks the HMAC for each candidate key *first* and skips to the next key when it fails, only calling `openssl_decrypt()` on data that has already been authenticated. This is correct encrypt-then-MAC ordering and closes the padding-oracle exposure of feeding attacker-supplied, unauthenticated CBC ciphertext into the cipher.
@@ -1421,7 +1421,7 @@ foreach ($this->getAllKeys() as $key) {
     if ($decrypted !== false) { break; }
 }
 ```
-**In v6:** `openssl_decrypt()` ran first on unauthenticated ciphertext and the MAC was computed afterward; `$validMac` was overwritten on every iteration, so only the last key's result was ever examined.
+**Previously:** `openssl_decrypt()` ran first on unauthenticated ciphertext and the MAC was computed afterward; `$validMac` was overwritten on every iteration, so only the last key's result was ever examined.
 
 ### `MAX_VALUE_LENGTH` input cap on hashers
 `AbstractHasher` gained a `MAX_VALUE_LENGTH` constant (4096 bytes, matching Symfony's password hasher) enforced in both `createHash()` and `verify()`. Argon2's cost scales with input size, so an unbounded attacker-controlled value on a login or registration endpoint is an algorithmic-complexity DoS vector; oversized input now throws before any hashing work is done.
@@ -1434,7 +1434,7 @@ if (strlen($value) > static::MAX_VALUE_LENGTH) {
     throw new Exception('Error: The value exceeds the maximum allowed length of ' . static::MAX_VALUE_LENGTH . ' bytes.');
 }
 ```
-**In v6:** no limit — any length was passed straight to `password_hash()`/`password_verify()`.
+**Previously:** no limit — any length was passed straight to `password_hash()`/`password_verify()`.
 
 ### Payload type-validation on decrypt
 Both encrypters type-check the decoded JSON envelope before using it: `iv` and `value` must be strings; for non-AEAD CBC a string `mac` is required (so a payload can't simply omit the MAC to skip authentication); an optional `tag` must be a string. Everything invalid raises the same generic exception, so a malformed or forged payload yields a clean, uniform error rather than a `TypeError` with a revealing stack trace.
@@ -1445,7 +1445,7 @@ if (!$aead && (!isset($payload['mac']) || !is_string($payload['mac']))) {
     throw new Exception('Error: The payload is not valid data.');
 }
 ```
-**In v6:** only `is_array()` plus `isset()` on `iv`/`value`; a payload with `"iv": []` or a missing `mac` reached `base64_decode()`/`hash_equals()` and produced a raw PHP `TypeError`.
+**Previously:** only `is_array()` plus `isset()` on `iv`/`value`; a payload with `"iv": []` or a missing `mac` reached `base64_decode()`/`hash_equals()` and produced a raw PHP `TypeError`.
 
 ### `EncrypterInterface` conformance across both encrypters
 `AbstractEncrypter` now actually declares `implements EncrypterInterface`, and the interface's `encrypt()`/`decrypt()` were tightened to `string` in / `string` out to match. Consumers can type-hint the interface and accept either encrypter interchangeably.
@@ -1454,7 +1454,7 @@ if (!$aead && (!isset($payload['mac']) || !is_string($payload['mac']))) {
 // v7
 public function myThing(EncrypterInterface $encrypter): void { /* Encrypter or SodiumEncrypter */ }
 ```
-**In v6:** `EncrypterInterface` existed but was orphaned — `AbstractEncrypter` did not implement it, so type-hinting the interface matched nothing the library shipped.
+**Previously:** `EncrypterInterface` existed but was orphaned — `AbstractEncrypter` did not implement it, so type-hinting the interface matched nothing the library shipped.
 
 ### Fail-fast key/cipher validation on the setters
 `setCipher()` rejects an unavailable cipher and one incompatible with an already-set key; `setKey()` rejects a key whose length doesn't match the already-set cipher. An invalid key can no longer be installed on a live encrypter and silently produce weak ciphertext at encrypt time.
@@ -1464,7 +1464,7 @@ public function myThing(EncrypterInterface $encrypter): void { /* Encrypter or S
 $encrypter->setCipher('aes-128-cbc'); // throws if key is 32 bytes
 $encrypter->setKey($shortKey);        // throws
 ```
-**In v6:** validation happened only in the constructor; both setters assigned unconditionally, so post-construction mutation bypassed every check.
+**Previously:** validation happened only in the constructor; both setters assigned unconditionally, so post-construction mutation bypassed every check.
 
 ### `Signature\Verifier` — HMAC/RSA/EC signature verification
 A new `Pop\Crypt\Signature\Verifier` class providing bare signature-verification primitives: `hmac()` (via `hash_hmac()` + `hash_equals()`), and `rsa()`/`ec()` (via `openssl_verify()`). A malformed or unusable key throws `Pop\Crypt\Exception`; a signature that simply doesn't match returns `false` — a bad signature and a bad key are distinguishable failure modes. This is the primitive `pop-auth`'s new `Jwt` adapter builds its token-signature verification on.
@@ -1477,7 +1477,7 @@ Verifier::hmac($data, $signature, $secret);              // bool
 Verifier::rsa($data, $signature, $publicKeyPem);          // bool, throws on bad key
 Verifier::ec($data, $signature, $publicKeyPem);           // bool, throws on bad key
 ```
-**In v6:** not possible — no signature-verification primitive existed in this component; a consumer would call `openssl_verify()`/`hash_hmac()` directly with no exception-typed error handling.
+**Previously:** not possible — no signature-verification primitive existed in this component; a consumer would call `openssl_verify()`/`hash_hmac()` directly with no exception-typed error handling.
 
 ### Smaller additions
 - `SodiumEncrypter::decrypt()` catches `\SodiumException` inside the key-rotation loop and treats it as a decryption failure, so a malformed payload throws the library's own exception.
@@ -1503,7 +1503,7 @@ $box->setProperty('background-color', Color::cmyk(30, 20, 10, 5)); // -> rgb(170
 
 echo $box->getColorProperty('color')->toHex(); // #ff0000
 ```
-**In v6:** not possible. `setProperty(string $property, string $value)` accepted strings only, and although `pop-color` was a composer dependency, **nothing under `src/` referenced it** — you rendered the color to a string yourself on the way in, and re-parsed it yourself on the way out.
+**Previously:** not possible. `setProperty(string $property, string $value)` accepted strings only, and although `pop-color` was a composer dependency, **nothing under `src/` referenced it** — you rendered the color to a string yourself on the way in, and re-parsed it yourself on the way out.
 
 ### Comment removal — `removeComment()` / `removeAllComments()`
 `CommentTrait` gains `removeComment(int $i)` (re-indexing the remainder) and `removeAllComments()`. Because the trait is used by `AbstractCss` (so `Css` and `Media`) and `Selector`, comments are now fully manageable on every object that can hold them.
@@ -1514,7 +1514,7 @@ $css->addComment('First')->addComment('Second');
 $css->removeComment(0);      // drops 'First', re-indexes
 $css->removeAllComments();
 ```
-**In v6:** not possible — the trait exposed only `addComment()`, `getComments()` and `hasComments()`; once attached there was no API to take a comment off.
+**Previously:** not possible — the trait exposed only `addComment()`, `getComments()` and `hasComments()`; once attached there was no API to take a comment off.
 
 ### Parser survives values containing `;` or `:` (data URIs, `background: url(...)`)
 The new protected `Css::splitDeclarations()` walks the rule block character by character tracking parenthesis depth, so a `;` inside `url(data:image/png;base64,...)` no longer splits one declaration into two. Paired with `explode(':', $value, 2)`, the property/value split stops at the first colon instead of discarding any declaration containing more than one.
@@ -1524,7 +1524,7 @@ The new protected `Css::splitDeclarations()` walks the rule block character by c
 $css = Css::parseString('.logo { background: url(data:image/png;base64,iVBORw0KGgo=) no-repeat; }');
 echo $css['.logo']['background']; // url(data:image/png;base64,iVBORw0KGgo=) no-repeat
 ```
-**In v6:** not possible. `explode(';', ...)` cut the declaration at the embedded semicolon, and the unlimited colon split produced 3 parts, so the `count($v) == 2` guard **silently dropped the whole declaration**.
+**Previously:** not possible. `explode(';', ...)` cut the declaration at the embedded semicolon, and the unlimited colon split produced 3 parts, so the `count($v) == 2` guard **silently dropped the whole declaration**.
 
 ### `isset()` on synthesized margin/padding longhands
 `Selector::__isset()` reports `true` for `margin-top`/`-right`/`-bottom`/`-left` (and the padding set) whenever the corresponding shorthand is set, matching what `__get()` will actually hand back.
@@ -1535,7 +1535,7 @@ $box->setProperty('margin', '10px 20px');
 isset($box['margin-top']);  // true
 echo $box['margin-top'];    // 10px
 ```
-**In v6:** `__isset()` was a bare key check, so `isset($box['margin-top'])` returned `false` even though reading it correctly returned `10px`.
+**Previously:** `__isset()` was a bare key check, so `isset($box['margin-top'])` returned `false` even though reading it correctly returned `10px`.
 
 ### Numeric property values (`int` / `float`)
 `setProperty()`'s union type includes `int|float` and casts to string internally, so `0`, `1.5` and `700` can be passed directly without manual stringification.
@@ -1544,7 +1544,7 @@ echo $box['margin-top'];    // 10px
 // v7
 $box->setProperties(['margin' => 0, 'line-height' => 1.5, 'font-weight' => 700]);
 ```
-**In v6:** the `string $value` type hint meant a bare `0` or `1.5` relied on weak-mode juggling and would be a `TypeError` under `strict_types`.
+**Previously:** the `string $value` type hint meant a bare `0` or `1.5` relied on weak-mode juggling and would be a `TypeError` under `strict_types`.
 
 ### Protected extension points for parsing and shorthand resolution
 Seven pieces of inline parser logic are now named protected methods, overridable in a subclass: `splitDeclarations()`, `detectMediaType()`, `detectMediaCondition()`, `parseMediaFeatures()`, `normalizeComment()`, `extractSelectorNameAfterComment()` on `Css`, and `resolveShorthandValue()` on `Selector`.
@@ -1557,7 +1557,7 @@ class MyCss extends Css {
     }
 }
 ```
-**In v6:** not possible — all of this lived inline inside `parseMediaQueries()`, `parseComments()`, `parseSelectors()` and `Selector::__get()`.
+**Previously:** not possible — all of this lived inline inside `parseMediaQueries()`, `parseComments()`, `parseSelectors()` and `Selector::__get()`.
 
 ### Repeated rules for one selector cascade instead of clobbering
 `addSelector()` merges an incoming `Selector`'s properties into the one already registered under that name — last value for a given property wins — rather than replacing the object outright. Building a stylesheet up from several sources, a base rule plus an override, now behaves the way a browser does with two rules for the same selector.
@@ -1576,7 +1576,7 @@ $css->addSelector($theme);
 
 $css->getSelector('.btn')->getProperties(); // ['color' => '#000', 'padding' => '10px']
 ```
-**In v6:** the second `addSelector()` discarded the first selector entirely, taking `padding` with it — merging meant reading the existing selector out and copying properties across by hand.
+**Previously:** the second `addSelector()` discarded the first selector entirely, taking `padding` with it — merging meant reading the existing selector out and copying properties across by hand.
 
 ### `parseCssUri()` fails loudly on an unreachable stylesheet
 A URI that 404s, times out or does not exist now raises `Pop\Css\Exception` naming it, instead of handing `file_get_contents()`'s failure value to the parser and producing an empty stylesheet.
@@ -1590,7 +1590,7 @@ try {
     // Error: Unable to fetch CSS from the URI 'https://example.com/missing.css'.
 }
 ```
-**In v6:** the call returned a `Css` object with no selectors and no warning, so a broken stylesheet URL looked exactly like an empty one.
+**Previously:** the call returned a `Css` object with no selectors and no warning, so a broken stylesheet URL looked exactly like an empty one.
 
 ### Smaller additions
 - `Css::removeMedia()` re-indexes the media array after unsetting, so `getMedia(0)` stays valid after a removal.
@@ -1612,7 +1612,7 @@ foreach (Pop\Csv\Csv::readRowsFromFile('huge.csv') as $row) {
     processRow($row); // $row === ['id' => '1', 'email' => '...']
 }
 ```
-**In v6:** not possible. Every read path built the complete array in memory first — plus, on the string path, wrote a full copy of the input to a temp file. The only memory-conscious API was `appendDataToFile()`, for writing.
+**Previously:** not possible. Every read path built the complete array in memory first — plus, on the string path, wrote a full copy of the input to a temp file. The only memory-conscious API was `appendDataToFile()`, for writing.
 
 ### `escapeFormulas` option — CSV/Excel formula injection guard
 A new serialization option (default `false`). When enabled, any non-numeric cell whose first character is `=`, `+`, `-` or `@` is prefixed with a single quote, so spreadsheet apps treat it as literal text rather than executing it. Threaded through `serialize()`, `serializeData()`, `serializeRow()` and both append paths.
@@ -1622,7 +1622,7 @@ A new serialization option (default `false`). When enabled, any non-numeric cell
 $csv = new Pop\Csv\Csv([['note' => '=SUM(A1:A10)']], ['escapeFormulas' => true]);
 echo $csv->serialize(); // note\n'=SUM(A1:A10)\n
 ```
-**In v6:** not possible via the library — you sanitized every user-supplied value yourself before handing the array to `Csv`, since `serializeRow()` only ever applied quoting/enclosure rules.
+**Previously:** not possible via the library — you sanitized every user-supplied value yourself before handing the array to `Csv`, since `serializeRow()` only ever applied quoting/enclosure rules.
 
 ### `isValid()` is a real structural check
 It now trims the input, rejects empty/blank strings, parses the first line to establish an expected column count, and confirms every non-empty line parses to that same count.
@@ -1633,7 +1633,7 @@ Pop\Csv\Csv::isValid('');                    // false
 Pop\Csv\Csv::isValid("a,b\n1,2,3");          // false — ragged row
 Pop\Csv\Csv::isValid("a,b\n1,2");            // true
 ```
-**In v6:** the method was effectively a no-op that returned `true` for literally every input, including `''` — `str_getcsv('')` yields `[null]`, so the count check was always satisfied, and only the first line was ever looked at.
+**Previously:** the method was effectively a no-op that returned `true` for literally every input, including `''` — `str_getcsv('')` yields `[null]`, so the count check was always satisfied, and only the first line was ever looked at.
 
 ### UTF-8 BOM stripping on read
 Both parse entry points handle a leading `\xEF\xBB\xBF`: `unserializeString()` strips it up front, and `readRowsFromFile()` peeks the first three bytes and rewinds if they aren't a BOM, so the stream is left undisturbed for BOM-less files.
@@ -1643,7 +1643,7 @@ Both parse entry points handle a leading `\xEF\xBB\xBF`: `unserializeString()` s
 $data = Pop\Csv\Csv::unserializeString($csvExportedFromExcel);
 $data[0]['id']; // works — key is 'id', not "\xEF\xBB\xBFid"
 ```
-**In v6:** the BOM was silently absorbed into the first header name, so the first column's array key carried three invisible bytes and every `$row['id']` lookup missed.
+**Previously:** the BOM was silently absorbed into the first header name, so the first column's array key carried three invisible bytes and every `$row['id']` lookup missed.
 
 ### Concurrency-safe temp files
 `unserializeString()` allocates its scratch file with `tempnam()` and deletes it in a `finally` block.
@@ -1652,7 +1652,7 @@ $data[0]['id']; // works — key is 'id', not "\xEF\xBB\xBFid"
 // v7
 $data = Pop\Csv\Csv::unserializeString($string); // unique temp file per call
 ```
-**In v6:** the temp path was `sys_get_temp_dir() . '/pop-csv-tmp-' . time() . '.csv'` — a second-resolution name shared by every concurrent caller, so two parses in the same second clobbered each other's data and one could `unlink()` the file the other was still reading. Cleanup also only ran on the success branch, leaving orphaned files behind.
+**Previously:** the temp path was `sys_get_temp_dir() . '/pop-csv-tmp-' . time() . '.csv'` — a second-resolution name shared by every concurrent caller, so two parses in the same second clobbered each other's data and one could `unlink()` the file the other was still reading. Cleanup also only ran on the success branch, leaving orphaned files behind.
 
 ### Smaller additions
 - `serializeData()` no longer errors on an empty data array — it returns `''` instead of indexing an empty array.
@@ -1685,7 +1685,7 @@ $users = Users::findBy([
 // WHERE age >= ? AND name LIKE ? AND created_at BETWEEN ? AND ? AND deleted_at IS NULL
 //   AND (role = ? OR age >= ?)
 ```
-**In v6:** only the ambiguous suffixed-key forms (`'age>=' => 18`, `'%username' => 'test'`, `'id' => '(1, 5)'`); those still work but now emit `E_USER_DEPRECATED`. **OR/AND grouping inside a shorthand array was not possible at all** — you had to drop down to a hand-built `PredicateSet`.
+**Previously:** only the ambiguous suffixed-key forms (`'age>=' => 18`, `'%username' => 'test'`, `'id' => '(1, 5)'`); those still work but now emit `E_USER_DEPRECATED`. **OR/AND grouping inside a shorthand array was not possible at all** — you had to drop down to a hand-built `PredicateSet`.
 
 ### Subquery support (EXISTS / NOT EXISTS and Select-as-value)
 `IN`/`NOT IN` and all six scalar comparison predicates now accept a `Sql\Select` as their value, and `PredicateSet` gained `exists()`/`notExists()` for column-less `EXISTS (SELECT ...)` predicates. The shorthand array supports the same via `['col' => ['IN', $select]]` and reserved top-level `'EXISTS'`/`'NOT EXISTS'` keys.
@@ -1701,7 +1701,7 @@ $sql->select()->from('users')->where->exists($subquery);
 Users::findBy(['id' => ['IN', $subquery]]);
 Users::findBy(['EXISTS' => $subquery]);
 ```
-**In v6:** not possible — `Predicate\In::render()` threw for anything but an array, the comparison predicates were typed `string $value`, and there was no EXISTS predicate.
+**Previously:** not possible — `Predicate\In::render()` threw for anything but an array, the comparison predicates were typed `string $value`, and there was no EXISTS predicate.
 
 ### JSON column querying
 New `Sql\JsonExtract` expression object plus `JsonEqualTo`, `JsonNotEqualTo` and `JsonContains` predicates. `AbstractSql::jsonExtract($column, $path)` renders the dialect-correct extraction (`JSON_UNQUOTE(JSON_EXTRACT())` on MySQL, `->>`/`#>>` on PostgreSQL, `json_extract()` on SQLite, `JSON_VALUE()` on SQL Server) and is accepted as a SELECT column and by `orderBy()`/`groupBy()`. Callers always write MySQL-style `'$.path'`; PostgreSQL translation is internal.
@@ -1714,7 +1714,7 @@ $sql->select()->from('users')->where->jsonEqualTo('data', '$.role', 'admin');
 Users::findBy(['data->$.role'  => 'admin']);
 Users::findBy(['data->$.roles' => ['CONTAINS', 'admin']]);  // MySQL/PgSQL only
 ```
-**In v6:** not possible — no JSON API at all; you wrote the raw dialect-specific function into a string predicate yourself.
+**Previously:** not possible — no JSON API at all; you wrote the raw dialect-specific function into a string predicate yourself.
 
 ### Mass-assignment protection (`$fillable` / `$guarded` / `fill()`)
 `AbstractRecord` gained `$fillable` (allowlist, takes precedence) and `$guarded` (denylist) properties plus public `fill()` and `isFillable()`. `Record::__construct()` now routes array-like input through `fill()`. With neither declared, behavior is unrestricted as before.
@@ -1730,7 +1730,7 @@ class Users extends Record
 $user = new Users($request->all());   // filtered
 $user->fill($request->all())->save(); // filtered
 ```
-**In v6:** not possible — the constructor set every key it was given, so an extra request-body key (`is_admin`) was written straight to the row. Internal flows (`replicate()`, the create path of `findOneOrCreate()`) deliberately bypass the filter via `newUnfilteredRecord()`.
+**Previously:** not possible — the constructor set every key it was given, so an extra request-body key (`is_admin`) was written straight to the row. Internal flows (`replicate()`, the create path of `findOneOrCreate()`) deliberately bypass the filter via `newUnfilteredRecord()`.
 
 ### Record lifecycle hooks
 Eight protected no-op hooks a table class can override: `beforeSave()`, `afterSave()`, `beforeInsert()`, `afterInsert()`, `beforeUpdate()`, `afterUpdate()`, `beforeDelete()`, `afterDelete()`. Order on `save()` is `beforeSave` → `beforeInsert`|`beforeUpdate` → statement → `afterInsert`|`afterUpdate` → `afterSave`; `afterUpdate()` runs after the row is re-fetched, and `afterDelete()` can still read the deleted record's values. Throwing from a hook aborts and propagates. Single-record paths only, not bulk.
@@ -1745,7 +1745,7 @@ class Users extends Pop\Db\Record
     }
 }
 ```
-**In v6:** not possible — you had to override `save()`/`delete()` entirely and call `parent::`.
+**Previously:** not possible — you had to override `save()`/`delete()` entirely and call `parent::`.
 
 ### Composite (multi-column) foreign keys in relationships
 `hasOne()`, `hasOneOf()`, `hasMany()` and `belongsTo()` all widened `$foreignKey` from `string` to `string|array`. An array is matched positionally against the target table's primary keys (`hasOneOf`/`belongsTo`) or the declaring record's own (`hasOne`/`hasMany`), on both the lazy and eager paths.
@@ -1757,7 +1757,7 @@ public function user()
     return $this->belongsTo('Users', ['user_id', 'org_id']);
 }
 ```
-**In v6:** not possible — every relationship constructor was typed `string $foreignKey`.
+**Previously:** not possible — every relationship constructor was typed `string $foreignKey`.
 
 ### Multiple and nested eager-loading paths under one relationship
 `with()` can now request more than one nested path hanging off the same parent relationship; `addWith()` merges child paths onto an existing entry. The parent is still resolved only once, and nesting is unlimited in depth.
@@ -1767,7 +1767,7 @@ public function user()
 $user = Users::with(['posts.comments', 'posts.tags'])->getById(1);
 // with('posts.comments.author') also works
 ```
-**In v6:** `with(['posts.comments', 'posts.tags'])` silently dropped all but the last path. Unmatched relationships now also resolve to a shape-correct value (`null` for 1:1, empty `Collection` for 1:many).
+**Previously:** `with(['posts.comments', 'posts.tags'])` silently dropped all but the last path. Unmatched relationships now also resolve to a shape-correct value (`null` for 1:1, empty `Collection` for 1:many).
 
 ### `Pop\Db\Model` namespace (data model layer)
 New namespace containing `AbstractDataModel`, `DataModelInterface` and `Exception`, giving a table-class-backed model API: static `fetchAll()`, `fetch()`, `createNew()`, `filterBy()`, and instance `getAll()`, `getById()`, `create()`, `update()`, `delete()`, `count()`, `describe()`, `validate()`, `filter()`. A `$requirements` property makes `create()`/`replace()` validate input and return `['errors' => [...]]` on a miss. Model `MyApp\Model\User` auto-links to table `MyApp\Table\Users` by convention.
@@ -1781,7 +1781,7 @@ class User extends AbstractDataModel {}
 $users = User::filterBy('username LIKE myuser%')->getAll('-id', '10', 2);
 $user  = User::createNew($userData);
 ```
-**In v6:** not available from `pop-db` — the class lived in `popphp` as `Pop\Model\AbstractDataModel` (removed there in v7). What is new for `pop-db` users is that it ships here and extends `Pop\Utils\AbstractModel`; `filter()` also returns `static`, so it chains into subclass methods.
+**Previously:** not available from `pop-db` — the class lived in `popphp` as `Pop\Model\AbstractDataModel` (removed there in v7). What is new for `pop-db` users is that it ships here and extends `Pop\Utils\AbstractModel`; `filter()` also returns `static`, so it chains into subclass methods.
 
 ### Auth records — authentication, attempt lockout and MFA on a table class
 `Pop\Db\Record\Auth` extends `Record\Encoded` and turns a user table into a complete username/password authentication flow: credential verification against the hashed password column, failed-attempt lockout, and optional multi-factor code issuance and verification. The constructor adds `$passwordField` to `$hashFields` itself, so a table class cannot forget to hash its password column.
@@ -1815,7 +1815,7 @@ Every failure path sets a reason constant, readable via `getAuthFailure()` and `
 
 Field names, the attempt limit, and the MFA code length, expiry and alphabet are all plain property overrides: `$usernameField`, `$passwordField`, `$attemptsField`, `$attemptsLimit`, `$mfaConfig`.
 
-**In v6:** `Pop\Auth\Table` checked the password and nothing else — it took a table class name, compared one column, and returned `0`/`1`. Attempt counting, lockout and MFA were entirely the application's job. That adapter is gone; see [`BC-BREAKS.md`](BC-BREAKS.md).
+**Previously:** `Pop\Auth\Table` checked the password and nothing else — it took a table class name, compared one column, and returned `0`/`1`. Attempt counting, lockout and MFA were entirely the application's job. That adapter is gone; see [`BC-BREAKS.md`](BC-BREAKS.md).
 
 ### Transparent password rehashing on `Record\Encoded`
 `verify()` now records whether the hash it just checked was made with an outdated algorithm or cost, so an app can upgrade stored hashes on the next successful login — while it still holds the plaintext.
@@ -1831,7 +1831,7 @@ if ($user->verify('password', $attemptedPassword)) {
 
 `rehash()`'s value parameter is marked `#[\SensitiveParameter]`, so the plaintext stays out of stack traces. `Record\Auth::authenticate()` runs this automatically on every successful login.
 
-**In v6:** `verify()` returned a bare `bool`. Raising a bcrypt cost left every existing hash at the old cost indefinitely unless you re-implemented the check by hand.
+**Previously:** `verify()` returned a bare `bool`. Raising a bcrypt cost left every existing hash at the old cost indefinitely unless you re-implemented the check by hand.
 
 ### Smaller additions
 - New `Sql\Parser\Keyword` with public `indexOf()`/`split()` — quote-aware AND/OR splitting, so `where('name = "a AND b"')` no longer splits inside a quoted literal.
@@ -1864,7 +1864,7 @@ $requestHandler->addRedactedKey('x-internal-id');      // append to the current 
 $requestHandler->isRedactingSensitiveData(); // bool
 $requestHandler->getRedactedKeys();          // array
 ```
-**In v6:** not possible. `prepare()` returned headers, server vars, post data, `$_COOKIE` and `$_SESSION` verbatim, so passwords, tokens, session IDs and auth headers were written to CSV/database storage and log context in plaintext. Suppressing them meant not using the request handler at all, or subclassing and overriding `prepare()`.
+**Previously:** not possible. `prepare()` returned headers, server vars, post data, `$_COOKIE` and `$_SESSION` verbatim, so passwords, tokens, session IDs and auth headers were written to CSV/database storage and log context in plaintext. Suppressing them meant not using the request handler at all, or subclassing and overriding `prepare()`.
 
 ### NDJSON storage format with real nested context
 `Storage\File` accepts a third format, `ndjson` (one self-contained JSON object per line), alongside `csv` and `tsv`. Unlike the flat CSV/TSV cell where `context` stays a JSON-encoded *string*, the NDJSON writer decodes `context` back into a real nested value before encoding the event — so output is proper nested JSON suited to `jq` and log-aggregator ingestion. Encoding uses `JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR` so binary payloads don't drop a whole line.
@@ -1874,7 +1874,7 @@ $requestHandler->getRedactedKeys();          // array
 $debugger->setStorage(new File(__DIR__ . '/log', 'ndjson'));
 // public function __construct(string $dir, string $format = 'csv')
 ```
-**In v6:** not possible — `setFormat()` threw for anything but `csv`/`tsv`. Getting structured JSON out meant post-processing the CSV and double-decoding the `context` column, or writing a custom `StorageInterface`.
+**Previously:** not possible — `setFormat()` threw for anything but `csv`/`tsv`. Getting structured JSON out meant post-processing the CSV and double-decoding the `context` column, or writing a custom `StorageInterface`.
 
 ### PSR-3 logger support (any logger, not just pop-log)
 Every logger type hint moved from the concrete `Pop\Log\Logger` to `Psr\Log\LoggerInterface`, across `Debugger::addLogger()`, `AbstractHandler::__construct()`/`setLogger()`/`getLogger()`, and every handler constructor. Any PSR-3 logger — Monolog, Laminas, a framework's app logger, a test spy — can now be wired into the debugger.
@@ -1885,7 +1885,7 @@ $debugger->addHandler(new TimeHandler());
 $debugger->addLogger($monolog, ['level' => 'warning', 'limit' => 2]);
 // public function addLogger(LoggerInterface $logger, array $loggingParams): Debugger
 ```
-**In v6:** not possible without a wrapper — the signatures required an actual `Pop\Log\Logger`, so a Monolog logger had to be adapted behind a fake `Logger` subclass.
+**Previously:** not possible without a wrapper — the signatures required an actual `Pop\Log\Logger`, so a Monolog logger had to be adapted behind a fake `Logger` subclass.
 
 ### Conformance to the `Pop\Utils` debugger interfaces
 `Debugger` implements `Pop\Utils\DebuggerInterface` and handlers implement `Pop\Utils\DebuggerHandlerInterface` (both new in `pop-utils` 3.0), replacing the package-local `Handler\HandlerInterface`. Because the contracts live in `pop-utils`, **other components can type-hint a debugger or handler generically and accept a `pop-debug` instance without depending on `pop-debug` itself**.
@@ -1901,7 +1901,7 @@ class SomeService
 
 $service = new SomeService(new Pop\Debug\Debugger()); // accepted
 ```
-**In v6:** not possible — the only contract was defined inside this package, with no debugger-level interface at all, so a consuming component had to require `pop-debug` and type-hint the concrete class.
+**Previously:** not possible — the only contract was defined inside this package, with no debugger-level interface at all, so a consuming component had to require `pop-debug` and type-hint the concrete class.
 
 ### Smaller additions
 - `AbstractHandler::resolveLogLevel()` — a protected helper guarding the shared `log()` preconditions, so custom handlers no longer duplicate that block; all seven built-in handlers use it.
@@ -1925,7 +1925,7 @@ $dir = new Dir('my-dir');
 $dir->setRecursive(true)->setAbsolute(true);
 print_r($dir->getFiles()); // recursive, absolute paths
 ```
-**In v6:** the setters only flipped a property — the file list built in the constructor was never regenerated, so the change **silently did nothing**. You had to discard the object and re-construct it with an options array.
+**Previously:** the setters only flipped a property — the file list built in the constructor was never regenerated, so the change **silently did nothing**. You had to discard the object and re-construct it with an options array.
 
 ### Name-keyed reads return the entry
 `offsetGet()` (and therefore `$dir['file.txt']`) runs the offset through the new `resolveOffset()` helper, matching a file/directory name to its index the same way `offsetExists()` and `offsetUnset()` already did. Reads by name and `isset()` by name now agree.
@@ -1936,7 +1936,7 @@ if (isset($dir['file1.txt'])) {
     echo $dir['file1.txt']; // 'file1.txt'
 }
 ```
-**In v6:** `isset($dir['file1.txt'])` was `true` but `$dir['file1.txt']` returned `null` — you had to `array_search()` the name in `getFiles()` yourself.
+**Previously:** `isset($dir['file1.txt'])` was `true` but `$dir['file1.txt']` returned `null` — you had to `array_search()` the name in `getFiles()` yourself.
 
 ### Recursive walks no longer descend into symlinked subdirectories
 `walkDirectory()` only recurses when `recursive` is set *and* the entry is not a link; a symlinked subdirectory is recorded as an empty-array leaf in the tree. **This makes a recursive scan safe against symlink cycles** that would previously recurse until exhaustion.
@@ -1946,7 +1946,7 @@ if (isset($dir['file1.txt'])) {
 $dir = new Dir('my-dir', ['recursive' => true]);
 $dir->getTree();
 ```
-**In v6:** not possible to guard against — both the tree builder and the SPL iterator followed symlinks.
+**Previously:** not possible to guard against — both the tree builder and the SPL iterator followed symlinks.
 
 ### `emptyDir()` is symlink-safe by default, with opt-in traversal
 Emptying a directory no longer reaches outside it. A symlinked subdirectory is unlinked, leaving whatever it
@@ -1960,7 +1960,7 @@ $dir = new Dir('my-dir');
 $dir->emptyDir();                    // symlinks removed, their targets left alone
 $dir->emptyDir(false, null, true);   // follows every symlink and empties the target too
 ```
-**In v6:** the same outcome, but by accident rather than by policy — `emptyDir()` tried `unlink()` first,
+**Previously:** the same outcome, but by accident rather than by policy — `emptyDir()` tried `unlink()` first,
 which happens to remove a symlink rather than follow it. Nothing declared the intent, there was no way to opt
 into traversal, and the behavior sat one refactor away from silently becoming destructive.
 
@@ -1975,7 +1975,7 @@ try {
     echo $e->getPrevious()->getMessage(); // original SPL message
 }
 ```
-**In v6:** a raw `\UnexpectedValueException` escaped, so callers catching `Pop\Dir\Exception` missed it entirely.
+**Previously:** a raw `\UnexpectedValueException` escaped, so callers catching `Pop\Dir\Exception` missed it entirely.
 
 ### One filesystem walk instead of two or three
 The tree and the flat file list are produced together by a single `DirectoryIterator` pass per level, with the root's `realpath()` resolved once and threaded through.
@@ -1984,7 +1984,7 @@ The tree and the flat file list are produced together by a single `DirectoryIter
 // v7 — identical call, roughly half the stat/readdir work
 $dir = new Dir('my-dir', ['recursive' => true]);
 ```
-**In v6:** the tree was built with one traversal and then the whole directory was re-traversed for the file list — with the recursive case re-walking a third time via `RecursiveIteratorIterator`.
+**Previously:** the tree was built with one traversal and then the whole directory was re-traversed for the file list — with the recursive case re-walking a third time via `RecursiveIteratorIterator`.
 
 ### Protected extension points for subclasses
 Four new protected methods give subclasses a seam: `rebuild()` (re-scan trigger), `walkDirectory()` (per-level traversal and recursion policy), `resolveEntry()` (how a walked entry is formatted, honoring absolute/relative/filesOnly) and `resolveOffset()` (name-to-index resolution).
@@ -1997,7 +1997,7 @@ class SkipHidden extends Dir {
     }
 }
 ```
-**In v6:** not possible — the path-formatting logic was inlined and duplicated across the two traversal methods, with no single hook.
+**Previously:** not possible — the path-formatting logic was inlined and duplicated across the two traversal methods, with no single hook.
 
 ### Smaller additions
 - `emptyDir()` distinguishes a directory from an undeletable file and throws naming the file; v6 fell through to a recursive call on the file path and surfaced a misleading "Unable to open the directory path" error.
@@ -2019,7 +2019,7 @@ Attribute values are run through `htmlspecialchars(..., ENT_QUOTES)` at render t
 $input = new Child('input', null, ['attributes' => ['value' => 'he said "hi" & <b>']]);
 echo $input; // <input value="he said &quot;hi&quot; &amp;lt;b&gt;" />
 ```
-**In v6:** the value was interpolated verbatim, so you had to call `htmlspecialchars()` yourself on every attribute or accept an XSS/malformed-markup hole. **Note this ripples into `pop-form` and `pop-nav` output, which render through `pop-dom`.**
+**Previously:** the value was interpolated verbatim, so you had to call `htmlspecialchars()` yourself on every attribute or accept an XSS/malformed-markup hole. **Note this ripples into `pop-form` and `pop-nav` output, which render through `pop-dom`.**
 
 ### `render()` is side-effect free
 `render()` no longer mutates `$indent` or `$nodeValue`. Indentation is recomputed from the passed depth on every call, and CDATA wrapping is applied to a local copy. A node can therefore be rendered standalone, rendered again, rendered at a different depth, or rendered and *then* nested into a parent, and always come out correct.
@@ -2032,7 +2032,7 @@ $div = new Child('div');
 $div->addChild($span);
 echo $div;                  // <div>\n    <span>x</span>\n</div>
 ```
-**In v6:** the first render froze the indent to the depth-0 value, so the nested render came out flush-left. A CDATA node rendered twice produced a doubly-wrapped `<![CDATA[<![CDATA[hello]]>]]>`, and `getNodeValue()` after a render returned the wrapped string.
+**Previously:** the first render froze the indent to the depth-0 value, so the nested render came out flush-left. A CDATA node rendered twice produced a doubly-wrapped `<![CDATA[<![CDATA[hello]]>]]>`, and `getNodeValue()` after a render returned the wrapped string.
 
 ### `parseString()` / `parseFile()` return `null` on element-less input
 Input with no element nodes (empty or whitespace-only strings, a blank file) returns `null`, which the widened `Child|array|null` return type expresses.
@@ -2042,7 +2042,7 @@ Input with no element nodes (empty or whitespace-only strings, a blank file) ret
 $result = Child::parseString('   ');   // null
 if ($result !== null) { $doc->addChildren($result); }
 ```
-**In v6:** a fatal `Error: Call to a member function getParent() on null` inside the parser — an uncatchable-by-type crash rather than a value you could check.
+**Previously:** a fatal `Error: Call to a member function getParent() on null` inside the parser — an uncatchable-by-type crash rather than a value you could check.
 
 ### `parseFile()` can parse multi-root fragments
 `parseFile()` shares `parseString()`'s return type, so a file with more than one top-level node yields an array of `Child` instances.
@@ -2052,7 +2052,7 @@ if ($result !== null) { $doc->addChildren($result); }
 $children = Child::parseFile('fragment.html'); // ['<div>one</div>', '<div>two</div>']
 $doc->addChildren($children);
 ```
-**In v6:** declared `: Child`, so parsing any fragment file without a single root threw a `TypeError`. Only `parseString()` could handle fragments.
+**Previously:** declared `: Child`, so parsing any fragment file without a single root threw a `TypeError`. Only `parseString()` could handle fragments.
 
 ### `removeChild()` reindexes the remaining children
 Removal re-packs the child array, so index-based access stays contiguous.
@@ -2062,7 +2062,7 @@ Removal re-packs the child array, so index-based access stays contiguous.
 $ul->removeChild(0);
 $ul->getChild(0)->getNodeValue(); // 'Two' — the list shifted down
 ```
-**In v6:** the gap remained, so `getChild(0)` returned `null` after removing index 0 and you had to `array_values()` the result yourself.
+**Previously:** the gap remained, so `getChild(0)` returned `null` after removing index 0 and you had to `array_values()` the result yourself.
 
 ### Smaller additions
 - `getIndent()` is now typed `?string`, so calling it on a node with no explicit indent returns `null` instead of throwing a `TypeError`.
@@ -2084,7 +2084,7 @@ $filter = new Pop\Filter\Filter('strip_tags');
 $filter->filter(['user' => ['name' => '<b>Admin</b>', 'tags' => ['<i>a</i>']]]);
 // => ['user' => ['name' => 'Admin', 'tags' => ['a']]]
 ```
-**In v6:** only one level deep was handled — a nested array was passed straight into the callable, so `strip_tags(array)` raised a `TypeError` (or the value silently survived unfiltered with a lenient callable). You flattened or hand-walked the array yourself first.
+**Previously:** only one level deep was handled — a nested array was passed straight into the callable, so `strip_tags(array)` raised a `TypeError` (or the value silently survived unfiltered with a lenient callable). You flattened or hand-walked the array yourself first.
 
 ### `removeCallable()` and null-callable-safe filters
 `removeCallable()` unsets the callable, turning the filter into a pass-through that returns values untouched — useful for temporarily disabling a filter already registered in a chain, without removing it or rebuilding it.
@@ -2095,7 +2095,7 @@ $filter = new Pop\Filter\Filter('strip_tags');
 $filter->removeCallable();
 echo $filter->filter('<b>admin</b>'); // <b>admin</b>
 ```
-**In v6:** not possible — there was no `removeCallable()`, `getCallable()` was typed non-nullable, and every accessor dereferenced the callable unconditionally, so a callable-less filter would fatal. The only option was to drop and re-add the filter.
+**Previously:** not possible — there was no `removeCallable()`, `getCallable()` was typed non-nullable, and every accessor dereferenced the callable unconditionally, so a callable-less filter would fatal. The only option was to drop and re-add the filter.
 
 ### `FilterableTrait::filterEach()`
 A ready-made loop that runs every registered filter over every value in an array, passing the array key through as the filter's `$name`. Because the key is supplied, **each filter's `excludeByName` rules are honored automatically** — which the existing `filterAll()` cannot do.
@@ -2109,7 +2109,7 @@ $user->addFilter(new Pop\Filter\Filter('strip_tags', null, 'username'))
      ->filter(['username' => '<b>Admin</b>', 'email' => '<i>a@b.com</i>']);
 // username stays '<b>Admin</b>', email becomes 'a@b.com'
 ```
-**In v6:** every consuming class hand-wrote the nested loop (exactly what the old README told you to copy) to get key-aware, exclude-respecting filtering. `filterAll()` was the only built-in helper and it ignores excludes entirely.
+**Previously:** every consuming class hand-wrote the nested loop (exactly what the old README told you to copy) to get key-aware, exclude-respecting filtering. `filterAll()` was the only built-in helper and it ignores excludes entirely.
 
 ### `FilterableTrait::hasFilter()` / `removeFilter()`
 Identity-based (`===`) membership check and removal of a single registered filter, with the remainder re-indexed.
@@ -2121,7 +2121,7 @@ $user->addFilters([$stripTags, new Pop\Filter\Filter('trim')]);
 $user->hasFilter($stripTags);    // true
 $user->removeFilter($stripTags); // 'trim' remains
 ```
-**In v6:** only `hasFilters()` (any/none) and `clearFilters()` (all-or-nothing) existed — removing one filter meant clearing the chain and re-adding the others.
+**Previously:** only `hasFilters()` (any/none) and `clearFilters()` (all-or-nothing) existed — removing one filter meant clearing the chain and re-adding the others.
 
 ### Smaller additions
 - `getCallable()` return type widened to `?CallableObject` on both the abstract and the interface, so a callable-less filter can be inspected safely.
@@ -2149,7 +2149,7 @@ echo $form;
 // <span id="username-hint">Letters and numbers only.</span>
 // <div class="error" id="username-error" role="alert"><span>This field is required.</span></div>
 ```
-**In v6:** not possible — the error `<div>` had no id and no `role`, hint `<span>`s had no id, and no `aria-*` attribute was ever emitted. You subclassed `Fieldset` or post-processed the rendered HTML to associate errors with their control.
+**Previously:** not possible — the error `<div>` had no id and no `role`, hint `<span>`s had no id, and no `aria-*` attribute was ever emitted. You subclassed `Fieldset` or post-processed the rendered HTML to associate errors with their control.
 
 ### File-upload validation: `allowed-types` and `max-size`
 `Element\Input\File` gained an extension allowlist and a byte-size cap, enforced inside its own `validate()`. Extensions are normalized (lowercased, leading dot stripped) and matched against the submitted filename; the size error is rendered human-readably via `Pop\Utils\File::formatFileSize()` (e.g. "2 MB") rather than a raw byte count. Both are also reachable as config keys.
@@ -2170,7 +2170,7 @@ $form = Form::createFromConfig($fields);
 $file = new Pop\Form\Element\Input\File('avatar');
 $file->setAllowedTypes(['jpg', '.png'])->setMaxSize(2000000);
 ```
-**In v6:** not possible out of the box — `Input\File::validate()` only checked `required`. You attached a closure validator that re-parsed the filename and inspected `$_FILES` size yourself, and there were no config keys.
+**Previously:** not possible out of the box — `Input\File::validate()` only checked `required`. You attached a closure validator that re-parsed the filename and inspected `$_FILES` size yourself, and there were no config keys.
 
 ### Per-field-name CSRF tokens with CSPRNG generation and timing-safe comparison
 `$_SESSION['pop_csrf']` is now an array keyed by field name instead of a single serialized token, so multiple CSRF-protected forms (or several tokens on one page) coexist without clobbering each other. Token values come from `bin2hex(random_bytes(32))` instead of `sha1(rand(...))`, and submission is checked with `hash_equals()` against the server-side value.
@@ -2181,7 +2181,7 @@ $loginForm   = Form::createFromConfig(['login_token'   => ['type' => 'csrf'], /*
 $profileForm = Form::createFromConfig(['profile_token' => ['type' => 'csrf'], /* ... */]);
 // $_SESSION['pop_csrf'] = ['login_token' => [...], 'profile_token' => [...]]
 ```
-**In v6:** one global token slot. A second `csrf` field overwrote the first, so two CSRF forms on a page could not both validate. The token was non-CSPRNG (`sha1(rand(...))`) and comparison went through a non-timing-safe `==`.
+**Previously:** one global token slot. A second `csrf` field overwrote the first, so two CSRF forms on a page could not both validate. The token was non-CSPRNG (`sha1(rand(...))`) and comparison went through a non-timing-safe `==`.
 
 ### `Element\AbstractInputSet` — a base class for custom multi-input fields
 New abstract class that `CheckboxSet` and `RadioSet` now extend. It owns the shared `$inputs` array, legend/container handling, group-wide `setDisabled()`/`setReadonly()` propagation, `validate()`, `render()`, plus protected `appendInputWithSpan()`/`setInputAttribute()` helpers — making it a supported extension point for building your own `<fieldset>`-rendered composite field types.
@@ -2204,7 +2204,7 @@ class ToggleSet extends Pop\Form\Element\AbstractInputSet
     public function getType(): string { return 'checkbox'; }
 }
 ```
-**In v6:** not possible without duplication — all of that logic was copy-pasted separately inside `CheckboxSet` and `RadioSet`. A custom input set meant re-implementing ~200 lines of plumbing by hand.
+**Previously:** not possible without duplication — all of that logic was copy-pasted separately inside `CheckboxSet` and `RadioSet`. A custom input set meant re-implementing ~200 lines of plumbing by hand.
 
 ### `ValidatorEvaluationTrait` — reusable validator evaluation
 New public trait exposing `evaluateValidator(mixed $validator, mixed $value, array $formValues = []): array`, which handles all four supported validator shapes (a `ValidatorInterface`, a callable returning a string, a callable returning a validator, a callable returning an array of validators) and returns the resulting messages. It is mixed into both `AbstractElement` and `FormValidator`, and can be pulled into your own classes.
@@ -2221,7 +2221,7 @@ class MyApiValidator
     }
 }
 ```
-**In v6:** not possible — the identical logic was inlined three times with no shared entry point.
+**Previously:** not possible — the identical logic was inlined three times with no shared entry point.
 
 ### Smaller additions
 - `AbstractElement::validateCallable()` de-duplicates messages before appending them, matching what `validateValue()` already did.
@@ -2249,7 +2249,7 @@ $request = (new Request('http://localhost/'))
 $request->getHeader('X-Api-Key');     // ['abc123']
 $request->getHeaderLine('X-Api-Key'); // 'abc123'
 ```
-**In v6:** Not possible — no `with*()` methods anywhere, no class implemented any PSR interface.
+**Previously:** Not possible — no `with*()` methods anywhere, no class implemented any PSR interface.
 
 ### PSR-18 HTTP client (`Client::sendRequest()`)
 `Client` implements `Psr\Http\Client\ClientInterface`, so it can be injected anywhere a PSR-18 client is expected; a foreign PSR-7 request is transparently converted first. The exception hierarchy is conformant too: `Client\Exception implements ClientExceptionInterface`, `Handler\Exception implements NetworkExceptionInterface`, and a new `Client\RequestException implements RequestExceptionInterface`.
@@ -2259,7 +2259,7 @@ $request->getHeaderLine('X-Api-Key'); // 'abc123'
 $response = (new Client())->sendRequest(new Request('http://localhost/api'));
 echo $response->getStatusCode();
 ```
-**In v6:** Not possible — only `send()`/`sendAsync()`, no interoperability interface.
+**Previously:** Not possible — only `send()`/`sendAsync()`, no interoperability interface.
 
 ### PSR-17 factories
 Six new factories under `Pop\Http\Factory` that build native `pop-http` objects: `RequestFactory`, `ResponseFactory`, `ServerRequestFactory`, `StreamFactory`, `UploadedFileFactory`, `UriFactory`.
@@ -2270,7 +2270,7 @@ $request = (new RequestFactory())->createRequest('POST', 'http://localhost/');
 $body    = (new StreamFactory())->createStream('{"a":1}');
 $request = $request->withBody($body);
 ```
-**In v6:** Not possible — no `Pop\Http\Factory` namespace.
+**Previously:** Not possible — no `Pop\Http\Factory` namespace.
 
 ### Client middleware pipeline
 `addMiddleware()`/`getMiddleware()`/`hasMiddleware()` plus an onion-style `Middleware\Pipeline` applied uniformly to `send()`, `sendAsync()` and `sendRequest()`. Registration order is wrap order; a middleware can short-circuit by never calling `$handler->handle()`. Accepts a plain closure or a `MiddlewareInterface`.
@@ -2282,7 +2282,7 @@ $client->addMiddleware(function ($request, $handler) {
 });
 $client->send();
 ```
-**In v6:** Not possible — no interception point between `send()` and the handler.
+**Previously:** Not possible — no interception point between `send()` and the handler.
 
 ### `RetryMiddleware` — retries with exponential backoff and jitter
 Retries transient network exceptions and configurable status codes (default `429/502/503/504`), only for idempotent-safe methods by default. Honors a `Retry-After` response header over the computed delay, and skips retrying entirely if the request body is non-seekable.
@@ -2297,7 +2297,7 @@ $client->addMiddleware(
         ->setOnRetry(fn($attempt, $req, $res, $ex, $delay) => error_log("retry $attempt in $delay s"))
 );
 ```
-**In v6:** Not possible — retry had to be hand-rolled in a caller-side loop.
+**Previously:** Not possible — retry had to be hand-rolled in a caller-side loop.
 
 ### `LoggingMiddleware` — PSR-3 request logging with header redaction
 Logs one line per dispatch attempt to any `Psr\Log\LoggerInterface`, at a level derived from the outcome (`info` 2xx/3xx, `warning` 4xx, `error` 5xx or thrown). `Authorization`, `Cookie`, `Set-Cookie`, `X-Api-Key` and `Proxy-Authorization` are redacted by default; bodies are excluded unless opted in, and are read with a bounded, position-preserving read so a large upload is never materialized.
@@ -2307,7 +2307,7 @@ Logs one line per dispatch attempt to any `Psr\Log\LoggerInterface`, at a level 
 $client->addMiddleware((new RetryMiddleware(3))->setOnRetry(LoggingMiddleware::logRetriesTo($logger)))
        ->addMiddleware((new LoggingMiddleware($logger))->setIncludeBody(true)->setMaxBodyLength(500));
 ```
-**In v6:** Not possible — `psr/log` was not even a dependency.
+**Previously:** Not possible — `psr/log` was not even a dependency.
 
 ### `Mock` handler — network-free testing
 A drop-in replacement for `Curl`/`Stream` returning canned results with no real I/O. Results come from a FIFO `queue()` or a callback matcher `when()`; a queued `\Throwable` is thrown verbatim to simulate a transport failure. Every dispatched request is recorded for assertions, and an exhausted/unmatched dispatch throws rather than silently returning a default.
@@ -2322,7 +2322,7 @@ $response = (new Client('http://localhost/', $mock))->send();
 $mock->getLastRequest();
 $mock->getRequests();
 ```
-**In v6:** Not possible — testing HTTP-calling code meant hitting a real server or hand-writing a `HandlerInterface`.
+**Previously:** Not possible — testing HTTP-calling code meant hitting a real server or hand-writing a `HandlerInterface`.
 
 ### `Pop\Http\Body` — native streaming body / PSR-7 stream
 A new first-class body backed by a real stream resource (`php://temp` or a file handle) implementing `StreamInterface`. `setContentFromFile()` opens the file rather than slurping it, and `setContentFromStream()`/`getStream()` let a consumer copy bytes to the wire without materializing them as a PHP string.
@@ -2335,7 +2335,7 @@ echo $body->getSize();
 $chunk = $body->read(8192);
 $body->rewind();
 ```
-**In v6:** `Pop\Mime\Part\Body::setContentFromFile()` ran `file_get_contents()` on the whole file, and the body had no stream API at all.
+**Previously:** `Pop\Mime\Part\Body::setContentFromFile()` ran `file_get_contents()` on the whole file, and the body had no stream API at all.
 
 ### `Server\UploadedFile` — PSR-7 uploaded file objects
 `Server\UploadedFile implements UploadedFileInterface`, with `getStream()`, `moveTo()`, `getSize()`, `getError()`, `getClientFilename()`, `getClientMediaType()`, plus `createFromFilesArray()` which normalizes both flat and per-field multi-file `$_FILES` shapes.
@@ -2348,7 +2348,7 @@ foreach ($server->request->getUploadedFiles() as $name => $file) {
     }
 }
 ```
-**In v6:** Not possible — uploads were raw `$_FILES` arrays; no object per file and no `getUploadedFiles()`.
+**Previously:** Not possible — uploads were raw `$_FILES` arrays; no object per file and no `getUploadedFiles()`.
 
 ### `Body\Multipart` — native RFC 7578 multipart build/parse
 Replaces `Pop\Mime\Message::createForm()`/`parseForm()` (a mail-multipart tool being bent to serve HTTP). File parts stream from disk into a `php://temp` output stream, boundaries are CRLF-sanitized, and header parameters are quote-escaped. `toArray()` produces the curl-native `CURLFile` shape so curl streams uploads with zero buffering.
@@ -2361,7 +2361,7 @@ $body = Multipart::build([
 ]);
 $data = Multipart::parse($rawBody, $boundary);
 ```
-**In v6:** Handled indirectly through `pop-mime`, which buffered whole file contents into memory (and base64-encoded them) before a byte reached the wire.
+**Previously:** Handled indirectly through `pop-mime`, which buffered whole file contents into memory (and base64-encoded them) before a byte reached the wire.
 
 ### Superglobal-free `Server\Request` construction
 The constructor gained `bool $populateFromGlobals = true` and `array $serverParams = []`. With `false`, none of the superglobals is touched — `$serverParams` seeds the server params directly. This is what `ServerRequestFactory` uses.
@@ -2373,7 +2373,7 @@ $request = new Request(
     false, ['REQUEST_METHOD' => 'POST', 'SERVER_PORT' => 8080]
 );
 ```
-**In v6:** Not possible — the constructor unconditionally read every superglobal.
+**Previously:** Not possible — the constructor unconditionally read every superglobal.
 
 ### PSR-7 attribute bag on `Server\Request`
 The per-request key/value bag (`getAttribute()`, `withAttribute()`, `withoutAttribute()`) — the standard place for middleware to attach resolved route params or an authenticated user — plus the full PSR-7 server-request accessors (`getServerParams()`, `getCookieParams()`, `getQueryParams()`, `getUploadedFiles()`, `getParsedBody()` and their `with*()` counterparts).
@@ -2384,7 +2384,7 @@ $request = $server->request->withAttribute('user_id', 42);
 $request->getAttribute('user_id');       // 42
 $request->getAttribute('missing', null); // default
 ```
-**In v6:** Not possible — no attribute concept, and none of the PSR-7 accessors.
+**Previously:** Not possible — no attribute concept, and none of the PSR-7 accessors.
 
 ### `Uri` PSR-7 accessors and immutable setters
 `getAuthority()` (assembling `[userinfo@]host[:port]`, omitting a scheme-default port), `getUserInfo()`, `getPath()`, plus `withScheme()`, `withUserInfo()`, `withHost()`, `withPort()`, `withPath()`, `withQuery()`, `withFragment()`.
@@ -2396,7 +2396,7 @@ echo $uri->getAuthority(); // user:pass@localhost:8080
 echo $uri->getPath();      // /api/users
 $other = $uri->withHost('example.com')->withPort(null);
 ```
-**In v6:** Not possible — `Uri` had only mutable `set*()` methods.
+**Previously:** Not possible — `Uri` had only mutable `set*()` methods.
 
 ### Structured transport errors
 `Handler\Exception` now carries the underlying curl error number and the in-flight request via `getCurlErrno(): int` and `getRequest(): RequestInterface`.
@@ -2411,7 +2411,7 @@ try {
     }
 }
 ```
-**In v6:** Not possible — it was `class Exception extends \Exception {}` with nothing attached.
+**Previously:** Not possible — it was `class Exception extends \Exception {}` with nothing attached.
 
 ### `Parser::parseMediaType()` and charset-aware parsing
 A structured media type replaces substring matching, so `application/vnd.api+json` decodes as JSON and `application/xhtml+xml` is no longer routed as plain XML. A non-UTF-8 `charset` parameter transcodes the payload via `mb_convert_encoding()` before the type-specific parse.
@@ -2421,7 +2421,7 @@ A structured media type replaces substring matching, so `application/vnd.api+jso
 Parser::parseMediaType('application/vnd.api+json; charset=utf-8');
 // ['type' => 'application', 'subtype' => 'vnd.api', 'suffix' => 'json', 'params' => ['charset' => 'utf-8']]
 ```
-**In v6:** Not possible — `str_contains($contentType, 'xml')`-style matching, no charset handling.
+**Previously:** Not possible — `str_contains($contentType, 'xml')`-style matching, no charset handling.
 
 ### `CurlMulti::isBatchSuccess()` / `isBatchError()`
 Batch-level status named distinctly from the per-response `isSuccess()`/`isError()` convention, removing the ambiguity of the same name meaning two different things. The old names remain as deprecated aliases.
@@ -2433,7 +2433,7 @@ if ($multiHandler->isBatchSuccess()) {
     $responses = $multiHandler->getAllResponses();
 }
 ```
-**In v6:** Only `isSuccess()`/`isError()`, with per-batch semantics that silently differed from the identically-named per-response methods.
+**Previously:** Only `isSuccess()`/`isError()`, with per-batch semantics that silently differed from the identically-named per-response methods.
 
 ### `Client::dispatch()` / `dispatchRequest()`
 `dispatch()` performs the synchronous request unconditionally, never redirecting into the async branch the way `send()` does when `'async' => true` is set — which is what lets `Promise::wait()` actually fire the request instead of returning another `Promise`. `dispatchRequest()` is the public terminal handler at the center of the middleware pipeline.
@@ -2443,7 +2443,7 @@ if ($multiHandler->isBatchSuccess()) {
 $client   = new Client('http://localhost/', ['async' => true]);
 $response = $client->dispatch(); // synchronous, despite 'async'
 ```
-**In v6:** Not possible — calling `send()` from inside a promise's `wait()` re-entered the async branch.
+**Previously:** Not possible — calling `send()` from inside a promise's `wait()` re-entered the async branch.
 
 ### Accept-header content negotiation (`accepts()`, `getPreferredType()`)
 `Server\Request` can answer "what does this client actually want back?" without you touching the raw header. `Pop\Http\Server\AcceptHeader` parses the `Accept` header per RFC 7231 — q-values, `type/*` and `*/*` wildcards, whitespace and casing — and `Server\Request` forwards to it, so one branch is all it takes to serve HTML and JSON from the same route.
@@ -2468,7 +2468,7 @@ use Pop\Http\Server\AcceptSpecificity;
 $request->acceptsHtml(AcceptSpecificity::Loose);   // browsers yes, `curl` no
 ```
 The enum is an `int`-backed enum whose value *is* the internal specificity tier (exact = 2, `type/*` = 1, `*/*` = 0), so enforcing a minimum is a plain integer comparison. A missing or empty `Accept` header is treated as `*/*`, per RFC. `AcceptHeader` works stand-alone on any header string, and the underlying `Server\QualityValue::parseList()` is a generic RFC 7231 q-value parser — reusable for `Accept-Language`, `Accept-Encoding` or `Accept-Charset`.
-**In v6:** not possible — nothing parsed `Accept`. You read `$request->getHeaderValue('Accept')` and did your own `str_contains()`, which gets q-values and wildcard precedence wrong the moment a real browser sends a real header.
+**Previously:** not possible — nothing parsed `Accept`. You read `$request->getHeaderValue('Accept')` and did your own `str_contains()`, which gets q-values and wildcard precedence wrong the moment a real browser sends a real header.
 
 ### Smaller additions
 - `curl -L` / `--location` (`CURLOPT_FOLLOWLOCATION`) now round-trips through the curl CLI ⇄ `Client` converter; `-F`/`--form` was added to the option table too.
@@ -2501,7 +2501,7 @@ Format\Xml::createFile(
 );
 // -> <source>Tom &amp; Jerry &lt;b&gt;</source>  — parses back fine
 ```
-**In v6:** the raw value was concatenated straight into the markup, producing a file `SimpleXMLElement` refused to parse — **the generator could emit a language file its own loader could not load**.
+**Previously:** the raw value was concatenated straight into the markup, producing a file `SimpleXMLElement` refused to parse — **the generator could emit a language file its own loader could not load**.
 
 ### JSON fragments are encoded, not concatenated
 `Format\Json::createFragment()` emits `json_encode($value)` for both `source` and `output` instead of wrapping the raw line in hand-written quotes.
@@ -2511,7 +2511,7 @@ Format\Xml::createFile(
 Format\Json::createFragment('source/en.txt', 'output/de.txt', '/path/to/files/');
 // a line containing "quotes", a backslash, or a tab now produces valid JSON
 ```
-**In v6:** any line containing a double quote, backslash or control character produced a syntactically invalid fragment that `json_decode()` rejected.
+**Previously:** any line containing a double quote, backslash or control character produced a syntactically invalid fragment that `json_decode()` rejected.
 
 ### Placeholder substitution handles more than 9 parameters
 `translate()` builds a `%1 => value` replacement map and applies it in a single `strtr()` call. `strtr()` matches longest-key-first and never rescans its own output, so `%10`–`%99` resolve correctly.
@@ -2521,7 +2521,7 @@ Format\Json::createFragment('source/en.txt', 'output/de.txt', '/path/to/files/')
 $lang->__('%1 %2 %3 %4 %5 %6 %7 %8 %9 %10', ['a','b','c','d','e','f','g','h','i','j']);
 // -> "a b c d e f g h i j"
 ```
-**In v6:** sequential `str_replace('%1', ...)` calls ran first, so `%10` was rewritten to `a0` before the 10th pass ever saw it — effectively a hard 9-parameter ceiling.
+**Previously:** sequential `str_replace('%1', ...)` calls ran first, so `%10` was rewritten to `a0` before the 10th pass ever saw it — effectively a hard 9-parameter ceiling.
 
 ### Constant-time translation lookup
 `$content` is now a single array keyed by source string (the parallel source/output arrays are gone), so `translate()` resolves via one `isset()` instead of `array_search()` over the whole catalog.
@@ -2531,7 +2531,7 @@ $lang->__('%1 %2 %3 %4 %5 %6 %7 %8 %9 %10', ['a','b','c','d','e','f','g','h','i'
 $lang = new I18n('fr_FR', '/path/to/language/files'); // 5,000-entry catalog
 echo $lang->__('Hello');  // O(1) hash lookup
 ```
-**In v6:** every `__()`/`_e()` call did a linear search across the source list — cost grew with catalog size and repeated for every string on the page.
+**Previously:** every `__()`/`_e()` call did a linear search across the source list — cost grew with catalog size and repeated for every string on the page.
 
 ### Language files with no matching (or no) locale node no longer fatal
 Both loaders scan for the matching locale and leave the key `null` when none is found, guarding the subsequent read. An XML file with zero `<locale>` nodes, or a JSON file with an empty `locale` array, now simply loads nothing.
@@ -2541,7 +2541,7 @@ Both loaders scan for the matching locale and leave the key `null` when none is 
 $lang = new I18n('fr_FR');
 $lang->loadFile('/path/to/empty-locales.xml'); // no error; __() passes strings through
 ```
-**In v6:** the code unconditionally indexed the first locale node, which errored on an empty locale set.
+**Previously:** the code unconditionally indexed the first locale node, which errored on an empty locale set.
 
 ### Four protected extension points on `I18n`
 `loadFile()` and `getLanguages()` delegate to `loadXmlFile()`, `loadJsonFile()`, `getXmlLanguages()` and `getJsonLanguages()` — all protected, the latter two static. Subclasses can override one format's handling (or add caching, or point at a different schema) without reimplementing the dispatcher.
@@ -2556,7 +2556,7 @@ class MyI18n extends I18n
     }
 }
 ```
-**In v6:** all four bodies were inlined; customizing either meant copying the whole method.
+**Previously:** all four bodies were inlined; customizing either meant copying the whole method.
 
 ### Smaller additions
 - `Format\Json::createFile()` validates that every `text` entry defines both `source` and `output`, throwing rather than writing a broken file — matching the check `Format\Xml` already had.
@@ -2581,7 +2581,7 @@ use Pop\Color\Color\Oklch;
 $img->draw->setFillColor(new Oklch(0.7, 0.15, 145))
     ->circle(200, 200, 75);
 ```
-**In v6:** only Rgb, Hex, Cmyk, Grayscale and Hsl existed; perceptual spaces (Lab/Lch/Oklab/Oklch) and Hsb/Hsv/Hwb had to be converted to RGB by hand first.
+**Previously:** only Rgb, Hex, Cmyk, Grayscale and Hsl existed; perceptual spaces (Lab/Lch/Oklab/Oklch) and Hsb/Hsv/Hwb had to be converted to RGB by hand first.
 
 ### Imagick draws and text are visible without calling `setOpacity()`
 `Draw\Imagick::$opacity` and `Type\Imagick::$opacity` defaulted to `1.0`, which the adapter interprets as 1 out of 100 — i.e. ~99% transparent. Both now default to `100`, so an un-configured shape or text string renders fully opaque.
@@ -2591,7 +2591,7 @@ $img->draw->setFillColor(new Oklch(0.7, 0.15, 145))
 $img->draw->setFillColor(new Rgb(255, 0, 0))
     ->rectangle(50, 50, 200, 100);
 ```
-**In v6:** the same code produced a near-invisible shape; you had to add an explicit `->setOpacity(100)` first.
+**Previously:** the same code produced a near-invisible shape; you had to add an explicit `->setOpacity(100)` first.
 
 ### `Adapter\Gd::destroy()` actually frees the image
 The guard was `!is_string($this->resource) && is_resource($this->resource)`. Since PHP 8.0 GD returns a `GdImage` object, not a resource, so `is_resource()` was always false and `imagedestroy()` never ran. The check is now `instanceof \GdImage`, so memory is released — which matters in loops over many images.
@@ -2602,7 +2602,7 @@ $img = Image::loadGd('image.jpg');
 $img->writeToFile('out.jpg');
 $img->destroy();          // imagedestroy() now actually executes
 ```
-**In v6:** `destroy()` only nulled the property and optionally unlinked the file; the underlying GD image was never explicitly freed.
+**Previously:** `destroy()` only nulled the property and optionally unlinked the file; the underlying GD image was never explicitly freed.
 
 ### Clear exception for color objects that cannot convert to RGB
 `ColorInterface` declares only `render()` and `__toString()` — not `toRgb()`. Any custom implementation therefore blew up with a PHP fatal. Both adapters' `createColor()` and the Effect classes' fill/gradient methods now guard with `method_exists($color, 'toRgb')` and throw a catchable namespaced exception instead.
@@ -2615,7 +2615,7 @@ try {
     // 'Error: The color object does not support conversion to RGB.'
 }
 ```
-**In v6:** an uncatchable fatal `Error` at the point of the `toRgb()` call.
+**Previously:** an uncatchable fatal `Error` at the point of the `toRgb()` call.
 
 ### Smaller additions
 - `Adapter\Imagick::resizeImage()`'s `$blur` parameter widened from `?int` to `?float`, so fractional blur values can be passed — matching the `float` property and Imagick's own signature.
@@ -2658,7 +2658,7 @@ app/assets/js/components/App.vue|App.jsx
 Source assets live under `app/`, next to `app/src` and `app/view`, and build output goes to `public/assets`. Vite is configured (`rollupOptions.output.entryFileNames`/`assetFileNames`) to write **fixed, non-hashed paths** — `public/assets/js/app.js` and `public/assets/css/app.css` — for both a watch build and a production build, so the `<link>`/`<script>` tags in the generated `app/view/index.phtml` are correct from the first build and never change between the two. `node_modules/` is added to `.gitignore` for you.
 
 Init then runs `npm install` and `npm run build` itself, so the landing page is already built and styled the first time you load it. If Node/npm is not on your `PATH`, `pop:init` still completes — you get a warning telling you to install Node and run the two npm commands yourself.
-**In v6:** not possible — `app:init` scaffolded PHP only. Front-end tooling was entirely your problem: your own `package.json`, your own bundler config, your own output paths, and your own `<link>`/`<script>` tags to match them.
+**Previously:** not possible — `app:init` scaffolded PHP only. Front-end tooling was entirely your problem: your own `package.json`, your own bundler config, your own output paths, and your own `<link>`/`<script>` tags to match them.
 
 ### The `web:` command group — `web:serve`, `web:watch`, `web:build`
 Everything to do with running and building the web side of an app now sits in one namespace, so `./kettle help web` lists the whole workflow in one place. `web:watch` and `web:build` wrap the front-end build, so you do not have to leave `kettle` to rebuild assets, and the v6 `serve` command moved here as `web:serve`.
@@ -2669,7 +2669,7 @@ Everything to do with running and building the web side of an app now sits in on
 ./kettle web:build                                   # npm run build -> one-shot production build
 ```
 `web:watch` rebuilds `public/assets/js/app.js` and `public/assets/css/app.css` to disk on every save. There is no dev server and no hot-module reload — you refresh the browser yourself. Both asset commands print a message and exit cleanly if the project has no front-end installed or if npm is not on your `PATH`, so neither one blows up on a PHP-only project.
-**In v6:** `serve` existed but stood alone, and there were no asset commands at all. Note that `serve` has no alias in v7 — see the BC guide.
+**Previously:** `serve` existed but stood alone, and there were no asset commands at all. Note that `serve` has no alias in v7 — see the BC guide.
 
 ### `help <command>` narrows the help screen to one namespace
 `./kettle help` now takes an optional command namespace and lists only the commands under it, instead of the full screen. The trailing `:` is optional, and `--raw` combines freely with it.
@@ -2680,7 +2680,7 @@ Everything to do with running and building the web side of an app now sits in on
 ./kettle help --raw db:   # same, without ANSI color
 ```
 A namespace that matches nothing prints an empty list rather than erroring. Your own `create:command` commands are matched the same way, so `./kettle help myapp` narrows to the ones you wrote.
-**In v6:** not possible — `help` took only `--raw`, and printed every registered command every time.
+**Previously:** not possible — `help` took only `--raw`, and printed every registered command every time.
 
 ### `pop:env --set` changes the application environment
 `pop:env` gained a `--set` flag that rewrites `APP_ENV` in `.env` for you, picked from the same numbered list `app:init` used to ask at scaffold time. Because it is a menu, only the five valid values can be written — a typo just re-prompts instead of leaving an unusable environment in `.env`.
@@ -2690,7 +2690,7 @@ A namespace that matches nothing prints an empty list rather than erroring. Your
 ./kettle pop:env --set    # 1: local  2: dev  3: testing  4: staging  5: production
 ```
 Either way you get the same color-coded alert box back, so setting the environment confirms itself. If there is no `.env` in the current folder, `--set` says so and exits rather than creating one.
-**In v6:** the environment was asked once during `app:init` and never again — changing it afterward meant hand-editing `APP_ENV` in `.env`, with nothing validating what you typed. Init no longer asks at all; every new app starts at `local`.
+**Previously:** the environment was asked once during `app:init` and never again — changing it afterward meant hand-editing `APP_ENV` in `.env`, with nothing validating what you typed. Init no longer asks at all; every new app starts at `local`.
 
 ### Queue command family (`queue:*`)
 A complete `pop-queue` front end: configure a queue's adapter (File, Database or Redis) interactively, run the worker or scheduler as a daemon or a single cron-friendly pass, inspect pending/dead-letter jobs and scheduled tasks, and clear them.
@@ -2704,7 +2704,7 @@ A complete `pop-queue` front end: configure a queue's adapter (File, Database or
 ./kettle queue:tasks [<queue>]                               # cron expression + grace period
 ```
 Pass `all` as `<queue>` to service every configured queue in one worker, weighted by each queue's configured `weight`; any other name (`queue:config reports`) configures an additional queue under `QUEUE_REPORTS_*`.
-**In v6:** not possible — `pop-queue` was not even a dependency, and there were no queue commands or config scaffolding.
+**Previously:** not possible — `pop-queue` was not even a dependency, and there were no queue commands or config scaffolding.
 
 ### `create:command` — project-owned Kettle commands
 Scaffolds a single-action `Pop\Console\Command\AbstractCommand` subclass. Without flags it lands in `app/src/Console/Command/Kettle/`, whose classes Kettle merges into its own route table on every run, so the command is immediately runnable and appears in `./kettle help`.
@@ -2715,7 +2715,7 @@ Scaffolds a single-action `Pop\Console\Command\AbstractCommand` subclass. Withou
 ./kettle send-email                    # run it
 ```
 The generated class exposes `public ?string $name/$params/$help` (add router syntax like `'<to> [--cc=]'` to `$params`) and a `handle()` method with `$this->application` and `$this->console` available. `-a|--app` puts it in `app/src/Console/Command/` for the stand-alone script instead.
-**In v6:** not possible — no command scaffolding and no per-class command concept; extra Kettle routes had to be hand-written into `kettle.inc.php`.
+**Previously:** not possible — no command scaffolding and no per-class command concept; extra Kettle routes had to be hand-written into `kettle.inc.php`.
 
 ### Command auto-discovery via `CommandRegistry::loadRoutes()`
 The `kettle` script and the scaffolded stand-alone script both merge built-in routes with whatever command classes are found on disk, so new commands need zero wiring.
@@ -2726,7 +2726,7 @@ $config['routes'] = Pop\Console\CommandRegistry::loadRoutes(
     $config['routes'], __DIR__ . '/app/src/Console/Command/Kettle'
 );
 ```
-**In v6:** not possible — route tables were static arrays in the config file.
+**Previously:** not possible — route tables were static arrays in the config file.
 
 ### `Pop\Kettle\Application` with `prepare()` / `load()` hand-off
 Kettle is now an application, not a module. `prepare()` matches the route and, when the dispatchable is *not* a `Pop\Kettle\*` class, resolves and returns the consuming project's own `Application` instance to run instead — so a custom command boots through `kettle` but executes inside your app, with your services, config and DB connections.
@@ -2739,7 +2739,7 @@ $app->prepare()   // may return YOUR MyApp\Application
     ->run();
 ```
 Also, new: `Application::NAME`/`FULL_NAME`/`VERSION` constants, `getConsole()` for the shared 120-column console, and controllers using `Pop\Dispatch\ConsoleTrait`.
-**In v6:** `Pop\Kettle\Module` registered against a generic `Pop\Application`; there was no way to hand a command off to the project's own application — Kettle was explicitly "unaware of your application."
+**Previously:** `Pop\Kettle\Module` registered against a generic `Pop\Application`; there was no way to hand a command off to the project's own application — Kettle was explicitly "unaware of your application."
 
 ### Multiple named database connections
 `db:config <name>` for a non-`default` name now appends `DB_<NAME>_*` variables to `.env` and a matching named block to `app/config/database.php`, instead of overwriting the single default connection. `Application::initDb()` then connects every configured entry and registers each as a service (`database`, `database_<name>`).
@@ -2748,7 +2748,7 @@ Also, new: `Application::NAME`/`FULL_NAME`/`VERSION` constants, `getConsole()` f
 ./kettle db:config default
 ./kettle db:config reports    # adds DB_REPORTS_* + 'reports' => [...] block
 ```
-**In v6:** a second `db:config <name>` clobbered the single `DB_*` block; only `database['default']` was ever connected.
+**Previously:** a second `db:config <name>` clobbered the single `DB_*` block; only `database['default']` was ever connected.
 
 ### Opt-in stand-alone CLI application, offered on every install
 A second console application is never forced on you, and it is no longer gated behind picking a "CLI" install type — every app is asked, CLI-only or not.
@@ -2757,7 +2757,7 @@ A second console application is never forced on you, and it is no longer gated b
 Initialize a stand-alone CLI application? [Y/N]
 ```
 Accept and you get `script/<slug>` (chmod 755) plus `app/src/Console/Controller`; decline and neither is created. Either way you can still register one-off commands with `create:command`, since `app/src/Console/Command/` is scaffolded for every install — the stand-alone script is for when you want a *separate* CLI application with its own namespaced command groups. If you declined, `create:ctrl --cli` fails explicitly rather than scaffolding into a directory that doesn't exist.
-**In v6:** every `--cli` install unconditionally copied `script/myapp` and the console controller folder; no prompt, no choice — and a web-only install could not have a stand-alone CLI app at all.
+**Previously:** every `--cli` install unconditionally copied `script/myapp` and the console controller folder; no prompt, no choice — and a web-only install could not have a stand-alone CLI app at all.
 
 ### `pop:init` registers your namespace in `composer.json` — the include file is gone
 Autoloading is Composer's job now. `pop:init` adds your namespace to `composer.json`'s `autoload.psr-4` map and runs `composer dump-autoload`, so `kettle`, `public/index.php` and a stand-alone `script/<app>` all resolve your classes from the one generated autoloader. The `addPsr4()` calls are gone from the scaffolded scripts, and `kettle.inc.php` is deleted outright — there is no second place to keep in sync.
@@ -2766,7 +2766,7 @@ Autoloading is Composer's job now. `pop:init` adds your namespace to `composer.j
 "autoload": { "psr-4": { "App\\": "app/src/" } }
 ```
 The entry is only added when it isn't already there, so re-running `pop:init` won't duplicate it. If Composer isn't on your `PATH`, init still completes and warns you to run `composer dump-autoload` yourself. The other half of what `kettle.inc.php` was used for — extra routes — is covered by `create:command` classes, which are auto-discovered.
-**In v6:** the README walked you through creating `kettle.inc.php` and adding the `addPsr4()` line by hand, and it was required for table-backed migrations to resolve at all.
+**Previously:** the README walked you through creating `kettle.inc.php` and adding the `addPsr4()` line by hand, and it was required for table-backed migrations to resolve at all.
 
 ### `pop:init` is a guided interview — no flags, no arguments
 `pop:init` takes nothing on the command line. Every decision it used to read from flags and arguments is now a prompt, which means the command is self-documenting: run it, and it tells you what it needs, instead of you reading the README to find out.
@@ -2781,7 +2781,7 @@ Would you like to configure a database? [Y/N]
 Would you like to install a front-end? [Y/N]
 ```
 Seven questions at most, and a CLI-only answer skips three of them — no URL, no front-end, no framework choice. Answering "N" to the database prompt genuinely skips it: no `database/` folder, no `app/config/database.php`, and the `'database' => include ...` line is stripped from the app configs.
-**In v6:** `<namespace>` was a required argument, install flavor came from `--web`/`--api`/`--cli`, the URL was always asked, the environment was asked and never asked again, and the database config file was copied in regardless.
+**Previously:** `<namespace>` was a required argument, install flavor came from `--web`/`--api`/`--cli`, the URL was always asked, the environment was asked and never asked again, and the database config file was copied in regardless.
 
 ### One `Http\Controller` serves HTML and JSON — the web/API split is gone
 The biggest thing `pop:init` stopped asking is "web, API, or both?", because there is nothing to choose between any more. A non-CLI install scaffolds a single `App\Http\Controller` namespace whose actions decide their own response format from the request's `Accept` header, using the new `pop-http` negotiation methods.
@@ -2801,7 +2801,7 @@ public function index(): void
 `AbstractController` carries both halves — `send()` renders the view as HTML, `sendJson()` encodes and sets the JSON headers — so `error()` and `maintenance()` negotiate the same way, and an API client gets a JSON 404 where a browser gets the error page. `/` and `/api` both route here; the URL is a convention for your clients, not a switch. `AcceptSpecificity::Loose` is what keeps `curl`'s bare `Accept: */*` on the JSON side while a browser still gets HTML.
 
 The payoff is the app footprint. Six scaffolding trees (`web`, `api`, `web-api`, `web-cli`, `api-cli`, `web-api-cli`) collapsed to two — `full` and `cli` — and a full install ships one `AbstractController`/`IndexController` pair instead of the duplicated `Http\Web\*` + `Http\Api\*` sets that had to be kept in sync across six trees.
-**In v6:** web and API were separate namespaces with near-identical, separately-maintained controllers, chosen once at install time by flag. Wanting both later meant re-running init or copying a controller tree by hand; serving both formats from one route was not something the scaffolding did.
+**Previously:** web and API were separate namespaces with near-identical, separately-maintained controllers, chosen once at install time by flag. Wanting both later meant re-running init or copying a controller tree by hand; serving both formats from one route was not something the scaffolding did.
 
 ### The `pop:*` namespace hands `app:*` to your application
 Kettle's own application commands moved to `pop:init`, `pop:env`, `pop:status`, `pop:down` and `pop:up`, and the scaffolded app's default namespace became `App`. That is one change, not two: vacating `app:` is what makes `App` a safe default, because the prefix your own `create:command` commands would naturally want is now free.
@@ -2813,7 +2813,7 @@ Kettle's own application commands moved to `pop:init`, `pop:env`, `pop:status`, 
 ./kettle help app                         # just your commands
 ```
 The result is a help screen where the `pop:` group is unambiguously Kettle's plumbing and everything under `app:` is yours — which `help <namespace>` can now filter on.
-**In v6:** `app:*` was Kettle's, and the default namespace was `MyApp`. See the BC guide: the rename has no aliases.
+**Previously:** `app:*` was Kettle's, and the default namespace was `MyApp`. See the BC guide: the rename has no aliases.
 
 ### Namespaces are normalized however you type them
 Whatever you enter at the namespace prompt is parsed into three forms: a valid PHP namespace, a kebab-case slug, and a human-readable display name. Segments are split on `\`, `/`, hyphens, underscores and camelCase boundaries, then re-cased.
@@ -2825,7 +2825,7 @@ MyApp         ->  MyApp          my-app         My App
 "My\Users\App"  ->  My\Users\App   my-users-app   My Users App
 ```
 The namespace form is what lands in `composer.json` and your class files, the slug names the stand-alone CLI script (`script/my-users-app`), and the display name becomes the default app name and the generated `Application::FULL_NAME`. A namespace that can't yield a valid segment throws rather than scaffolding something broken. Accept every default and you get `App` / `app` / `App`.
-**In v6:** the namespace was used as typed, and the script name was a flat `strtolower(str_replace('\\', '-', ...))` — so `MyApp` produced `script/myapp` and a `FULL_NAME` of `MyApp`.
+**Previously:** the namespace was used as typed, and the script name was a flat `strtolower(str_replace('\\', '-', ...))` — so `MyApp` produced `script/myapp` and a `FULL_NAME` of `MyApp`.
 
 ### `composer create-project` offers to initialize the app for you
 The `popphp/framework` skeleton registers `Pop\Kettle\Application::check` as a `post-autoload-dump` script, so installing the framework ends by asking whether to scaffold:
@@ -2836,7 +2836,7 @@ composer create-project popphp/framework my-project
 Do you want to initialize your application now? [Y/N]
 ```
 Answer `y` and `pop:init` runs immediately, in the folder Composer just created — one command from nothing to a running application. The check is guarded on there being no `.env` yet, so it stays quiet on every later `composer install` or `composer update` in an already-initialized project. That guard is also why init's own `composer dump-autoload` doesn't re-trigger it: `.env` is written before the dump runs.
-**In v6:** `create-project` left you at a bare skeleton, and you had to know to copy the `kettle` script and run `app:init` yourself as a separate documented step.
+**Previously:** `create-project` left you at a bare skeleton, and you had to know to copy the `kettle` script and run `app:init` yourself as a separate documented step.
 
 ### Smaller additions
 - New PHP API: `Model\Queue` — `configure()`, `buildWorker()`, `clear()`, `jobsSummary()`, `tasksSummary()`; `Model\Application::createCommand()`, `resolveAppInstance()` and `parseNamespace()`.
@@ -2869,7 +2869,7 @@ class Logger implements LoggerInterface
 
 someThirdPartyLib(new Logger(new File(__DIR__ . '/logs/app.log')));
 ```
-**In v6:** not possible — `Logger` implemented no interface, levels were ints, and `log()`/`info()` returned `Logger`. Passing it to PSR-3-typed code required a hand-written adapter.
+**Previously:** not possible — `Logger` implemented no interface, levels were ints, and `log()`/`info()` returned `Logger`. Passing it to PSR-3-typed code required a hand-written adapter.
 
 ### `{placeholder}` message interpolation
 Messages can embed `{key}` placeholders substituted from scalar/`Stringable` context values, per the PSR-3 spec. A consumed key is removed from the context so writers don't also duplicate it in the serialized blob; the reserved keys `timestamp`, `name` and `format` are never treated as placeholders.
@@ -2879,7 +2879,7 @@ Messages can embed `{key}` placeholders substituted from scalar/`Stringable` con
 $log->info('User {user} logged in from {ip}', ['user' => 'nick', 'ip' => '1.2.3.4']);
 // 2026-08-09 12:32:32  info  INFO  User nick logged in from 1.2.3.4
 ```
-**In v6:** not possible — the message was passed through verbatim; you `sprintf()`'d values in yourself, and context values were only ever appended as a separate `key=value;` blob.
+**Previously:** not possible — the message was passed through verbatim; you `sprintf()`'d values in yourself, and context values were only ever appended as a separate `key=value;` blob.
 
 ### Context-enrichment processors
 Callables with the signature `callable(array $context): array` enrich every entry's context before it is written — request IDs, user IDs, a default serialization format. They run in registration order, each seeing the previous one's output, and run *before* interpolation so an injected value is immediately usable as a `{placeholder}`. A throwing processor aborts the `log()` call before any writer runs.
@@ -2892,7 +2892,7 @@ $log->addProcessor(function (array $context): array {
 });
 $log->info('Handling request {request_id}');
 ```
-**In v6:** not possible — no hook between `log()` and the writers; every call site passed the same context keys by hand.
+**Previously:** not possible — no hook between `log()` and the writers; every call site passed the same context keys by hand.
 
 ### Pluggable `Formatter\*` classes
 Output shape is a first-class, swappable concern via `FormatterInterface` with four shipped implementations — `Line` (tab-separated), `Csv`, `Tsv` and `NdJson`. `File` auto-selects from the file extension, and you can override it (or supply your own) via the writer's second constructor argument.
@@ -2905,7 +2905,7 @@ interface FormatterInterface {
 
 $log = new Logger(new File(__DIR__ . '/logs/app.log', new Formatter\NdJson()));
 ```
-**In v6:** not possible — `Writer\File::writeLog()` was one hard-coded `switch` with the line-building inlined. Changing the format meant subclassing `File` and reimplementing `writeLog()`.
+**Previously:** not possible — `Writer\File::writeLog()` was one hard-coded `switch` with the line-building inlined. Changing the format meant subclassing `File` and reimplementing `writeLog()`.
 
 ### JSON Lines (NDJSON) output
 `Formatter\NdJson` emits one self-contained JSON object per line with `timestamp`, `level`, `name`, `message` and a nested `context` object — the format log aggregators expect. `File` auto-selects it for `.jsonl` and `.ndjson`, and it is the default for the new `Stream` writer. Encoding uses `JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR` so a bad value can't kill the entry.
@@ -2916,7 +2916,7 @@ $log = new Logger(new File(__DIR__ . '/logs/app.jsonl'));
 $log->info('Just a info message');
 // {"timestamp":"...","level":"info","name":"INFO","message":"Just a info message","context":{}}
 ```
-**In v6:** not possible. The only JSON option was `.json`, which read the whole file, decoded it, appended one entry and rewrote everything pretty-printed — unusable for tailing and O(n) per write.
+**Previously:** not possible. The only JSON option was `.json`, which read the whole file, decoded it, appended one entry and rewrote everything pretty-printed — unusable for tailing and O(n) per write.
 
 ### `Writer\Stream` with `stdout()` / `stderr()` factories
 Sends entries to any writable PHP stream — `STDOUT`/`STDERR`, an `fopen()` resource, or a stream URL string. Built for 12-factor/containerized deployments and CLI scripts. Ownership is tracked: a stream the writer opened from a string is closed in its destructor, a caller-supplied resource never is.
@@ -2926,7 +2926,7 @@ Sends entries to any writable PHP stream — `STDOUT`/`STDERR`, an `fopen()` res
 $log = new Logger(Stream::stdout());              // NdJson by default
 $log = new Logger(new Stream(STDERR, new Formatter\Line()));
 ```
-**In v6:** not possible — the four writers were File, Mail, Database and Http. Logging to stdout meant pointing `File` at `php://stdout`, which its append path handled poorly.
+**Previously:** not possible — the four writers were File, Mail, Database and Http. Logging to stdout meant pointing `File` at `php://stdout`, which its append path handled poorly.
 
 ### `Writer\Syslog` — real RFC-3164 packets over UDP
 Builds an actual `<PRI>HEADER TAG: MSG` syslog packet and sends it over UDP to rsyslog, syslog-ng, Papertrail or any network collector. `PRI` is computed as `facility * 8 + severity`, the HEADER timestamp uses the RFC's space-padded shape, TAG/HOSTNAME are stripped of whitespace and control chars, and packets are truncated to the 1024-byte limit.
@@ -2936,7 +2936,7 @@ Builds an actual `<PRI>HEADER TAG: MSG` syslog packet and sends it over UDP to r
 $log = new Logger(new Syslog(Facility::LOCAL0, 'logs.mydomain.com', 514, 'my-app'));
 $log->alert('Look Out! Something serious happened!');
 ```
-**In v6:** not possible. The library only *followed* the RFC-3164 severity model; nothing emitted a syslog packet or spoke to a daemon.
+**Previously:** not possible. The library only *followed* the RFC-3164 severity model; nothing emitted a syslog packet or spoke to a daemon.
 
 ### `Facility` enum
 A backed enum covering all 24 RFC-3164 facilities (`KERNEL`, `USER`, `MAIL`, `DAEMON`, `AUTH`, `CRON`, `LOCAL0`–`LOCAL7`, …), giving the syslog writer type-safe facility selection instead of magic ints.
@@ -2946,7 +2946,7 @@ A backed enum covering all 24 RFC-3164 facilities (`KERNEL`, `USER`, `MAIL`, `DA
 enum Facility: int { case KERNEL = 0; /* ... */ case LOCAL0 = 16; /* ... */ }
 new Syslog(Facility::LOCAL4);
 ```
-**In v6:** not possible — no facility concept existed.
+**Previously:** not possible — no facility concept existed.
 
 ### `Level` helper class
 A final utility normalizing between PSR-3 level strings and RFC severity ints in both directions, and the single validation point for levels across `Logger` and every writer.
@@ -2957,7 +2957,7 @@ Level::toSeverity('error');   // 3   (also accepts 3 and '3')
 Level::fromSeverity(3);       // 'error'
 Level::toName('error');       // 'ERROR'
 ```
-**In v6:** not possible as a reusable API — the mapping was a `protected array $levels` inside `Logger` (int => display name only), with no string-to-int direction.
+**Previously:** not possible as a reusable API — the mapping was a `protected array $levels` inside `Logger` (int => display name only), with no string-to-int direction.
 
 ### `Context` utility class
 A public final class exposing the two operations writers and custom formatters need: `serialize()` turns a context array into text/JSON/serialized output (honoring `$context['format']`, stripping reserved keys), and `sanitize()` strips CR/LF to prevent an embedded newline forging a fake log line or mail header.
@@ -2967,7 +2967,7 @@ A public final class exposing the two operations writers and custom formatters n
 Context::serialize(['foo' => 'bar', 'format' => 'json']); // {"foo":"bar"}
 Context::sanitize("line1\nline2");                        // "line1 line2"
 ```
-**In v6:** partially — serialization existed only as `AbstractWriter::getContext()`, reachable only with a writer instance; there was no sanitization at all.
+**Previously:** partially — serialization existed only as `AbstractWriter::getContext()`, reachable only with a writer instance; there was no sanitization at all.
 
 ### Smaller additions
 - **Per-writer exception isolation:** `log()` wraps each `writeLog()` in try/catch, so one failing writer no longer prevents the rest; the first exception is re-thrown after every writer has had its turn.
@@ -3000,7 +3000,7 @@ class MyBulkTransport extends AbstractTransport implements BatchTransportInterfa
 
 $mailer->sendFromQueue($queue);   // one bulk call instead of N sends
 ```
-**In v6:** not possible — those methods hard-looped `$this->transport->send($message)` one message at a time, and there was no interface to advertise bulk capability.
+**Previously:** not possible — those methods hard-looped `$this->transport->send($message)` one message at a time, and there was no interface to advertise bulk capability.
 
 ### Pre-rendered body reuse across repeated sends
 `render()`, `renderAsLines()`, `toByteStream()` and `AbstractSmtp::streamMessage()` all accept an optional already-rendered `$body`. `sendBcc()` uses it: the body is rendered once before the BCC loop, so **attachments are base64-encoded once instead of once per BCC recipient**.
@@ -3013,7 +3013,7 @@ foreach ($recipients as $to) {
     $message->toByteStream($buffer, $body);
 }
 ```
-**In v6:** not possible — `render()`/`toByteStream()` took only `array $omitHeaders`, and every BCC iteration re-ran `getBody()`, re-chunking and re-base64-encoding every attachment.
+**Previously:** not possible — `render()`/`toByteStream()` took only `array $omitHeaders`, and every BCC iteration re-ran `getBody()`, re-chunking and re-base64-encoding every attachment.
 
 ### `Message` is now a real `Pop\Mime\Message`
 `Message extends Pop\Mime\Message`, so `addPart()`/`setBody()` accept **any** `Pop\Mime\Part` — including nested multipart parts, inline/`cid:` parts and custom content types — and the whole `pop-mime` API is available on a mail message. `addPart()` also auto-infers the multipart subtype.
@@ -3027,7 +3027,7 @@ $related->addPart(Attachment::create('/logo.png', 'image/png', 'inline'));
 
 $message->addPart($related);   // any Pop\Mime\Part is a valid message part
 ```
-**In v6:** not possible — `addPart(PartInterface $part)` only accepted `pop-mail`'s own part classes, and the subtype logic could only pick between `multipart/alternative` and `multipart/mixed`. Nested multipart and `multipart/related` were unreachable.
+**Previously:** not possible — `addPart(PartInterface $part)` only accepted `pop-mail`'s own part classes, and the subtype logic could only pick between `multipart/alternative` and `multipart/mixed`. Nested multipart and `multipart/related` were unreachable.
 
 ### String accessors: `getBodyContent()` / `getHeaderValue()`
 Because the base class's `getHeader()` returns a `Part\Header` object and `getBody()` a `Part\Body`, v5 adds flat-string companions. The upshot: you now get *both* the structured object (multiple values, parameters, encoded words) and the plain string.
@@ -3039,7 +3039,7 @@ $message->getHeader('To');                // ?Pop\Mime\Part\Header — values, p
 $message->getBodyContent();               // ?string  fully rendered body
 $message->getBody();                      // Pop\Mime\Part\Body — encoding, isFile()
 ```
-**In v6:** `getHeader()`/`getBody()` returned strings and nothing else — the parsed header object was not reachable from a `Message` at all.
+**Previously:** `getHeader()`/`getBody()` returned strings and nothing else — the parsed header object was not reachable from a `Message` at all.
 
 ### RFC-compliant address parsing via `AddressList`
 Every address setter normalizes its input — string, `email => name` array, plain list, or `stdClass{mailbox,host}` — through `AddressList::parse()`, then renders the header from the parsed list. Display names containing commas, quoting and encoded words survive round-tripping.
@@ -3049,7 +3049,7 @@ Every address setter normalizes its input — string, `email => name` array, pla
 $message->setTo('"Doe, John" <john@domain.com>, jane@domain.com');
 $message->getTo();  // ['john@domain.com' => 'Doe, John', 'jane@domain.com' => null]
 ```
-**In v6:** arrays worked, but a string was stored verbatim and split on every raw comma — the example above yielded two garbage entries.
+**Previously:** arrays worked, but a string was stored verbatim and split on every raw comma — the example above yielded two garbage entries.
 
 ### Injectable HTTP handler on the API clients
 `Api\AbstractHttpClient` gained `setHandler()`/`getHandler()`/`hasHandler()`, and `AbstractOffice365::requestToken()` passes it into the OAuth token client it builds internally. That internal client was never exposed, so its transport was previously impossible to intercept.
@@ -3059,7 +3059,7 @@ $message->getTo();  // ['john@domain.com' => 'Doe, John', 'jane@domain.com' => n
 $office365->setHandler(new Pop\Http\Client\Handler\Mock($cannedTokenResponse));
 $office365->requestToken();
 ```
-**In v6:** not possible — `requestToken()` constructed its own client with no seam.
+**Previously:** not possible — `requestToken()` constructed its own client with no seam.
 
 ### `CharsetAwareTrait` and `PartContentTrait` for custom parts
 Two new traits port the conveniences that used to live on the deleted `AbstractMessage`/`AbstractPart` onto any class extending `Pop\Mime\Part`: `setContentType()`/`getCharSet()`/`setCharSet()` and `getContent()`/`setContent()`/`renderAsLines()`.
@@ -3077,7 +3077,7 @@ $part->setContentType('text/calendar')->setCharSet('utf-8');
 $part->setContent($icsData);
 $message->addPart($part);
 ```
-**In v6:** you had to extend `AbstractPart`, whose constructor fixed content/content-type/encoding up front and which was not interoperable with `Pop\Mime\Part`.
+**Previously:** you had to extend `AbstractPart`, whose constructor fixed content/content-type/encoding up front and which was not interoperable with `Pop\Mime\Part`.
 
 ### Inline attachments and explicit attachment options
 `Attachment::create()`/`createFromContent()` expose `$contentType`, `$disposition`, a typed `Encoding` enum and a `$split` chunking control as first-class parameters.
@@ -3087,7 +3087,7 @@ $message->addPart($part);
 Attachment::create('/logo.png', 'image/png', 'inline');
 Attachment::createFromContent($pdfBytes, 'invoice.pdf', 'application/pdf');
 ```
-**In v6:** inline disposition was **not possible** — the constructor unconditionally wrote `Content-Disposition: attachment`. Options came as a loose array with string encoding constants.
+**Previously:** inline disposition was **not possible** — the constructor unconditionally wrote `Content-Disposition: attachment`. Options came as a loose array with string encoding constants.
 
 ### RFC 2047 decoding without ext-imap
 `Message::decodeText()` delegates to `Pop\Mime\Part\Header\EncodedWord::decode()`.
@@ -3096,7 +3096,7 @@ Attachment::createFromContent($pdfBytes, 'invoice.pdf', 'application/pdf');
 // v7
 Message::decodeText('=?UTF-8?B?SGVsbG8gV29ybGQ=?=');   // no IMAP extension needed
 ```
-**In v6:** it called `imap_mime_header_decode()`, so decoding a MIME-encoded subject fatally failed on any build without ext-imap.
+**Previously:** it called `imap_mime_header_decode()`, so decoding a MIME-encoded subject fatally failed on any build without ext-imap.
 
 ### O(1) queue de-duplication
 `Queue` keeps parallel hash indexes, so `addRecipient()`/`addMessage()` dedupe in constant time.
@@ -3107,7 +3107,7 @@ foreach ($tenThousandRecipients as $r) {
     $queue->addRecipient($r);   // constant-time dedup, not a linear rescan
 }
 ```
-**In v6:** both used `in_array($x, ..., true)`, making queue building O(n²).
+**Previously:** both used `in_array($x, ..., true)`, making queue building O(n²).
 
 ### Smaller additions
 - `Queue::prepare()` substitutes `[{key}]` placeholders in the **subject** unconditionally; in v6 the substitution lived inside the parts loop, so attachment-only messages never got their subject templated.
@@ -3136,7 +3136,7 @@ $message->addParts([
     Part::attachmentFromContent($pdfBytes, 'invoice.pdf'), // no file needed
 ]);
 ```
-**In v6:** three manual steps per part, with the content type always hand-written; and there was **no way at all** to create a file-flagged attachment part from in-memory content — `setContentFromFile()` required a real path.
+**Previously:** three manual steps per part, with the content type always hand-written; and there was **no way at all** to create a file-flagged attachment part from in-memory content — `setContentFromFile()` required a real path.
 
 ### `Address` / `AddressList` — RFC 5322 address parsing
 New value objects with `parse()`/`render()`. Splitting is token-driven, so a comma inside a quoted display name never splits the list, and group-shaped input is detected and kept opaque rather than mis-split.
@@ -3150,7 +3150,7 @@ echo $list->render();
 
 $list = new AddressList([new Address('john@doe.com', 'Doe, John')]);
 ```
-**In v6:** not possible — no address concept existed anywhere; callers `explode(',', ...)`'d themselves and got the quoted-comma case wrong.
+**Previously:** not possible — no address concept existed anywhere; callers `explode(',', ...)`'d themselves and got the quoted-comma case wrong.
 
 ### `EncodedWord` — RFC 2047 encode/decode with no ext-imap
 Handles both B and Q encoded-words, converts non-UTF-8 charsets via mbstring when available, joins adjacent encoded-words per §6.2, and splits long input into ≤75-char words on UTF-8 character boundaries.
@@ -3160,7 +3160,7 @@ Handles both B and Q encoded-words, converts non-UTF-8 charsets via mbstring whe
 echo EncodedWord::encode('José García');                       // =?UTF-8?B?Sm9zw6kgR2FyY8OtYQ==?=
 echo EncodedWord::decode('=?UTF-8?B?Sm9zw6kgR2FyY8OtYQ==?='); // José García
 ```
-**In v6:** decode-only, only for attachment filenames, gated behind `function_exists('imap_mime_header_decode')` — no ext-imap meant no decoding at all. Encoding did not exist in any form.
+**Previously:** decode-only, only for attachment filenames, gated behind `function_exists('imap_mime_header_decode')` — no ext-imap meant no decoding at all. Encoding did not exist in any form.
 
 ### Automatic non-ASCII header encoding on render
 `Value::render()` now takes the header name and encodes accordingly: address headers are routed through `AddressList::parse()->render()` so each display name is encoded independently and the addr-spec is never touched; every other header value goes through `EncodedWord::encode()`. Plain ASCII passes through untouched.
@@ -3170,7 +3170,7 @@ echo EncodedWord::decode('=?UTF-8?B?Sm9zw6kgR2FyY8OtYQ==?='); // José García
 $message->addHeader('To', 'José García <jose@example.com>');
 // renders: To: =?UTF-8?B?Sm9zw6kgR2FyY8OtYQ==?= <jose@example.com>
 ```
-**In v6:** not possible — values were emitted verbatim, so UTF-8 display names went out raw and non-conformant.
+**Previously:** not possible — values were emitted verbatim, so UTF-8 display names went out raw and non-conformant.
 
 ### `Lexer` / `Token` — reusable RFC 5322 tokenizer
 Scans a header into `ATOM`, `QUOTED_STRING`, `DELIMITER` and `FWS` tokens with byte offsets, unescaping quoted-pairs and skipping nesting-aware comments. Two statics make it usable standalone: `unfold()` collapses obs-fold sequences, and `findTopLevelDelimiter()` locates a delimiter that is not inside a quoted string or comment.
@@ -3181,7 +3181,7 @@ $tokens = (new Lexer('Content-Type: text/plain; name="a;b"'))->tokenize();
 $colon  = Lexer::findTopLevelDelimiter($line, ':');
 $flat   = Lexer::unfold("Content-Disposition: form-data;\r\n\tname=x");
 ```
-**In v6:** not possible — all parsing was `strpos`/`preg_match_all` string surgery that broke on any delimiter inside quotes.
+**Previously:** not possible — all parsing was `strpos`/`preg_match_all` string surgery that broke on any delimiter inside quotes.
 
 ### Structurally-correct header folding
 `Header::render()` folds via a token-aware `fold()` instead of `wordwrap()`. Fold points are only ever at FWS or after a delimiter — never inside an atom, quoted string, encoded-word, or `<angle-addr>`, all treated as atomic unbreakable spans.
@@ -3191,7 +3191,7 @@ $flat   = Lexer::unfold("Content-Disposition: form-data;\r\n\tname=x");
 $header->setWrap(76)->setIndent("\t");
 echo $header;   // folds only at safe boundaries; unfolds back to the identical value
 ```
-**In v6:** `wordwrap()`, which happily split mid-address and mid-encoded-word, corrupting the value.
+**Previously:** `wordwrap()`, which happily split mid-address and mid-encoded-word, corrupting the value.
 
 ### Message-ID and Content-ID generation
 `Part::generateId()` builds a unique `<hash@domain>`. `Message::setMessageId()` and `Part::setContentId()` generate and set the header in one call, or accept an explicit ID — living on `Part` so a nested inline-image part can carry its own `cid:` target.
@@ -3202,7 +3202,7 @@ $message->setMessageId();                    // Message-ID: <b38b…d2@localhost
 $inline = Part::attachment('logo.png');
 $inline->setContentId(null, 'example.com');  // Content-ID
 ```
-**In v6:** not possible — no ID generation or header helper existed.
+**Previously:** not possible — no ID generation or header helper existed.
 
 ### `Body\Encoding` backed enum
 Replaces the old string constants and adds the identity transfer encodings `BINARY`, `_7BIT`, `_8BIT`. `toHeaderValue()` maps a case to its wire token (returning `null` for the HTTP-form-only `URL`/`RAW_URL`), and `fromHeaderValue()` maps a parsed header back case-insensitively.
@@ -3215,7 +3215,7 @@ $body = new Body('Hello World!', Encoding::QUOTED_PRINTABLE);
 $part = Part::attachment('test.pdf', null, 'attachment', Encoding::BINARY);
 Encoding::fromHeaderValue('QUOTED-PRINTABLE');  // Encoding::QUOTED_PRINTABLE
 ```
-**In v6:** four untyped string constants validated by a fallthrough `switch` that silently ignored anything else; `binary`/`7bit`/`8bit` were unsupported, and both directions of the header mapping were hand-coded chains.
+**Previously:** four untyped string constants validated by a fallthrough `switch` that silently ignored anything else; `binary`/`7bit`/`8bit` were unsupported, and both directions of the header mapping were hand-coded chains.
 
 ### Lazy and streamed attachment bodies
 `setContentFromFile()` records the path instead of slurping it, and materializes only when the content is actually read or rendered. For the common base64 attachment case, rendering streams through `php://filter/convert.base64-encode` rather than holding raw and encoded copies in memory at once.
@@ -3226,7 +3226,7 @@ $body = new Part\Body();
 $body->setContentFromFile('/path/huge.pdf', Encoding::BASE64);  // no I/O yet
 echo $body->render();                                            // streamed base64
 ```
-**In v6:** `setContentFromFile()` did `file_get_contents()` immediately, then `render()` built a second full base64 copy in memory.
+**Previously:** `setContentFromFile()` did `file_get_contents()` immediately, then `render()` built a second full base64 copy in memory.
 
 ### Folded / continuation header parsing
 `Message::parseHeaders()` unfolds obs-fold continuation lines before splitting, and finds each header's name using a top-level colon, so a colon inside a quoted parameter no longer starts a bogus header.
@@ -3236,7 +3236,7 @@ echo $body->render();                                            // streamed bas
 $headers = Message::parseHeaders("Content-Disposition: form-data; name=image;\r\n\tfilename=\"a:b.jpg\"\r\n");
 // one header, filename parameter intact
 ```
-**In v6:** `preg_match_all('/[a-zA-Z-]+:/', ...)` over the whole blob — a folded value was silently truncated and any `word:` inside a value was mistaken for a new header.
+**Previously:** `preg_match_all('/[a-zA-Z-]+:/', ...)` over the whole blob — a folded value was silently truncated and any `word:` inside a value was mistaken for a new header.
 
 ### Smaller additions
 - `Part::inferSubType()` — sets the multipart subtype from the nested parts (`mixed` if any part is a file, else `alternative` if both text and HTML are present).
@@ -3260,7 +3260,7 @@ The `on`/`off` active-link class is decided by comparing each rendered `href` ag
 $nav = new Nav($tree, ['on' => 'link-on', 'off' => 'link-off', 'currentUrl' => '/pages']);
 echo $nav; // /pages gets class="link-on" with no $_SERVER involved
 ```
-**In v6:** not possible through the API — `NavBuilder` read `$_SERVER['REQUEST_URI']` directly, so the only workaround was to fake the superglobal before rendering.
+**Previously:** not possible through the API — `NavBuilder` read `$_SERVER['REQUEST_URI']` directly, so the only workaround was to fake the superglobal before rendering.
 
 ### Render-cache invalidation on tree changes
 `Nav` caches the built `Pop\Dom\Child` and reuses it on every render. `setTree()`, `addBranch()` and `addLeaf()` each reset that cache, so tree changes made after a first render are reflected on the next one.
@@ -3271,7 +3271,7 @@ echo $nav;                                    // renders
 $nav->addBranch(['name' => 'Orders', 'href' => '/orders']);
 echo $nav;                                    // 'Orders' is there
 ```
-**In v6:** the second render returned the stale cached markup; you had to remember to call `rebuild()` after every mutation. (`rebuild()` still exists in v7 for forcing one.)
+**Previously:** the second render returned the stale cached markup; you had to remember to call `rebuild()` after every mutation. (`rebuild()` still exists in v7 for forcing one.)
 
 ### XSS-safe escaping of node labels
 Node `name` values pass through `htmlspecialchars($name, ENT_QUOTES)` when the `<a>` child is created, so labels coming from a database, CMS or user input can no longer inject markup into the rendered nav.
@@ -3281,7 +3281,7 @@ Node `name` values pass through `htmlspecialchars($name, ENT_QUOTES)` when the `
 $nav = new Nav([['name' => 'Tom & <b>Jerry</b>', 'href' => '/tj']]);
 echo $nav; // <a href="/tj">Tom &amp; &lt;b&gt;Jerry&lt;/b&gt;</a>
 ```
-**In v6:** the raw `name` was injected into the anchor verbatim — any HTML or `<script>` in a label was rendered as live markup.
+**Previously:** the raw `name` was injected into the anchor verbatim — any HTML or `<script>` in a label was rendered as live markup.
 
 ### Active-link comparison now works for URLs with query strings
 When the current URL carries a query string, v7 strips it correctly before comparing against each link's `href`, so a page reached at `/pages?tab=2` still highlights the `/pages` link.
@@ -3291,7 +3291,7 @@ When the current URL carries a query string, v7 strips it correctly before compa
 $nav->setCurrentUrl('/pages?tab=2');
 echo $nav; // <a href="/pages" class="link-on">
 ```
-**In v6:** broken — the code did `substr($url, strpos($url, '?'))`, keeping the query string and discarding the path, so the comparison could never match and **the `on` class was never applied for any URL with a query string**.
+**Previously:** broken — the code did `substr($url, strpos($url, '?'))`, keeping the query string and discarding the path, so the comparison could never match and **the `on` class was never applied for any URL with a query string**.
 
 ### Smaller additions
 - The current-URL lookup is null-safe: with no `currentUrl` set and no `$_SERVER['REQUEST_URI']` (CLI/tests), v7 skips the comparison cleanly, where v6 emitted a deprecation on every render.
@@ -3315,7 +3315,7 @@ $_SERVER['REQUEST_URI'] = '/items"><script>alert(1)</script>';
 echo Paginator::createRange(30)->getLinkRange(1)[1];
 // <a href="/items&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;?page=2">2</a>
 ```
-**In v6:** not possible — you sanitized `$_SERVER['REQUEST_URI']` and `$_GET` yourself before instantiating the paginator, or post-processed the rendered HTML.
+**Previously:** not possible — you sanitized `$_SERVER['REQUEST_URI']` and `$_GET` yourself before instantiating the paginator, or post-processed the rendered HTML.
 
 ### Constructor validation with a typed `Pop\Paginator\Exception`
 The constructor rejects `total < 0`, `perPage < 1` and `range < 1` up front. Previously the bad value survived construction and blew up later at render time as an uncatchable-by-type `DivisionByZeroError` (or silently produced nothing). This also gives the previously-unused `Exception` class an actual purpose.
@@ -3328,7 +3328,7 @@ try {
     // caught at construction, with a message naming the bad argument
 }
 ```
-**In v6:** constructed fine; `echo $paginator` later threw `DivisionByZeroError` (an `\Error`, not a `Pop\Paginator\Exception`), and negative totals / zero ranges just rendered empty.
+**Previously:** constructed fine; `echo $paginator` later threw `DivisionByZeroError` (an `\Error`, not a `Pop\Paginator\Exception`), and negative totals / zero ranges just rendered empty.
 
 ### `getNumberOfPages()` works immediately after construction
 The constructor calls `calculateRange()`, so `numberOfPages`, `start` and `end` are populated before any rendering. You can inspect the page count to drive a query `LIMIT`/`OFFSET` without first casting the paginator to a string.
@@ -3338,7 +3338,7 @@ The constructor calls `calculateRange()`, so `numberOfPages`, `start` and `end` 
 $paginator = Paginator::createRange(4512, 10, 10);
 echo $paginator->getNumberOfPages(); // 452
 ```
-**In v6:** threw `TypeError: getNumberOfPages(): Return value must be of type int, null returned` unless you first rendered the paginator or manually called `calculateRange()`.
+**Previously:** threw `TypeError: getNumberOfPages(): Return value must be of type int, null returned` unless you first rendered the paginator or manually called `calculateRange()`.
 
 ### Out-of-bounds page numbers render the last range block
 `calculateRange()` computes a single `lastBlockStart`, so any page past the end clamps into the final block.
@@ -3348,7 +3348,7 @@ echo $paginator->getNumberOfPages(); // 452
 $paginator = Paginator::createRange(200, 10, 10); // 20 pages
 $paginator->getLinkRange(25);                     // « ‹ 11 12 … 20
 ```
-**In v6:** `getLinkRange(25)` returned `[]` and `echo $paginator` printed nothing — the pagination bar vanished on any over-range `?page=`.
+**Previously:** `getLinkRange(25)` returned `[]` and `echo $paginator` printed nothing — the pagination bar vanished on any over-range `?page=`.
 
 ### `Range` getters return `''` instead of throwing when unset
 `getSeparator()`, `getClassOn()` and `getClassOff()` coalesce their nullable backing properties to `''`, so they are safe to call on a freshly-built `Range`.
@@ -3358,7 +3358,7 @@ $paginator->getLinkRange(25);                     // « ‹ 11 12 … 20
 $paginator = Paginator::createRange(42);
 echo $paginator->getClassOn(); // '' — no exception
 ```
-**In v6:** each threw a `TypeError` unless the matching setter had been called first.
+**Previously:** each threw a `TypeError` unless the matching setter had been called first.
 
 ### Smaller additions
 - `Exception` is now a documented part of the public contract rather than a dead class.
@@ -3383,7 +3383,7 @@ $doc   = Pop\Pdf\Extract\Document::fromFile('doc.pdf');
 $pages = Pop\Pdf\Extract\Content\PageWalker::walk($doc);
 $runs  = (new Pop\Pdf\Extract\Content\Interpreter())->run($doc, $pages[0]->content, $pages[0]->resources);
 ```
-**In v6:** `extractTextFromFile()` existed but was a thin wrapper over `\Smalot\PdfParser\Parser` — a required third-party dependency, with no low-level PDF-reading API of `pop-pdf`'s own.
+**Previously:** `extractTextFromFile()` existed but was a thin wrapper over `\Smalot\PdfParser\Parser` — a required third-party dependency, with no low-level PDF-reading API of `pop-pdf`'s own.
 
 ### PDF merging
 `Build\Merger` reads N source PDFs through the Extract engine, renumbers each source's object graph at an increasing offset, rewrites all indirect references, and splices every `/Pages` subtree under one new master node — producing a normal mutable `Document` you can still add to before writing.
@@ -3394,7 +3394,7 @@ $doc = Pdf::merge(['one.pdf', 'two.pdf', 'three.pdf']);
 $doc = Pdf::mergeRawData([$pdfStream1, $pdfStream2]);
 Pdf::writeToFile($doc, 'merged.pdf');
 ```
-**In v6:** Not possible — no merge API
+**Previously:** Not possible — no merge API
 
 ### Image-only page detection (OCR routing)
 `Content\PageClassifier` inspects a page's operators to decide whether it is *nothing but* a single scanned/drawn image (one `Do` XObject, no text or paint operators). Lets you route scans to OCR up front instead of inferring "probably a scan" from an empty extraction result.
@@ -3406,7 +3406,7 @@ if (Pdf::isImageOnlyDocument('deed.pdf')) { /* send to OCR */ }
 $pages = Pdf::getImageOnlyPages('deed.pdf');   // [0 => true, 1 => false, 2 => true]
 $bool  = Pdf::isImageOnlyData($pdfStream);
 ```
-**In v6:** Not possible.
+**Previously:** Not possible.
 
 ### HTML `<table>` layout with colspan/rowspan and repeating headers
 New `Build\Html\Table\{Grid, Cell, Layout}`. `Grid::build()` walks the DOM into an explicit `[row][col] => Cell` structure with proper colspan/rowspan slot claiming and header detection; `Layout::render()` does two-pass column sizing (explicit widths honored first, remaining space distributed by natural content width) then paginated row rendering that repeats the header after a page break, with per-cell borders and backgrounds.
@@ -3419,7 +3419,7 @@ $parser->parseHtml('<table><thead><tr><th>Item</th><th>Qty</th></tr></thead>'
 $parser->parseCss('th { background-color: #ddd; border-width: 1px; border-color: #333; }');
 $parser->process();
 ```
-**In v6:** An experimental `<table>` branch was never fully completed. 
+**Previously:** An experimental `<table>` branch was never fully completed. 
 
 ### CID / Unicode embedded font output
 Embedded TrueType/OpenType fonts are now compiled as composite fonts — `/Type0` + `/Encoding /Identity-H` + a `/CIDFontType2` descendant + a generated `/ToUnicode` CMap — with text emitted as glyph-ID hex strings. Any script the embedded font has glyphs for (Cyrillic, Greek, etc.) renders correctly and still copies/extracts.
@@ -3430,7 +3430,7 @@ $font = new Font('/path/to/DejaVuSans.ttf');
 $document->embedFont($font);
 $page->addText(new Page\Text('123 ПРИВІТ:', 36), $font->getName(), 50, 600);
 ```
-**In v6:** Every font — standard *and* embedded TrueType — was emitted with a single-byte encoding and raw UTF-8 bytes written straight into `(...)Tj`, so non-Latin text rendered as mojibake with no workaround.
+**Previously:** Every font — standard *and* embedded TrueType — was emitted with a single-byte encoding and raw UTF-8 bytes written straight into `(...)Tj`, so non-Latin text rendered as mojibake with no workaround.
 
 ### Glyph-coverage API on `Document\Font`
 Public methods to ask a font what it can actually render, and to fail loudly instead of emitting garbage.
@@ -3444,7 +3444,7 @@ $font->requireGlyphCoverage($string);    // throws, naming char + U+XXXX
 $font->stringToGidHex($string);          // '04110412...' for a CID content stream
 Font::stringToCodeUnits($string);        // static: UTF-8 -> UTF-16BE
 ```
-**In v6:** Not possible — no way to query coverage; unsupported characters were silently written out and rendered as garbage.
+**Previously:** Not possible — no way to query coverage; unsupported characters were silently written out and rendered as garbage.
 
 ### Standard fonts now render their full WinAnsi repertoire
 `Text::encodeWinAnsi()` transcodes UTF-8 to Windows-1252 before writing a literal PDF string, so accented Latin letters, curly quotes and en/em dashes come out correct with the built-in fonts.
@@ -3453,7 +3453,7 @@ Font::stringToCodeUnits($string);        // static: UTF-8 -> UTF-16BE
 // v7 — renders correctly with Font::ARIAL, no embedding needed
 $page->addText(new Page\Text("café — 'quoted' †", 12), Font::ARIAL, 50, 600);
 ```
-**In v6:** Raw UTF-8 bytes went into a single-byte string, mojibaking in every viewer even though the font covered the characters.
+**Previously:** Raw UTF-8 bytes went into a single-byte string, mojibaking in every viewer even though the font covered the characters.
 
 ### Modern-PDF import rebuilt on the Extract engine
 `Build\Parser`'s internals were replaced with a shared import pipeline running on `Extract\Document`. The public API is unchanged, but import now follows real xref tables/streams and object streams, repairs broken files, resolves inherited page attributes down the page tree, and preserves `/Rotate`, `/CropBox`, `/Group` and non-font resources.
@@ -3462,7 +3462,7 @@ $page->addText(new Page\Text("café — 'quoted' †", 12), Font::ARIAL, 50, 600
 // v7 — same call, now handles PDF 1.5+ compressed/object-stream files
 $document = Pdf::importFromFile('modern-acrobat-output.pdf');
 ```
-**In v6:** Import was a single `preg_match_all('/\d*\s\d*\sobj(.*?)endobj/sm', ...)` scan — no xref following, no object-stream support, no repair fallback.
+**Previously:** Import was a single `preg_match_all('/\d*\s\d*\sobj(.*?)endobj/sm', ...)` scan — no xref following, no object-stream support, no repair fallback.
 
 ### CSS borders and backgrounds on any element
 `Build\Html\Parser::drawBox()` plus `border-width`/`border-color`/`background-color` handling in `prepareNodeStyles()` for tag, `#id` and `.class` selectors — usable on a `<div>`, not just table cells.
@@ -3471,7 +3471,7 @@ $document = Pdf::importFromFile('modern-acrobat-output.pdf');
 // v7
 $parser->parseCss('div.box { border-width: 1px; border-color: #333333; background-color: #eeeeee; }');
 ```
-**In v6:** Not possible — no border or background-color support of any kind.
+**Previously:** Not possible — no border or background-color support of any kind.
 
 ### One-call HTML-to-PDF on the `Pdf` facade
 ```php
@@ -3479,11 +3479,11 @@ $parser->parseCss('div.box { border-width: 1px; border-color: #333333; backgroun
 $document = Pdf::importFromHtml('<h1>Hello</h1><p>World</p>');
 $document = Pdf::importFromHtmlFile('invoice.html');
 ```
-**In v6:** Not on the facade — you instantiated `Build\Html\Parser`, called `parseHtml()`, `process()`, then `document()` yourself.
+**Previously:** Not on the facade — you instantiated `Build\Html\Parser`, called `parseHtml()`, `process()`, then `document()` yourself.
 
 ### CourierNew standard font family
 `Standard\CourierNew`, `CourierNewBold`, `CourierNewItalic`, `CourierNewBoldItalic` metric classes were added.
-**In v6:** The `Font::COURIER_NEW*` constants existed but the backing classes did not, so using them threw "That standard font class was not found."
+**Previously:** The `Font::COURIER_NEW*` constants existed but the backing classes did not, so using them threw "That standard font class was not found."
 
 ### Encryption, passwords and reader permissions
 `Document\Security` on a document encrypts everything written — page content streams, embedded images, embedded font files, and the literal strings the library authors. AES-256 by default, AES-128 on request. A `Document\Permissions` object narrows what a reader allows once the document is open; all eight permissions start allowed, so only what is taken away needs naming.
@@ -3496,7 +3496,7 @@ $security->setPermissions((new Permissions())->allowPrinting(false)->allowCopyin
 $document->setSecurity($security);
 Pdf::writeToFile($document, filename: 'protected.pdf');
 ```
-**In v6:** not available — there was no encryption of any kind, and no way to set a password or a permission flag on generated output. An owner password left unset is generated for you, so the permissions cannot be bypassed by leaving it blank.
+**Previously:** not available — there was no encryption of any kind, and no way to set a password or a permission flag on generated output. An owner password left unset is generated for you, so the permissions cannot be bypassed by leaving it blank.
 
 ### Opening password-protected PDFs
 Every method that reads an existing PDF takes an optional password: `importFromFile()`, `importRawData()`, `extractTextFromFile()`, `extractTextFromData()` and the four image-only classification methods. `merge()` and `mergeRawData()` take an array keyed the same way as the sources, so a batch can mix protected and unprotected files. Either the user or the owner password opens a document.
@@ -3507,7 +3507,7 @@ $document = Pdf::importFromFile('protected.pdf', password: 'open-me');
 $text     = Pdf::extractTextFromFile('protected.pdf', password: 'open-me');
 $merged   = Pdf::merge(['plain.pdf', 'protected.pdf'], new Document(), [1 => 'open-me']);
 ```
-**In v6:** not available — an encrypted PDF could not be read at all. Opening is transparent: the resulting `Document` reports `hasSecurity()` as `false`, so writing it back out produces an unencrypted file unless `setSecurity()` is called again.
+**Previously:** not available — an encrypted PDF could not be read at all. Opening is transparent: the resulting `Document` reports `hasSecurity()` as `false`, so writing it back out produces an unencrypted file unless `setSecurity()` is called again.
 
 ### A color on a named style
 `Document\Style` takes a `Pop\Color` implementation as a fourth argument, or through `setColor()`, and it becomes the fill color of every string drawn under that style name. The color is written inside its own graphics-state save and restore, so it paints the text it belongs to and nothing drawn after it.
@@ -3519,7 +3519,7 @@ $document->addStyle(
 );
 $page->addText(new Text('Report'), 'heading', x: 100, y: 700);
 ```
-**In v6:** a style carried a font and a size only; color had to be set on each `Text` object individually.
+**Previously:** a style carried a font and a size only; color had to be set on each `Text` object individually.
 
 ### Character wrapping works with any font
 `Page\Text::setCharWrap()` wraps on a multibyte-aware word wrap, so the count is in characters rather than bytes and accented text and CJK break where you would expect — with a standard font or an embedded one.
@@ -3529,7 +3529,7 @@ $page->addText(new Text('Report'), 'heading', x: 100, y: 700);
 $text = new Text($paragraph, size: 11);
 $text->setCharWrap(80, leading: 14);
 ```
-**In v6:** character wrapping ran on a byte-based wrap that mis-split multibyte text.
+**Previously:** character wrapping ran on a byte-based wrap that mis-split multibyte text.
 
 ### Page size control for HTML parsing
 `Build\Html\Parser` takes a page size as its second constructor argument, and `parseString()`, `parseFile()`, `parseUri()`, `Pdf::importFromHtml()`, `importFromHtmlFile()` and `importFromHtmlUri()` all take it as a third — either a `Page` size constant or a `[width, height]` array. Pages default to `LETTER`.
@@ -3539,7 +3539,7 @@ $text->setCharWrap(80, leading: 14);
 $parser   = new Parser(new Document(), pageSize: Page::A4);
 $document = Pdf::importFromHtmlFile('invoice.html', new Document(), Page::A4);
 ```
-**In v6:** HTML parsing had no page-size control at the entry point; the size had to be set on the parser after constructing it.
+**Previously:** HTML parsing had no page-size control at the entry point; the size had to be set on the parser after constructing it.
 
 ### `Pdf::importFromHtmlUri()`
 The facade gained the URL counterpart to `importFromHtml()` and `importFromHtmlFile()`, returning a finished `Document` from a remote page in one call.
@@ -3548,7 +3548,7 @@ The facade gained the URL counterpart to `importFromHtml()` and `importFromHtmlF
 // v7
 $document = Pdf::importFromHtmlUri('https://example.com/report.html');
 ```
-**In v6:** not available on the facade — `Build\Html\Parser::parseUri()` had to be driven directly.
+**Previously:** not available on the facade — `Build\Html\Parser::parseUri()` had to be driven directly.
 
 ### Smaller additions
 - `Page::addImage()` accepts an image filename string as well as a `Page\Image` object, so a one-line image placement no longer needs `Image::createImageFromFile()` first.
@@ -3584,7 +3584,7 @@ $adapter->retryDeadJob($jobId);      // replay back to pending
 $adapter->clearDead();
 $adapter->count();                   // pending + reserved
 ```
-**In v6:** `pop()` removed the job with no lease and no ack — a worker that crashed mid-job lost it outright. Failed jobs were only readable via `getFailedJob(int $index)`/`getFailedJobs()`/`clearFailed()`, with no way to requeue one; there was no bury, no release.
+**Previously:** `pop()` removed the job with no lease and no ack — a worker that crashed mid-job lost it outright. Failed jobs were only readable via `getFailedJob(int $index)`/`getFailedJobs()`/`clearFailed()`, with no way to requeue one; there was no bury, no release.
 
 ### `Pop\Queue\Registry\*` — worker observability
 An entirely new namespace giving every worker process an identity, a heartbeat, and a record of what it is currently working on, in storage every process can see. Backends (`Memory`/`File`/`Database`/`Redis`) are configured independently of the queue adapter, so an SQS-backed queue still gets worker visibility. It distinguishes "stale" (quiet heartbeat, possibly just busy) from "stuck" (quiet *and* holding a job past its own timeout) — the signal worth alerting on.
@@ -3601,7 +3601,7 @@ $registry->getStuckWorkers();
 $registry->prune(3600);         // reap records from processes long gone
 ```
 `WorkerRecord` exposes `getHost()`, `getPid()`, `getMode()`, `getCurrentJobId()`, `getCurrentJobDuration()`, `getJobsProcessed()`, `getJobsFailed()`, `isStale()`, `isLikelyStuck()`.
-**In v6:** not possible — no worker identity, heartbeat, or introspection of any kind.
+**Previously:** not possible — no worker identity, heartbeat, or introspection of any kind.
 
 ### Worker daemon mode with signal handling
 Long-running loops that service queues continuously instead of being triggered from cron every minute. Both install SIGTERM/SIGINT handlers (when `ext-pcntl` is loaded) that request a graceful stop at the next iteration boundary — a job in flight always runs to completion. They sleep only when a full pass found nothing.
@@ -3614,7 +3614,7 @@ $worker->runLoop(1);    // scheduled tasks, forever (separate process)
 $worker->stop();        // graceful stop; kill/Ctrl-C do the same
 $worker->isStopped();
 ```
-**In v6:** not possible — only single-pass `work()`/`workAll()`/`run()`/`runAll()`, so continuous operation meant an external cron trigger, with no shutdown handling.
+**Previously:** not possible — only single-pass `work()`/`workAll()`/`run()`/`runAll()`, so continuous operation meant an external cron trigger, with no shutdown handling.
 
 ### Lifecycle events on `Queue` and `Worker`
 Both classes can fire `Pop\Event\Manager` events around execution, reusing the same event system `Pop\Application` uses. If no manager is set, the `Application`'s manager is used as a fallback; if neither exists, firing is a silent no-op.
@@ -3628,7 +3628,7 @@ $events->on('queue.job.post', function($job, $queue) {
 $queue->setEvents($events);
 ```
 Queue events: `queue.job.pre|post|failed|buried`, `queue.task.pre|post|failed`. Worker events: `worker.work_loop.tick|idle|shutdown`, `worker.run_loop.tick|idle|shutdown`.
-**In v6:** not possible — neither class had any hook points.
+**Previously:** not possible — neither class had any hook points.
 
 ### Per-job delay, timeout and retry backoff
 `delay()` makes a job ineligible until a time; `setTimeout()` interrupts a long-running job; `setBackoff()` spaces out retries (fixed seconds or a per-attempt schedule that holds at its last value).
@@ -3643,7 +3643,7 @@ $job->isAvailable();
 $job->getBackoffDelay();
 ```
 Timeouts are enforced by `symfony/process` for exec jobs (which can actually kill the child) and by a `pcntl` alarm throwing `Process\TimeoutException` for callable/command jobs. `delay()` is honored by all five adapters — SQS translates it into `DelaySeconds`.
-**In v6:** not possible — a failed job was re-pushed for immediate retry, jobs ran untimed, and the only control was `setRunUntil()` (an expiry, not a start time).
+**Previously:** not possible — a failed job was re-pushed for immediate retry, jobs ran untimed, and the only control was `setRunUntil()` (an expiry, not a start time).
 
 ### `Memory` adapter and `Queue::fake()`
 A full-fidelity adapter keeping everything in PHP arrays — no server, extension or disk. It implements the entire contract including delay eligibility, backoff on `release()`, lease expiry, the dead-letter store, task scheduling and `claimTaskRun()`.
@@ -3653,7 +3653,7 @@ A full-fidelity adapter keeping everything in PHP arrays — no server, extensio
 $queue = Queue::fake();                          // Memory-backed, zero setup
 $queue = Queue::fake('test-queue', 'FILO', 30);  // name, priority, lease seconds
 ```
-**In v6:** not possible — testing meant standing up Redis, a database, or a writable directory.
+**Previously:** not possible — testing meant standing up Redis, a database, or a writable directory.
 
 ### `PayloadSigner` — HMAC-signed job payloads
 Every persistent adapter serializes jobs and unserializes them on read, which is an object-injection gap for anyone able to write to the storage directly. Set a key once at bootstrap and every adapter prepends a raw 32-byte HMAC-SHA256 on write and `hash_equals()`-verifies before unserializing. Opt-in — with no key set, both `sign()` and `verify()` are exact pass-throughs.
@@ -3662,7 +3662,7 @@ Every persistent adapter serializes jobs and unserializes them on read, which is
 // v7
 PayloadSigner::setKey($_ENV['QUEUE_SIGNING_KEY']);   // once, at bootstrap
 ```
-**In v6:** not possible — adapters called plain `serialize()`/`unserialize()` with no integrity check.
+**Previously:** not possible — adapters called plain `serialize()`/`unserialize()` with no integrity check.
 
 ### Per-queue weights on `Worker`
 Queues can be registered with a weight so a worker servicing several expresses which matter more. `getQueues()`, `workAll()`, `runAll()` and the iterator all traverse in weight order (highest first, stable for ties). `work()` also became callable with no argument, trying every queue in weight order and returning the first job claimed.
@@ -3673,7 +3673,7 @@ $worker->addQueue($queue1, 10);   // high
 $worker->addQueue($queue2, 1);    // low
 $job = $worker->work();           // tries $queue1 first
 ```
-**In v6:** `addQueue()` took no weight, queues were serviced in insertion order, and `work()` required a queue name.
+**Previously:** `addQueue()` took no weight, queues were serviced in insertion order, and `work()` required a queue name.
 
 ### Atomic task claiming across multiple workers
 `TaskAdapterInterface::claimTaskRun(string $taskId, string $window)` lets several workers share one adapter storage without running the same scheduled task twice for the same due-window. A claim persists up to 90 seconds.
@@ -3682,7 +3682,7 @@ $job = $worker->work();           // tries $queue1 first
 // v7 — called for you by Queue::run(); adapters must now implement it
 $adapter->claimTaskRun($taskId, (string)intdiv(time(), 60));  // true if this caller won
 ```
-**In v6:** not possible — every worker invoked around the same moment ran every due task independently, duplicating side effects.
+**Previously:** not possible — every worker invoked around the same moment ran every due task independently, duplicating side effects.
 
 ### Non-shell `exec` and argv-form application commands
 `setExec()`/`Job::exec()` and `setCommand()`/`Job::command()` now accept `string|array`. Exec jobs run through `symfony/process`: a string goes through the shell, while an argv array runs with **no shell at all**, so metacharacters in an argument are inert. The array form is also the only way to pass a command argument containing spaces.
@@ -3693,7 +3693,7 @@ Job::exec(['ls', '-la']);                        // no shell involved
 Job::exec('ls -la | wc -l');                     // shell, as before
 Job::command(['notify', 'Hello there, world']);  // argument with spaces
 ```
-**In v6:** both were `string`-only; exec ran through `exec()` with no timeout support and no way to bypass the shell.
+**Previously:** both were `string`-only; exec ran through `exec()` with no timeout support and no way to bypass the shell.
 
 ### Fair, bulk task evaluation as public API
 `getScheduledTasks()` and `evaluateTasksOnce()` split fetching from evaluating, so `Worker::runAll()` gives every queue one shared pass per tick rather than letting one queue's 60-second sub-minute loop block the others. `TaskAdapterInterface::getAllTasks()` fetches every task in one call instead of a list-then-fetch-each N+1.
@@ -3703,7 +3703,7 @@ Job::command(['notify', 'Hello there, world']);  // argument with spaces
 $tasks = $queue->getScheduledTasks();             // taskId => Task, one round trip
 $ran   = $queue->evaluateTasksOnce($tasks, $app); // jobId => Task, for those that ran
 ```
-**In v6:** `run()` was a monolith, and each sub-minute task busy-looped for 60 seconds inside it before the next was even considered.
+**Previously:** `run()` was a monolith, and each sub-minute task busy-looped for 60 seconds inside it before the next was even considered.
 
 ### Smaller additions
 - `AbstractJob::getDuration()` — run time in seconds, `null` unless the job both started and completed.
@@ -3730,7 +3730,7 @@ A static `setHandler(SessionHandlerInterface $handler)` registers any PHP save h
 Session::setHandler(new MyRedisSessionHandler()); // \SessionHandlerInterface
 $sess = Session::getInstance();
 ```
-**In v6:** not possible through the component — the constructor went straight to `session_start()`, so you had to call `session_set_save_handler()` yourself before ever touching `Session::getInstance()`, outside the API.
+**Previously:** not possible through the component — the constructor went straight to `session_start()`, so you had to call `session_set_save_handler()` yourself before ever touching `Session::getInstance()`, outside the API.
 
 ### `close()` — release the session write lock
 `Session::close()` wraps `session_write_close()`, flushing session data and freeing PHP's per-session file lock while the request keeps running. This is the standard fix for concurrent AJAX/long-poll requests from the same client serializing behind one another.
@@ -3741,7 +3741,7 @@ $sess = Session::getInstance();
 $sess->userId = 1;
 $sess->close(); // lock released; long-running work can proceed
 ```
-**In v6:** not possible via the API — only `kill()` existed, which destroys the session entirely. Releasing the lock meant calling `session_write_close()` directly.
+**Previously:** not possible via the API — only `kill()` existed, which destroys the session entirely. Releasing the lock meant calling `session_write_close()` directly.
 
 ### Public `sweep()` on `Session` and `SessionNamespace`
 `sweep()` manually runs the request-hop and time-expiration checks, removing any values past their limit, and returns `$this` for chaining. It is part of `SessionInterface`, so it is guaranteed on both the global session and namespaces.
@@ -3751,7 +3751,7 @@ $sess->close(); // lock released; long-running work can proceed
 Session::getInstance()->sweep();
 (new SessionNamespace('MyApp'))->sweep();
 ```
-**In v6:** not possible — the equivalent logic lived in private methods on each class and only fired implicitly from `init()` and repeat `getInstance()` calls.
+**Previously:** not possible — the equivalent logic lived in private methods on each class and only fired implicitly from `init()` and repeat `getInstance()` calls.
 
 ### Secure-by-default session cookie flags
 Cookie params are now always applied, not just when `$options` is non-empty, and the defaults harden: `httponly` defaults to `true` and `samesite` defaults to your `php.ini` value or `'Lax'` when unset. Explicit options still override both.
@@ -3762,7 +3762,7 @@ $sess = Session::getInstance(); // HttpOnly + SameSite=Lax applied automatically
 
 $sess = Session::getInstance(['samesite' => 'None', 'secure' => true, 'httponly' => false]);
 ```
-**In v6:** `session_set_cookie_params()` was only called at all if you passed a non-empty `$options` array, and every flag defaulted to whatever `php.ini` said — no HttpOnly or SameSite unless you set them by hand.
+**Previously:** `session_set_cookie_params()` was only called at all if you passed a non-empty `$options` array, and every flag defaulted to whatever `php.ini` said — no HttpOnly or SameSite unless you set them by hand.
 
 ### `strict_mode` option (session fixation defense)
 A new `strict_mode` option, defaulting to `true`, is passed through to `session_start(['use_strict_mode' => '1'])`, making PHP reject uninitialized session IDs supplied by the client. Set it to `false` to opt out.
@@ -3771,7 +3771,7 @@ A new `strict_mode` option, defaulting to `true`, is passed through to `session_
 // v7
 $sess = Session::getInstance(['strict_mode' => true]); // default
 ```
-**In v6:** not possible — `session_start()` was called with no arguments, so strict mode depended entirely on the ini setting.
+**Previously:** not possible — `session_start()` was called with no arguments, so strict mode depended entirely on the ini setting.
 
 ### `JsonSerializable` support
 `AbstractSession` implements `JsonSerializable` with `jsonSerialize(): array` returning `toArray()`, so both `Session` and `SessionNamespace` can be handed straight to `json_encode()` — with the internal `_POP_SESSION_` bookkeeping key stripped out.
@@ -3781,7 +3781,7 @@ $sess = Session::getInstance(['strict_mode' => true]); // default
 $sess->foo = 'bar';
 echo json_encode($sess); // {"foo":"bar"}
 ```
-**In v6:** `json_encode($sess)` encoded the object's own (private/empty) properties rather than the session data; you wrote `json_encode($sess->toArray())`.
+**Previously:** `json_encode($sess)` encoded the object's own (private/empty) properties rather than the session data; you wrote `json_encode($sess->toArray())`.
 
 ### Smaller additions
 - `SessionInterface` declares `sweep(): SessionInterface`, so the contract is enforced on any custom implementation.
@@ -3807,7 +3807,7 @@ fclose($resource);
 
 $out = $storage->fetchFileStream('large-video.mp4'); // readable resource
 ```
-**In v6:** not possible — only `putFileContents(string $filename, string $fileContents)` / `fetchFile()`, both of which hold the entire file in a PHP string.
+**Previously:** not possible — only `putFileContents(string $filename, string $fileContents)` / `fetchFile()`, both of which hold the entire file in a PHP string.
 
 ### Temporary (presigned) URLs
 `getTemporaryUrl(string $filename, int $expiresInSeconds = 900): string` returns a time-limited read URL without exposing credentials or making the object public. S3 builds it via `createPresignedRequest()`; Azure builds a SAS-token URL; Local throws `UnsupportedOperationException`.
@@ -3817,7 +3817,7 @@ $out = $storage->fetchFileStream('large-video.mp4'); // readable resource
 $url = $storage->getTemporaryUrl('test.pdf');        // 15 min default
 $url = $storage->getTemporaryUrl('test.pdf', 3600);
 ```
-**In v6:** not possible — no such method on any adapter; you dropped down to the raw `S3Client` yourself, and Azure had no SAS support at all.
+**Previously:** not possible — no such method on any adapter; you dropped down to the raw `S3Client` yourself, and Azure had no SAS support at all.
 
 ### Azure SAS token generation
 `AuthInterface::generateSasToken()` produces a service SAS query string for a blob (HMAC-SHA256 over the Azure `2025-01-05` string-to-sign, `sr=b`, `spr=https`), with a settable permission string. It backs Azure's `getTemporaryUrl()` but is public for direct use.
@@ -3830,7 +3830,7 @@ public function generateSasToken(
 
 $token = $storage->adapter()->getAuth()->generateSasToken('/my-container/test.pdf', 3600, 'r');
 ```
-**In v6:** not possible — `Auth` had only `signRequest()` for shared-key request signing.
+**Previously:** not possible — `Auth` had only `signRequest()` for shared-key request signing.
 
 ### Recursive directory/file listing
 All three listing methods gained a `bool $recursive = false` parameter across the interface, `Storage`, and every adapter. Results are relative paths that round-trip straight back into `fetchFile()`/`deleteFile()`.
@@ -3842,7 +3842,7 @@ $files = $storage->listFiles(null, true);
 $dirs  = $storage->listDirs(null, true);
 $all   = $storage->listAll(null, true);
 ```
-**In v6:** not possible — one level deep only; you had to `chdir()` into each directory and re-list manually.
+**Previously:** not possible — one level deep only; you had to `chdir()` into each directory and re-list manually.
 
 ### Full pagination on S3 and Azure listings
 S3 listings iterate `getPaginator('ListObjects', $params)` instead of a single call, and Azure's new `walkBlobs()` follows the `NextMarker` continuation token across pages. Listings are no longer silently truncated at the service page limit (1000 objects for S3).
@@ -3853,7 +3853,7 @@ foreach ($this->client->getPaginator('ListObjects', $params) as $page) {
     foreach ($page['Contents'] ?? [] as $object) { /* ... */ }
 }
 ```
-**In v6:** a single un-paginated request per listing, so anything past the first page was silently dropped.
+**Previously:** a single un-paginated request per listing, so anything past the first page was silently dropped.
 
 ### Typed exception hierarchy
 Twelve typed exceptions under `Pop\Storage\Exception\*`, all extending `Pop\Storage\Exception`, so callers can branch on the failure or use one catch-all: `FileNotFoundException`, `DirectoryNotFoundException`, `UnableToWriteFileException`, `UnableToReadFileException`, `UnableToDeleteFileException`, `UnableToCopyFileException`, `UnableToMoveFileException`, `UnableToCreateDirectoryException`, `UnableToDeleteDirectoryException`, `UnableToGenerateTemporaryUrlException`, `UnsupportedOperationException`, `PathTraversalException`.
@@ -3868,7 +3868,7 @@ try {
     // or catch any storage failure
 }
 ```
-**In v6:** no typed failures — each adapter threw exactly one generic exception and nothing else; failed writes/deletes were silent no-ops, and the two old exception classes extended `\Exception` directly with no common base.
+**Previously:** no typed failures — each adapter threw exactly one generic exception and nothing else; failed writes/deletes were silent no-ops, and the two old exception classes extended `\Exception` directly with no common base.
 
 ### Path-traversal rejection
 `AbstractAdapter::scrub()` splits every path on `/` and `\` and throws `PathTraversalException` on any `..` segment. It applies to every path-taking method on every adapter, **including the attacker-controlled `name` value in an uploaded `$_FILES` array**. A single leading `/`, `\`, `./` or `.\` is still normalized away.
@@ -3877,7 +3877,7 @@ try {
 // v7
 $storage->fetchFile('../../etc/passwd'); // throws PathTraversalException
 ```
-**In v6:** not possible — `scrub()` only stripped a leading slash or `./`; `..` segments passed through and resolved.
+**Previously:** not possible — `scrub()` only stripped a leading slash or `./`; `..` segments passed through and resolved.
 
 ### Injectable HTTP handler on the Azure adapter
 `setHandler()`/`getHandler()`/`hasHandler()` let you inject a `Pop\Http\Client\Handler\HandlerInterface` that `initClient()` applies to every client it builds, so Azure blob traffic can be driven by a mock (or any alternate transport) rather than live cURL.
@@ -3888,7 +3888,7 @@ $handler = new Pop\Http\Client\Handler\Mock();
 $handler->queue(new Pop\Http\Client\Response(['code' => 200]));
 $storage->adapter()->setHandler($handler);
 ```
-**In v6:** not possible — `initClient()` always constructed a client with the default handler and there was no seam.
+**Previously:** not possible — `initClient()` always constructed a client with the default handler and there was no seam.
 
 ### Smaller additions
 - `S3::setBaseDir()` normalizes the bucket to always carry the `s3://` prefix, so callers can pass either form.
@@ -3918,7 +3918,7 @@ $user = new User(['id' => 1, 'name' => 'Nick']);
 echo $user->name;    // 'Nick'
 echo $user['name'];  // 'Nick'
 ```
-**In v6:** you had to extend `Pop\Model\AbstractModel`, which lived in `popphp/popphp` — so **every model-bearing library inherited a dependency on the whole application framework**. In v7 `pop-db`'s `AbstractDataModel` and `pop-kettle`'s generated models all extend the `pop-utils` class instead.
+**Previously:** you had to extend `Pop\Model\AbstractModel`, which lived in `popphp/popphp` — so **every model-bearing library inherited a dependency on the whole application framework**. In v7 `pop-db`'s `AbstractDataModel` and `pop-kettle`'s generated models all extend the `pop-utils` class instead.
 
 ### `DebuggerInterface` / `DebuggerHandlerInterface` — debugger contracts without a pop-debug dependency
 Two new interfaces define what a debugger and a debug handler look like, so a component can accept and drive a debugger purely by type hint. `DebuggerInterface` is minimal (`addHandler()`, `save()`); `DebuggerHandlerInterface` is the full handler contract — name/data/start/end/elapsed accessors, `start()`/`stop()`, PSR-3 `setLogger()`/`setLoggingParams()`, plus `prepare()`, `prepareMessage()` and `log()`.
@@ -3933,7 +3933,7 @@ public function setDebugger(DebuggerInterface $debugger): Profiler
     return $this;
 }
 ```
-**In v6:** not possible — there was no shared contract, so a component either had to require `popphp/pop-debug` to type-hint the concrete `Pop\Debug\Debugger`, or fall back to untyped `mixed`/duck typing. In v7 `Pop\Debug\Debugger` implements `DebuggerInterface`, and `pop-db`'s profiler type-hints the interface only.
+**Previously:** not possible — there was no shared contract, so a component either had to require `popphp/pop-debug` to type-hint the concrete `Pop\Debug\Debugger`, or fall back to untyped `mixed`/duck typing. In v7 `Pop\Debug\Debugger` implements `DebuggerInterface`, and `pop-db`'s profiler type-hints the interface only.
 
 ### `Arr::toArray()` — one public normalizer for anything array-like
 New public static method that resolves any array-like value into a plain array, handling plain arrays, `AbstractArray` descendants, any object exposing `toArray()`, native `\ArrayObject`, and any `\Traversable`, returning `[]` for anything else.
@@ -3944,7 +3944,7 @@ public static function toArray(mixed $value): array
 
 $data = Arr::toArray($collection);   // Collection, ArrayObject, Traversable, or plain array
 ```
-**In v6:** not exposed. The logic existed only as duplicated inline code — `AbstractArray::toArray()` had its own cascade, `Collection::getDataAsArray()` had a second copy (with a different branch order), and roughly a dozen `Arr` methods each repeated the same `instanceof AbstractArray` check. All of those now delegate to the single public method, which also means `Arr::divide()`, `slice()`, `join()`, `prepend()`, `sort()`, `map()`, `filter()` and friends normalize `\ArrayObject`/`\Traversable`/`toArray()`-bearing inputs consistently, not just `AbstractArray`.
+**Previously:** not exposed. The logic existed only as duplicated inline code — `AbstractArray::toArray()` had its own cascade, `Collection::getDataAsArray()` had a second copy (with a different branch order), and roughly a dozen `Arr` methods each repeated the same `instanceof AbstractArray` check. All of those now delegate to the single public method, which also means `Arr::divide()`, `slice()`, `join()`, `prepend()`, `sort()`, `map()`, `filter()` and friends normalize `\ArrayObject`/`\Traversable`/`toArray()`-bearing inputs consistently, not just `AbstractArray`.
 
 ### Standalone component — the `popphp/popphp` dependency is gone
 `composer.json` dropped `"popphp/popphp": "^4.4.0 || ^5.0"` entirely, leaving only `php`, `ext-json` and `psr/log`. Library authors can now depend on `pop-utils`' array objects, collections, callables, string/number/file helpers and model base **without dragging in the application framework**, its router, dispatcher and service container.
@@ -3957,7 +3957,7 @@ $data = Arr::toArray($collection);   // Collection, ArrayObject, Traversable, or
     "ext-json": "*"
 }
 ```
-**In v6:** requiring `pop-utils` transitively required all of `popphp`. The single coupling point was `functions.php`, where `app_date()` called `Pop\App::env()` to resolve the timezone; in v7 that reads `$_ENV[$env] ?? $envDefault` directly.
+**Previously:** requiring `pop-utils` transitively required all of `popphp`. The single coupling point was `functions.php`, where `app_date()` called `Pop\App::env()` to resolve the timezone; in v7 that reads `$_ENV[$env] ?? $envDefault` directly.
 
 ### Smaller additions
 - `psr/log` is now a direct dependency, so `DebuggerHandlerInterface` can type-hint `Psr\Log\LoggerInterface`.
@@ -3980,7 +3980,7 @@ $data = Arr::toArray($collection);   // Collection, ArrayObject, Traversable, or
 $set = Pop\Validator\ValidatorSet::createFromRules('users.age:has_one_greater_than:18');
 $set->evaluate(['users' => [['age' => 21], ['age' => 15]]]); // true
 ```
-**In v6:** not possible — the same call threw `Error: The evaluated value must be an array of node name and value, e.g. ['node' => 3].` (`has_one_in` was worse: it silently returned `false`).
+**Previously:** not possible — the same call threw `Error: The evaluated value must be an array of node name and value, e.g. ['node' => 3].` (`has_one_in` was worse: it silently returned `false`).
 
 Newly registered: `HasOneIn`, `HasOneGreaterThan`, `HasOneGreaterThanEqual`, `HasOneLessThan`, `HasOneLessThanEqual`, the four `HasOnlyOne*` comparison equivalents, and the ten `HasOneDateTime*` / `HasOnlyOneDateTime*` classes.
 
@@ -3993,7 +3993,7 @@ $validator = new Pop\Validator\HasOne('users');
 $validator->setInput(['users' => [['username' => 'john_doe']]]);
 $validator->evaluate(); // true
 ```
-**In v6:** not possible — threw `Error: The evaluated input must be an array.` because the check inspected the (null) `$input` argument rather than the stored property. You had to pass the array to `evaluate()` on every call.
+**Previously:** not possible — threw `Error: The evaluated input must be an array.` because the check inspected the (null) `$input` argument rather than the stored property. You had to pass the array to `evaluate()` on every call.
 
 Affected: `HasOne`, `HasOnlyOne`, `HasOneNotEmpty`, the six `HasCount*`, the twelve `HasOne*`/`HasOnlyOne*` comparison classes, the six `Count*`, and `Required`.
 
@@ -4006,7 +4006,7 @@ $set = Pop\Validator\ValidatorSet::load([new Pop\Validator\IsNotEmpty()], 'usern
 $set->addValidator('users', 'HasOne', 'users');          // added after the eager load
 $set->evaluate(['username' => 'bob', 'users' => [['age' => 21]]]); // true
 ```
-**In v6:** returned `false` with a spurious error — that branch handed the validator either a single field value or nothing, neither of which a `Has*` validator can use. Mixing eager loading with a later `Has*` `addValidator()` was effectively unusable.
+**Previously:** returned `false` with a spurious error — that branch handed the validator either a single field value or nothing, neither of which a `Has*` validator can use. Mixing eager loading with a later `Has*` `addValidator()` was effectively unusable.
 
 ### `ValueComparisonTrait` — reusable comparison helpers for custom validators
 A new trait factors the contains/in/starts-with/ends-with matching logic out of ten validators into named protected methods, available to any custom validator you write: `resolveInputValue()`, `containsMatch()`, `containsNoneMatch()`, `inMatch()`, `inNoneMatch()`, `resolveComparisonValueString()`, `startsWithMatch()`, `endsWithMatch()`.
@@ -4024,7 +4024,7 @@ class ContainsAny extends Pop\Validator\AbstractValidator
     }
 }
 ```
-**In v6:** not possible — the logic was duplicated inline inside `Contains`, `NotContains`, `In`, `NotIn`, `StartsWith`, `NotStartsWith`, `EndsWith` and `NotEndsWith`, with no shared entry point.
+**Previously:** not possible — the logic was duplicated inline inside `Contains`, `NotContains`, `In`, `NotIn`, `StartsWith`, `NotStartsWith`, `EndsWith` and `NotEndsWith`, with no shared entry point.
 
 ### `static` return types for subclass-friendly fluent chaining
 `AbstractValidator::setValue()`, `RegEx::setNumberToSatisfy()`, `ValidatorSet::add()/load()/createFromRules()` and `Condition::create()/createFromRule()` declare `: static` instead of the concrete base class.
@@ -4034,7 +4034,7 @@ class ContainsAny extends Pop\Validator\AbstractValidator
 class MySet extends Pop\Validator\ValidatorSet {}
 $set = MySet::createFromRules('username:alpha_numeric'); // statically typed as MySet
 ```
-**In v6:** the runtime object was already correct, but the declared return type was the base class, so subclass-specific methods on the result were invisible to IDEs and static analysis.
+**Previously:** the runtime object was already correct, but the declared return type was the base class, so subclass-specific methods on the result were invisible to IDEs and static analysis.
 
 ### Smaller additions
 - `Rule::isHasClass()`/`isHasOneClass()` default a `null` `$prefix` back to `Pop\Validator\`, so passing `null` explicitly is safe under strict types.
@@ -4057,7 +4057,7 @@ echo $view;
 
 // or: (new Stream('index.html'))->setCacheDir('/path/to/cache/dir');
 ```
-**In v6:** not possible — `Stream::__construct(string $template)` took only the template, and `render()` unconditionally re-ran the full string-substitution pipeline on every call.
+**Previously:** not possible — `Stream::__construct(string $template)` took only the template, and `render()` unconditionally re-ran the full string-substitution pipeline on every call.
 
 ### `Template\Stream\Compiler` — templates translated into native PHP
 A new compiler that turns a resolved template into PHP source using real `foreach`/`if` control structures and `$data[...]` lookups instead of `str_replace()` passes. It covers every shape `Parser` supports: scalars, `[{name[index]}]` array-index scalars, top-level and in-loop conditionals, numeric lists of scalars, numeric lists of named-field rows, and nested named sub-loops. Literal text is emitted through an escaping helper, so a template containing a literal `<?php` can never execute as code in the generated file.
@@ -4067,7 +4067,7 @@ A new compiler that turns a resolved template into PHP source using real `foreac
 $php = Compiler::compile('[{rows}]<h4>[{title}]</h4>[{/rows}]');
 // => PHP source with a real foreach over $data['rows']
 ```
-**In v6:** not possible — `Stream\Parser` was the only engine, and it only ever did delimiter-scanning string substitution.
+**Previously:** not possible — `Stream\Parser` was the only engine, and it only ever did delimiter-scanning string substitution.
 
 ### `Template\Stream\Cache` — content-hash keyed compiled-template cache
 Keyed by `hash('sha256', $resolvedTemplate)` — the hash of the template *after* `@extends`/`@include`/blocks have been merged — so any content change anywhere in the inheritance chain automatically produces a new key and a fresh compile. `get()` additionally takes the newest contributing-file mtime and treats an older cache file as a miss; `put()` writes to a temp file and `rename()`s it into place so a concurrent reader never sees a partial file.
@@ -4079,7 +4079,7 @@ $key   = Cache::key($resolvedTemplate);          // sha256 content hash
 $src   = $cache->get($key, $newestSourceMtime);  // null on miss/stale
 $cache->put($key, $compiledSource);              // atomic write
 ```
-**In v6:** not possible — nothing in the component ever wrote to disk.
+**Previously:** not possible — nothing in the component ever wrote to disk.
 
 ### Working multi-block layout inheritance
 A child template can now override any number of named blocks from its parent layout, and `{{parent}}` resolves against the correct same-named parent block for each. This is the difference between a layout with one editable region and a real layout system.
@@ -4089,7 +4089,7 @@ A child template can now override any number of named blocks from its parent lay
 // child.html can override both, and {{parent}} inside each resolves to that block's parent content.
 $view = new View(new Stream('child-multi.html'), ['title' => 'Hello']);
 ```
-**In v6:** not possible beyond a single block — `parseBlocks()` looped over every child block but wrote every resolved result into a block hard-coded as `'header'`, so any layout with a second named block silently lost it.
+**Previously:** not possible beyond a single block — `parseBlocks()` looped over every child block but wrote every resolved result into a block hard-coded as `'header'`, so any layout with a second named block silently lost it.
 
 ### `{{@include}}` now resolves against real render data
 Includes splice the included template's *resolved-but-unrendered* text into the including template at construction time, deferring all substitution to the outer template's single `render($data)` pass. This is what makes conditionals, loops and placeholders inside an included partial see the actual view data.
@@ -4099,7 +4099,7 @@ Includes splice the included template's *resolved-but-unrendered* text into the 
 $view = new View(new Stream('include-conditional.html'), ['foo' => 'bar']);
 echo $view; // <p>Foo is bar</p>
 ```
-**In v6:** the include was rendered immediately at construction with the still-empty data, so conditionals inside an included file were evaluated against nothing and stripped before the caller's data ever arrived.
+**Previously:** the include was rendered immediately at construction with the still-empty data, so conditionals inside an included file were evaluated against nothing and stripped before the caller's data ever arrived.
 
 ### `Stream::getContributingFiles()`
 Returns `path => mtime` for every file that contributed to the resolved template, walked across the entire `@extends`/`@include` chain (each nested `Stream` merges its own map upward). It drives the cache's staleness check and is directly useful for build tooling, watchers and dependency tracking.
@@ -4109,7 +4109,7 @@ Returns `path => mtime` for every file that contributed to the resolved template
 $template = new Stream('child.html');
 foreach ($template->getContributingFiles() as $path => $mtime) { /* ... */ }
 ```
-**In v6:** not possible — the parent/include chain was consumed during construction and left no record of which files were touched.
+**Previously:** not possible — the parent/include chain was consumed during construction and left no record of which files were touched.
 
 ### Path-traversal guard on `@extends`/`@include` targets
 `Stream::assertSafeTemplatePath()` rejects absolute paths (`/`, `\`, `C:\`) and any `..` segment in a template target, throwing `Stream\Exception`. This closes an arbitrary-file-read hole where template content could reach outside the template directory.
@@ -4118,7 +4118,7 @@ foreach ($template->getContributingFiles() as $path => $mtime) { /* ... */ }
 // v7
 new Stream('{{@include ../../../etc/passwd}}'); // throws Pop\View\Template\Stream\Exception
 ```
-**In v6:** not possible to prevent — the target was concatenated onto the template dir and loaded with no validation.
+**Previously:** not possible to prevent — the target was concatenated onto the template dir and loaded with no validation.
 
 ### Smaller additions
 - `Stream::getCacheDir()` and `hasCacheDir()` accessors alongside `setCacheDir()`.
@@ -4154,7 +4154,7 @@ $result->getCountry();      // 'US'
 
 $result->getFullAddress();  // '123 Main St, Apt 4B, Springfield, IL 62704'
 ```
-**In v6:** not available — parsing a free-form address meant hand-rolling regexes or pulling in a third-party library.
+**Previously:** not available — parsing a free-form address meant hand-rolling regexes or pulling in a third-party library.
 
 ### `Name\NameParser` — personal name parsing
 Parses a name into salutation, firstname, initials, middlename, nickname, lastname prefix, lastname and suffix, through an ordered extraction pipeline. It normalizes case (`MACDONALD` → `Macdonald`, while `McDonald`/`O'Brien` are left as typed), folds recognized lastname prefixes (`van`, `von`, `de`, `della`, `St.`) into their own field, treats single letters as initials, pulls parenthetical or quoted segments out as nicknames, and never silently drops an unrecognized token.
@@ -4173,7 +4173,7 @@ $result->toArray();
 
 $result->getFullName(); // 'John Michael Smith'
 ```
-**In v6:** not available at all — an app had to add a third-party name parser or split names by hand.
+**Previously:** not available at all — an app had to add a third-party name parser or split names by hand.
 
 ### "Last, First" and multi-segment comma format
 A comma anywhere in the input automatically switches `NameParser` to `"Last, First Middle[, Suffix]"` parsing, with separate code paths for the lastname segment, the given-name segment and any further comma segments. Extra segments past the third are all consumed rather than dropped, and a leftover from the lastname segment is absorbed into middlename instead of overwriting the firstname.
@@ -4187,7 +4187,7 @@ $result->getMiddlename(); // 'Michael'
 $result->getLastname();   // 'Smith'
 $result->getSuffix();     // 'Jr'
 ```
-**In v6:** not available — comma-inverted names had to be detected and split by the application before parsing.
+**Previously:** not available — comma-inverted names had to be detected and split by the application before parsing.
 
 ### `Address\AddressValues` — reusable reference data
 A static data provider exposing the same lookup sets the address parser validates against: the full USPS route-type designator map, a shorter everyday list, directionals, USPS unit/secondary designators, and US states plus Canadian provinces. Useful for populating or validating address form fields against exactly what the parser will accept.
@@ -4200,7 +4200,7 @@ $values->getStates('US')['IL'];  // 'Illinois'
 $values->getStateCodes('CA');    // ['AB', 'BC', 'MB', 'NB', ...]
 $values->getUnitTypes();         // ['DEPARTMENT', 'APARTMENT', 'PENTHOUSE', ... 'APT', '#']
 ```
-**In v6:** not available — there was no bundled state, province or unit-type dataset to look these up against. Note that city detection is purely positional; the component carries no embedded per-state city list.
+**Previously:** not available — there was no bundled state, province or unit-type dataset to look these up against. Note that city detection is purely positional; the component carries no embedded per-state city list.
 
 ### PO Box, ZIP+4 and Canadian postal handling
 `AddressParser` recognizes `PO Box 1234`, `P.O. Box 1234`, `POB 1234` and `Box 1234`, flagging them via `isPoBox()`. ZIP+4 input is split into `getPostalCode()`/`getZip4()` whether written as `62704-1234` or `627041234`, and Canadian postal codes are matched with or without the internal space, setting the country to `CA`.
@@ -4216,7 +4216,7 @@ $result->getPostalCode(); // 'M4B1B3'
 $result->getStateName();  // 'Ontario'
 $result->getCountry();    // 'CA'
 ```
-**In v6:** not available — PO Box detection and CA/ZIP+4 normalization had to be written per-application.
+**Previously:** not available — PO Box detection and CA/ZIP+4 normalization had to be written per-application.
 
 ### Shared `AbstractParser` / `ParserInterface` contract
 Both parsers extend `Pop\Parser\AbstractParser`, which holds the `data`/`result`/`error` state with `getData()`, `setData()`, `getResult()`, `hasError()` and `getErrorMessage()`. Every parser therefore has the same shape — construct with or without data, call `parse()`, read the fields off the result it hands back — which makes it straightforward to add a new parser to the component.
@@ -4229,7 +4229,7 @@ $parser->getResult() === $result; // true — the parser keeps the last one
 $parser->getData();               // the original string back
 // parse() with no data set anywhere throws Pop\Parser\Exception
 ```
-**In v6:** not available — there was no shared parser contract to implement against.
+**Previously:** not available — there was no shared parser contract to implement against.
 
 ### `parse()` returns an immutable result object
 `AddressParser::parse()` and `NameParser::parse()` return an `AddressResult` or `NameResult` rather than the parser itself, and the parser holds no parsed fields at all. Every `get*()`/`has*()`, `toArray()` and the string cast live on that result, so two parses on one parser produce two independent results instead of one object whose state is overwritten by whichever call ran last.
@@ -4243,7 +4243,7 @@ $second = $parser->parse('John Smith');
 $first->getFirstname();  // 'Jane' — unaffected by the second parse
 $second->getFirstname(); // 'John'
 ```
-**In v6:** not available. Both results share a `Pop\Parser\ResultInterface` (`toArray()`, `getConfidence()`, `isConfident()`) and an `AbstractResult` base.
+**Previously:** not available. Both results share a `Pop\Parser\ResultInterface` (`toArray()`, `getConfidence()`, `isConfident()`) and an `AbstractResult` base.
 
 ### Confidence scoring on every result
 Every result reports how much of the input it matched outright rather than guessed, as a `0.0`–`1.0` score, with `isConfident()` for a threshold check (default `0.7`). It starts at `1.0` and drops only for specific, individually identifiable guesses, so an address that genuinely has no city still scores `1.0` rather than being penalized for a field that was never there.
@@ -4256,7 +4256,7 @@ $loose = (new AddressParser())->parse('Main St Springfield IL');
 $loose->getConfidence();  // 0.5
 $loose->isConfident();    // false — below the 0.7 default
 ```
-**In v6:** not available — a parse either produced fields or did not, with no way to tell a confident result from a guess short of inspecting every field yourself.
+**Previously:** not available — a parse either produced fields or did not, with no way to tell a confident result from a guess short of inspecting every field yourself.
 
 ### Case normalization for dirty imports
 An all-uppercase or all-lowercase field is title-cased on the way out, so data exported from a legacy system in screaming caps comes back readable. Anything already carrying mixed case is left exactly as typed, which is what keeps `McDonald`, `O'Brien` and `van der Berg` intact rather than flattened to `Mcdonald`.
@@ -4270,7 +4270,7 @@ $result->getLastname();  // 'Smith'
 (new NameParser())->parse('McDonald, RonalD')->getFirstname(); // 'RonalD' — mixed case untouched
 (new AddressParser())->parse('456 oak avenue, portland, or 97201')->getCity(); // 'Portland'
 ```
-**In v6:** not available — normalizing case was the application's job, and doing it naively broke the names that need an interior capital.
+**Previously:** not available — normalizing case was the application's job, and doing it naively broke the names that need an interior capital.
 
 ### Professional credentials on a name
 `NameParser` recognizes credentials and degrees — PhD, MD, Esq, JD, MBA, RN, DDS, DVM, CPA, CFA, PE, RPh, DNP among them — as a field of their own, so they no longer have to be mistaken for a generational suffix or left stuck on the lastname.
@@ -4284,7 +4284,7 @@ $result->getCredentials();  // 'PhD'
 $result->hasCredentials();  // true
 (string) $result;           // 'Dr. John Q. Smith Jr PhD'
 ```
-**In v6:** not available.
+**Previously:** not available.
 
 ### Smaller additions
 - **Zero third-party runtime dependencies** — `composer.json` requires only `php >=8.4.0`. A `theiconic/name-parser` dependency present during early development was removed once `NameParser` was written natively.
