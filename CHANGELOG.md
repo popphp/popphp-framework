@@ -218,6 +218,18 @@ CHANGELOG
     - Improved inline `style` attribute and `<style>`/linked-stylesheet parsing in the HTML parser
     - Added page-size control to HTML parsing, on the `Build\Html\Parser` constructor and its static
       methods as well as the `Pdf::importFromHtml*()` facade methods
+    - HTML `<form>` markup is now converted into real, interactive form fields automatically - `<input>`,
+      `<textarea>`, `<select>` and `<button>` become `Field\Text`, `Field\Choice` and `Field\Button`
+      widgets, sized from CSS or the matching HTML attribute, and each `<form>` becomes a `Document\Form`
+    - Added true grouped radio buttons - same-named `Field\Button` fields marked `setRadio()` compile to one
+      shared parent field plus one child widget per option, so selecting one deselects the rest
+    - Added `Field\Button::setChecked()`/`isChecked()`, separating a checkbox or radio's checked state from
+      `setValue()`, which now carries only the export/on-state name
+    - Added generated on/off appearance streams for checkboxes and radios, and a drawn caption for push
+      buttons via `Field\Button::setCaption()`
+    - Added border and background appearance to every field type - `setBorderWidth()`, `setBorderColor()`
+      and `setBackgroundColor()` on `Field\AbstractField`
+    - `Field\Choice::addOption()` takes an optional display label alongside the export value
   + `pop-queue`
     - Full refactor
       + New adapter contracts
