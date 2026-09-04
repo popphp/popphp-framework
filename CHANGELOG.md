@@ -121,6 +121,24 @@ CHANGELOG
     - EXISTS support
     - Moved AbstractDataModel to `pop-db` (from `popphp`)
     - Moved and refactors the Auth\Table functionality from `pop-auth` into `pop-db`. Now supports auth, attempts and MFA natively.
+    - Added optional active/verified account gating to `Record\Auth` via `$activeField`/`$verifiedField`
+      (`userActive()`/`userVerified()`), reported as the new `USER_NOT_ACTIVE`/`USER_NOT_VERIFIED` failures.
+      Both are hard blocks checked ahead of the attempts/credentials checks, so neither consumes the
+      guess-attempts budget; set either property to `null` to skip that check
+    - Added time-based lockout expiry to `Record\Auth` via `$lockoutExpiration` (default 900 seconds) and
+      `$lastAttemptField`, so `attemptsExceeded()` auto-clears a lockout once the window has passed rather
+      than holding it until an explicit `resetAttempts()`. `lockoutExpired()` exposes the check on its own,
+      and setting either property to `0`/`null` restores the permanent-lockout behavior
+    - Made `Record\Auth::generateMfaCode()` public and fluent so a "resend code" path can reissue a code on
+      an already-loaded record without repeating the password check. It no-ops on an unloaded, inactive,
+      unverified or locked-out record, and `wasMfaCodeGenerated()` reports whether the last call issued one
+    - Added runtime accessors to `Record\Auth` for what were previously property-only settings:
+      `getAttemptsLimit()`/`setAttemptsLimit()`/`hasAttemptsLimit()`,
+      `getLockoutExpiration()`/`setLockoutExpiration()`/`hasLockoutExpiration()` and
+      `getMfaConfig()`/`setMfaConfig()` (a partial merge that ignores unrecognized keys), plus an optional
+      fourth `$attemptsLimit` argument on `authenticate()`. An `$attemptsLimit` of `0` disables attempts
+      enforcement entirely
+    - Changed `Record\Auth::resetAttempts()` to return `static` instead of `void`, so it chains
     - Fillable/guarded support
     - Removed circular dependency to `pop-debug`
     - Added `reset()` to the Record class to reset a column value

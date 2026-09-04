@@ -726,6 +726,30 @@ around a table class, and `authenticate()` returns `false`, `true`, or the loade
 `0`/`1`. Or pin
 your app to `pop-auth` v6.
 
+It also reads more of the table than `Auth\Table` did. Beyond the username and password columns, the
+defaults expect `attempts`, `active`, `verified` and `last_attempt`, plus `mfa_code`/`mfa_timestamp` if you
+use MFA. A missing column reads as `null`, and for `active`/`verified` that is falsy — so a table carrying
+only the columns v6 needed fails **every** login with `USER_NOT_ACTIVE`, correct password included, rather
+than erroring in a way that points at the cause:
+
+```php
+// A users table with no `active` column
+$user = new Users();
+$user->authenticate('admin', 'correct-password', false);   // false
+$user->getAuthFailure();                                   // 'USER_NOT_ACTIVE'
+```
+Either add the columns, or switch off the checks you do not want by nulling their properties — each is
+independent, and a null field always passes:
+
+```php
+class Users extends Auth
+{
+    protected ?string $activeField      = null;
+    protected ?string $verifiedField    = null;
+    protected ?string $lastAttemptField = null;   // also disables lockout auto-expiry
+}
+```
+
 ### `Auth\Http` has been removed
 **Severity:** High — **Affects:** any app using `Auth\Http`
 Delegated/remote authentication (`Http::class`, forwarding credentials through a `Pop\Http\Client` and checking for a `200` response) is no longer part of `pop-auth`. There is no replacement adapter in this component — constructing `new Auth\Http(...)` now fatals with a class-not-found error.

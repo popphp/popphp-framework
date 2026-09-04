@@ -4,7 +4,7 @@
 
 Everything **Pop PHP Framework v7.0.0** gives you that **v6.0.0** did not, component by component.
 
-**293 new features** across the bundled components, plus one entirely new package.
+**296 new features** across the bundled components, plus one entirely new package.
 
 This is the companion to [`BC-BREAKS.md`](BC-BREAKS.md). That document tells you what will break; this one
 tells you what you get for it.
@@ -123,7 +123,7 @@ queues (`pop-queue`), syslog/stdout/NDJSON logging (`pop-log`), NDJSON debug sto
 | pop-pdf | 5.2.12 → 6.2.0 | 20 |
 | pop-queue | 2.1.3 → 3.0.0 | 11 |
 | pop-console | 4.2.6 → 5.0.0 | 11 |
-| pop-db | 6.8.15 → 7.0.0 | 10 |
+| pop-db | 6.8.15 → 7.0.0 | 13 |
 | pop-log | 4.0.4 → 5.0.0 | 10 |
 | pop-mail | 4.0.7 → 5.0.0 | 10 |
 | pop-mime | 2.0.3 → 3.0.0 | 10 |
@@ -1664,8 +1664,8 @@ $data = Pop\Csv\Csv::unserializeString($string); // unique temp file per call
 
 ## pop-db — 6.8.15 → 7.0.0
 
-**Summary:** The shorthand condition array becomes a real structured query language (operators, OR/AND groups, subqueries, JSON paths), plus record safety and extensibility — mass-assignment guards, lifecycle hooks, composite-key and multi-path eager loading — a `Pop\Db\Model` data-model layer, and an `Auth` record that absorbs `pop-auth`'s table adapter and builds attempt lockout and MFA on top of it.
-**Feature count:** 10
+**Summary:** The shorthand condition array becomes a real structured query language (operators, OR/AND groups, subqueries, JSON paths), plus record safety and extensibility — mass-assignment guards, lifecycle hooks, composite-key and multi-path eager loading — a `Pop\Db\Model` data-model layer, and an `Auth` record that absorbs `pop-auth`'s table adapter and builds account gating, expiring attempt lockout and MFA on top of it.
+**Feature count:** 13
 
 ### Structured shorthand condition syntax
 Every `Record` finder now parses its `$columns` array through the new `Sql\Parser\Condition`, which accepts an explicit `[OPERATOR, ...values]` tuple per column plus reserved `'OR'`/`'AND'` keys for nested boolean groups. Operators are arity-validated, so a wrong number of values (or an empty `IN` array) throws instead of silently rendering something unintended. Supported: `=`, `!=`, `>`, `>=`, `<`, `<=`, `LIKE`, `NOT LIKE`, `IN`, `NOT IN`, `BETWEEN`, `NOT BETWEEN`, `IS NULL`, `IS NOT NULL`, `CONTAINS`.
@@ -1811,11 +1811,70 @@ if ($result !== false) {
 $user->authenticateMfa($attemptedCode);    // clears the stored code on success, so it cannot be replayed
 ```
 
-Every failure path sets a reason constant, readable via `getAuthFailure()` and `getAuthFailureMessage()`: `USER_DOES_NOT_EXIST`, `INVALID_CREDENTIALS`, `ATTEMPTS_EXCEEDED`, `INVALID_MFA_CODE`, `MFA_CODE_EXPIRED`. A bad password, a wrong MFA code and an expired MFA code all increment the same `$attemptsField`, so a locked-out account is locked out of MFA guessing too. Lockout at `$attemptsLimit` (default `3`) is permanent by design — there is no timed unlock; an admin calls `resetAttempts()`. Codes are compared with `hash_equals()`.
+Every failure path sets a reason constant, readable via `getAuthFailure()` and `getAuthFailureMessage()`: `USER_DOES_NOT_EXIST`, `USER_NOT_ACTIVE`, `USER_NOT_VERIFIED`, `ATTEMPTS_EXCEEDED`, `INVALID_CREDENTIALS`, `INVALID_MFA_CODE`, `MFA_CODE_EXPIRED`. A bad password, a wrong MFA code and an expired MFA code all increment the same `$attemptsField`, so a locked-out account is locked out of MFA guessing too. Codes are compared with `hash_equals()`.
 
-Field names, the attempt limit, and the MFA code length, expiry and alphabet are all plain property overrides: `$usernameField`, `$passwordField`, `$attemptsField`, `$attemptsLimit`, `$mfaConfig`.
+Field names, the attempt limit, the lockout window, and the MFA code length, expiry and alphabet are all property overrides: `$usernameField`, `$passwordField`, `$attemptsField`, `$activeField`, `$verifiedField`, `$lastAttemptField`, `$attemptsLimit`, `$lockoutExpiration`, `$mfaConfig` — and the last three are readable and settable at runtime too.
 
 **Previously:** `Pop\Auth\Table` checked the password and nothing else — it took a table class name, compared one column, and returned `0`/`1`. Attempt counting, lockout and MFA were entirely the application's job. That adapter is gone; see [`BC-BREAKS.md`](BC-BREAKS.md).
+
+### Active and verified account gating on `Record\Auth`
+An auth class can refuse a login on account *state* as well as credentials. `$activeField` and `$verifiedField` (default `active` and `verified`) name two columns that `authenticate()`, `authenticateMfa()` and `generateMfaCode()` all check before they look at anything else.
+
+```php
+// New
+$user = new Users();
+$user->authenticate($username, $attemptedPassword, false);
+
+$user->getAuthFailure();          // 'USER_NOT_ACTIVE'
+$user->getAuthFailureMessage();   // 'The user is not active'
+```
+
+Both are hard blocks, not guess failures: they are checked ahead of `ATTEMPTS_EXCEEDED` and `INVALID_CREDENTIALS` and never touch `$attemptsField`, so hammering a deactivated account cannot walk it into a lockout — and a lockout cannot be used to tell a deactivated account apart from a live one. `userActive()` and `userVerified()` expose the checks directly. Either check is opt-out per field: set its property to `null` and it always passes.
+
+```php
+class Users extends Auth
+{
+    protected ?string $verifiedField = null;   // this app doesn't do email verification
+}
+```
+
+**Previously:** not available. `authenticate()` knew only "found and password matched" — enforcing a disabled or unconfirmed account meant re-reading the row and re-checking it in the calling code after a successful login, on every path that logged someone in.
+
+### Lockouts that expire on their own
+A lockout now clears itself once `$lockoutExpiration` seconds (default `900`) have passed since the last failed guess, so the common case needs no unlock path at all.
+
+```php
+// New
+$user = Users::findOne(['username' => $username]);
+
+$user->lockoutExpired();      // true, once the window has passed
+$user->attemptsExceeded();    // false — and the attempts column is reset to 0 as a side effect
+```
+
+The clock is anchored to `$lastAttemptField` (default `last_attempt`), which is stamped only when an actual guess fails — not on a request already blocked by `attemptsExceeded()`. That distinction is what keeps a locked-out account from being held locked indefinitely by an attacker who simply keeps trying. `lockoutExpired()` reads the clock without the auto-clear side effect that `attemptsExceeded()` has.
+
+Setting `$lockoutExpiration` to `0`, or `$lastAttemptField` to `null`, restores permanent lockout — `hasLockoutExpiration()` reports `false` and only an explicit `resetAttempts()` clears it.
+
+**Previously:** lockout was permanent by design. Reaching `$attemptsLimit` locked the account until something called `resetAttempts()`, so every application needed its own unlock path — an admin screen, an emailed link, or a scheduled task — before a lockout could be anything but permanent.
+
+### Reissuing an MFA code without re-checking the password
+`generateMfaCode()` is public and fluent, so a "resend code" affordance is one call on the loaded record — the code `authenticate()` issues internally and the code a resend issues come from the same method.
+
+```php
+// New
+$user = Users::findOne(['username' => $username]);
+$user->generateMfaCode();
+
+if ($user->wasMfaCodeGenerated()) {
+    $mailer->send($user->email, $user->mfa_code);
+} else {
+    echo $user->getAuthFailureMessage();
+}
+```
+
+It refuses in four cases, in order: the record is not a loaded user, the user is not active, the user is not verified, or attempts have already been exceeded. A refusal leaves any existing code and timestamp untouched, sets the matching failure constant, and reports `false` from `wasMfaCodeGenerated()`. The locked-out case is the deliberate one — MFA verification checks `attemptsExceeded()` before it ever compares the code, so a resend that worked on a locked-out account would be an unlimited-guessing loophole.
+
+**Previously:** the code was generated inline inside `authenticate()`. Resending one meant either asking the user for their password again, or reimplementing the code generation, expiry stamp and save by hand against `$mfaConfig`'s column names.
 
 ### Transparent password rehashing on `Record\Encoded`
 `verify()` now records whether the hash it just checked was made with an outdated algorithm or cost, so an app can upgrade stored hashes on the next successful login — while it still holds the plaintext.
@@ -1838,6 +1897,10 @@ if ($user->verify('password', $attemptedPassword)) {
 - New `Sql\Parser\Condition` helpers `isNewSyntax()` and `isPlainEquality()` for code that needs to classify a shorthand entry.
 - `findWhereBetween()`/`findWhereNotBetween()` accept an unambiguous 2-element array (`[1, 5]`); all `findWhere*()` magic methods build structured shorthand internally, so none emits a deprecation.
 - `RelationshipInterface` gained `getForeignKey()` and `getEmptyRelationshipValue()`; `AbstractRelationship` gained `setChildRelationships(array)`/`getChildRelationships(): array` plus static `buildCompositeKey()`/`tupleFor()`.
+- `Record\Auth` settings that were property-only are now readable and settable at runtime: `getAttemptsLimit()`/`setAttemptsLimit()`/`hasAttemptsLimit()`, `getLockoutExpiration()`/`setLockoutExpiration()`/`hasLockoutExpiration()`, and `getMfaConfig()`/`setMfaConfig()`. `setMfaConfig()` merges, so `setMfaConfig(['length' => 8])` leaves the other four keys alone, and any key it does not recognize is dropped rather than stored.
+- `Record\Auth::authenticate()` takes an optional fourth `$attemptsLimit`. It calls `setAttemptsLimit()` internally, so the value sticks on the instance rather than applying to that one call.
+- An `$attemptsLimit` of `0` turns attempts enforcement off entirely — `attemptsExceeded()` stays `false` however high the column climbs.
+- `Record\Auth::resetAttempts()` returns `static` rather than `void`, so it chains.
 - New protected extension points on `Predicate\AbstractPredicate`: `renderValue()`, `renderJsonValue()`, `assertNoSubqueryAlias()`.
 - `Select::render()` split into overridable `buildColumnsClause()`, `buildFromClause()`, `buildJoinsClause()`, `buildLimitOffsetClause()`, `quoteByColumn()`; `Record` gained overridable `parseFindWhereArguments()`, `buildWhereConditionColumns()`, `newUnfilteredRecord()`.
 - `PredicateSet::getParameters()`/`hasParameters()` now recurse into nested sets, so parameters bound inside an OR/AND group reach the prepared statement.
