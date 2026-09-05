@@ -4,7 +4,7 @@
 
 Everything **Pop PHP Framework v7.0.0** gives you that **v6.0.0** did not, component by component.
 
-**297 new features** across the bundled components, plus one entirely new package.
+**298 new features** across the bundled components, plus one entirely new package.
 
 This is the companion to [`BC-BREAKS.md`](BC-BREAKS.md). That document tells you what will break; this one
 tells you what you get for it.
@@ -123,7 +123,7 @@ queues (`pop-queue`), syslog/stdout/NDJSON logging (`pop-log`), NDJSON debug sto
 | pop-pdf | 5.2.12 → 6.2.0 | 20 |
 | pop-queue | 2.1.3 → 3.0.0 | 11 |
 | pop-console | 4.2.6 → 5.0.0 | 11 |
-| pop-db | 6.8.15 → 7.0.0 | 14 |
+| pop-db | 6.8.15 → 7.0.0 | 15 |
 | pop-log | 4.0.4 → 5.0.0 | 10 |
 | pop-mail | 4.0.7 → 5.0.0 | 10 |
 | pop-mime | 2.0.3 → 3.0.0 | 10 |
@@ -1665,7 +1665,7 @@ $data = Pop\Csv\Csv::unserializeString($string); // unique temp file per call
 ## pop-db — 6.8.15 → 7.0.0
 
 **Summary:** The shorthand condition array becomes a real structured query language (operators, OR/AND groups, subqueries, JSON paths), plus record safety and extensibility — mass-assignment guards, lifecycle hooks, composite-key and multi-path eager loading — a `Pop\Db\Model` data-model layer, and an `Auth` record that absorbs `pop-auth`'s table adapter and builds account gating, expiring attempt lockout and MFA on top of it.
-**Feature count:** 14
+**Feature count:** 15
 
 ### Structured shorthand condition syntax
 Every `Record` finder now parses its `$columns` array through the new `Sql\Parser\Condition`, which accepts an explicit `[OPERATOR, ...values]` tuple per column plus reserved `'OR'`/`'AND'` keys for nested boolean groups. Operators are arity-validated, so a wrong number of values (or an empty `IN` array) throws instead of silently rendering something unintended. Supported: `=`, `!=`, `>`, `>=`, `<`, `<=`, `LIKE`, `NOT LIKE`, `IN`, `NOT IN`, `BETWEEN`, `NOT BETWEEN`, `IS NULL`, `IS NOT NULL`, `CONTAINS`.
@@ -1900,6 +1900,23 @@ The override applies only when the column is set on the record. A `null` reads a
 
 **Previously:** the `$mfa` argument was the only input. Serving both kinds of account meant reading the flag in the application and branching between two `authenticate()` calls at every call site.
 
+### Skipping MFA where the caller cannot run a second factor
+`authenticate()` takes an `$mfaCapable` argument (default `true`) for call sites with no way to deliver or collect a code at all — a console command, a queue worker, a machine-to-machine endpoint. Passing `false` settles the question before any policy is consulted.
+
+```php
+// New
+// A CLI login: the credentials still have to be right, but there is nobody to send a code to
+$user   = new Users();
+$result = $user->authenticate($username, $attemptedPassword, mfaCapable: false);
+
+// $result is true for every valid account, including one whose mfa column is 1
+// No code is generated, and none is written to the record
+```
+
+Capability is a veto rather than another vote: `false` wins over both the `$mfa` argument and the `$mfaField` column, and it has no per-user override of its own, so an account cannot demand a second factor from a context that has no way to supply one. `generateMfaCode()` takes no capability argument either — the context that vetoes MFA is the same one that never reaches a resend.
+
+**Previously:** the `$mfa` argument carried both meanings at once. Passing `false` from a console command read as "this login does not require MFA" rather than "this context cannot perform MFA," and once the `mfa` column gained the power to override the argument, that reading let a per-user setting issue a code nobody could receive.
+
 ### Transparent password rehashing on `Record\Encoded`
 `verify()` now records whether the hash it just checked was made with an outdated algorithm or cost, so an app can upgrade stored hashes on the next successful login — while it still holds the plaintext.
 
@@ -1922,7 +1939,7 @@ if ($user->verify('password', $attemptedPassword)) {
 - `findWhereBetween()`/`findWhereNotBetween()` accept an unambiguous 2-element array (`[1, 5]`); all `findWhere*()` magic methods build structured shorthand internally, so none emits a deprecation.
 - `RelationshipInterface` gained `getForeignKey()` and `getEmptyRelationshipValue()`; `AbstractRelationship` gained `setChildRelationships(array)`/`getChildRelationships(): array` plus static `buildCompositeKey()`/`tupleFor()`.
 - `Record\Auth` settings that were property-only are now readable and settable at runtime: `getAttemptsLimit()`/`setAttemptsLimit()`/`hasAttemptsLimit()`, `getLockoutExpiration()`/`setLockoutExpiration()`/`hasLockoutExpiration()`, and `getMfaConfig()`/`setMfaConfig()`. `setMfaConfig()` merges, so `setMfaConfig(['length' => 8])` leaves the other four keys alone, and any key it does not recognize is dropped rather than stored.
-- `Record\Auth::authenticate()` takes an optional fourth `$attemptsLimit`. It calls `setAttemptsLimit()` internally, so the value sticks on the instance rather than applying to that one call.
+- `Record\Auth::authenticate()` takes an optional fifth `$attemptsLimit`. It calls `setAttemptsLimit()` internally, so the value sticks on the instance rather than applying to that one call.
 - An `$attemptsLimit` of `0` turns attempts enforcement off entirely — `attemptsExceeded()` stays `false` however high the column climbs.
 - `Record\Auth::resetAttempts()` returns `static` rather than `void`, so it chains.
 - New protected extension points on `Predicate\AbstractPredicate`: `renderValue()`, `renderJsonValue()`, `assertNoSubqueryAlias()`.

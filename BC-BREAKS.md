@@ -751,6 +751,8 @@ class Users extends Auth
 ```
 `mfa` is the exception among the new columns: it is consulted only when it is set, so a table without it
 leaves the `$mfa` argument to `authenticate()` in charge exactly as before.
+A console or worker path migrating off `Auth\Table` — which had no MFA step to begin with — passes
+`mfaCapable: false` to `authenticate()` to keep it that way, ahead of both the `$mfa` argument and the column.
 
 ### `Auth\Http` has been removed
 **Severity:** High — **Affects:** any app using `Auth\Http`

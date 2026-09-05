@@ -136,7 +136,7 @@ CHANGELOG
       `getAttemptsLimit()`/`setAttemptsLimit()`/`hasAttemptsLimit()`,
       `getLockoutExpiration()`/`setLockoutExpiration()`/`hasLockoutExpiration()` and
       `getMfaConfig()`/`setMfaConfig()` (a partial merge that ignores unrecognized keys), plus an optional
-      fourth `$attemptsLimit` argument on `authenticate()`. An `$attemptsLimit` of `0` disables attempts
+      fifth `$attemptsLimit` argument on `authenticate()`. An `$attemptsLimit` of `0` disables attempts
       enforcement entirely
     - Changed `Record\Auth::resetAttempts()` to return `static` instead of `void`, so it chains
     - Added a per-user MFA override to `Record\Auth` via `$mfaField` (default `mfa`), which overrides the
@@ -144,6 +144,11 @@ CHANGELOG
       another skips it under the same call. The override applies only when the column is set on the record,
       so a `null` value leaves the passed-in `$mfa` untouched and a missing column can never silently
       disable MFA; set `$mfaField` to `null` to rely on the argument alone
+    - Added an `$mfaCapable` argument to `Record\Auth::authenticate()` (fourth position, default `true`) for
+      calling contexts that cannot carry out an MFA challenge at all, such as a console command with no way
+      to prompt for or deliver a code. Passing `false` skips MFA for that call and is not overridable — it
+      wins over both the `$mfa` argument and the `$mfaField` column — so an MFA-required account authenticates
+      in one step there. `$attemptsLimit` moves to the fifth position as a result
     - Fillable/guarded support
     - Removed circular dependency to `pop-debug`
     - Added `reset()` to the Record class to reset a column value
