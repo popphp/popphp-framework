@@ -139,6 +139,11 @@ CHANGELOG
       fourth `$attemptsLimit` argument on `authenticate()`. An `$attemptsLimit` of `0` disables attempts
       enforcement entirely
     - Changed `Record\Auth::resetAttempts()` to return `static` instead of `void`, so it chains
+    - Added a per-user MFA override to `Record\Auth` via `$mfaField` (default `mfa`), which overrides the
+      `$mfa` argument passed to `authenticate()` in either direction, so one account can require MFA while
+      another skips it under the same call. The override applies only when the column is set on the record,
+      so a `null` value leaves the passed-in `$mfa` untouched and a missing column can never silently
+      disable MFA; set `$mfaField` to `null` to rely on the argument alone
     - Fillable/guarded support
     - Removed circular dependency to `pop-debug`
     - Added `reset()` to the Record class to reset a column value

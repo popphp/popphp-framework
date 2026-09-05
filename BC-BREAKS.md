@@ -727,8 +727,8 @@ around a table class, and `authenticate()` returns `false`, `true`, or the loade
 your app to `pop-auth` v6.
 
 It also reads more of the table than `Auth\Table` did. Beyond the username and password columns, the
-defaults expect `attempts`, `active`, `verified` and `last_attempt`, plus `mfa_code`/`mfa_timestamp` if you
-use MFA. A missing column reads as `null`, and for `active`/`verified` that is falsy — so a table carrying
+defaults expect `attempts`, `active`, `verified`, `last_attempt` and `mfa`, plus `mfa_code`/`mfa_timestamp`
+if you use MFA. A missing column reads as `null`, and for `active`/`verified` that is falsy — so a table carrying
 only the columns v6 needed fails **every** login with `USER_NOT_ACTIVE`, correct password included, rather
 than erroring in a way that points at the cause:
 
@@ -749,6 +749,8 @@ class Users extends Auth
     protected ?string $lastAttemptField = null;   // also disables lockout auto-expiry
 }
 ```
+`mfa` is the exception among the new columns: it is consulted only when it is set, so a table without it
+leaves the `$mfa` argument to `authenticate()` in charge exactly as before.
 
 ### `Auth\Http` has been removed
 **Severity:** High — **Affects:** any app using `Auth\Http`

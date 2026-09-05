@@ -33,7 +33,7 @@
         "popphp/pop-crypt": "^4.0.2",
         "popphp/pop-css": "^3.0.2",
         "popphp/pop-csv": "^5.0.1",
-        "popphp/pop-db": "^7.0.15",
+        "popphp/pop-db": "^7.0.16",
         "popphp/pop-debug": "^4.0.2",
         "popphp/pop-dir": "^5.0.2",
         "popphp/pop-dom": "^5.0.1",

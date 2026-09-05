@@ -4,7 +4,7 @@
 
 Everything **Pop PHP Framework v7.0.0** gives you that **v6.0.0** did not, component by component.
 
-**296 new features** across the bundled components, plus one entirely new package.
+**297 new features** across the bundled components, plus one entirely new package.
 
 This is the companion to [`BC-BREAKS.md`](BC-BREAKS.md). That document tells you what will break; this one
 tells you what you get for it.
@@ -123,7 +123,7 @@ queues (`pop-queue`), syslog/stdout/NDJSON logging (`pop-log`), NDJSON debug sto
 | pop-pdf | 5.2.12 → 6.2.0 | 20 |
 | pop-queue | 2.1.3 → 3.0.0 | 11 |
 | pop-console | 4.2.6 → 5.0.0 | 11 |
-| pop-db | 6.8.15 → 7.0.0 | 13 |
+| pop-db | 6.8.15 → 7.0.0 | 14 |
 | pop-log | 4.0.4 → 5.0.0 | 10 |
 | pop-mail | 4.0.7 → 5.0.0 | 10 |
 | pop-mime | 2.0.3 → 3.0.0 | 10 |
@@ -1665,7 +1665,7 @@ $data = Pop\Csv\Csv::unserializeString($string); // unique temp file per call
 ## pop-db — 6.8.15 → 7.0.0
 
 **Summary:** The shorthand condition array becomes a real structured query language (operators, OR/AND groups, subqueries, JSON paths), plus record safety and extensibility — mass-assignment guards, lifecycle hooks, composite-key and multi-path eager loading — a `Pop\Db\Model` data-model layer, and an `Auth` record that absorbs `pop-auth`'s table adapter and builds account gating, expiring attempt lockout and MFA on top of it.
-**Feature count:** 13
+**Feature count:** 14
 
 ### Structured shorthand condition syntax
 Every `Record` finder now parses its `$columns` array through the new `Sql\Parser\Condition`, which accepts an explicit `[OPERATOR, ...values]` tuple per column plus reserved `'OR'`/`'AND'` keys for nested boolean groups. Operators are arity-validated, so a wrong number of values (or an empty `IN` array) throws instead of silently rendering something unintended. Supported: `=`, `!=`, `>`, `>=`, `<`, `<=`, `LIKE`, `NOT LIKE`, `IN`, `NOT IN`, `BETWEEN`, `NOT BETWEEN`, `IS NULL`, `IS NOT NULL`, `CONTAINS`.
@@ -1875,6 +1875,30 @@ if ($user->wasMfaCodeGenerated()) {
 It refuses in four cases, in order: the record is not a loaded user, the user is not active, the user is not verified, or attempts have already been exceeded. A refusal leaves any existing code and timestamp untouched, sets the matching failure constant, and reports `false` from `wasMfaCodeGenerated()`. The locked-out case is the deliberate one — MFA verification checks `attemptsExceeded()` before it ever compares the code, so a resend that worked on a locked-out account would be an unlimited-guessing loophole.
 
 **Previously:** the code was generated inline inside `authenticate()`. Resending one meant either asking the user for their password again, or reimplementing the code generation, expiry stamp and save by hand against `$mfaConfig`'s column names.
+
+### Per-user control over whether MFA applies
+`$mfaField` (default `mfa`) names a column that overrides the `$mfa` argument to `authenticate()` in either direction, so a single call site serves accounts that require a second factor and accounts that do not.
+
+```php
+// New
+class Users extends Auth
+{
+    protected ?string $mfaField = 'mfa';
+}
+
+// The call site asks for MFA; the column decides per account
+$user = new Users();
+$result = $user->authenticate($username, $attemptedPassword, true);
+
+// $result is true for a user whose mfa column is 0 — authenticated, no second factor
+// $result is the record for a user whose mfa column is 1 or null — code issued
+```
+
+The override applies only when the column is set on the record. A `null` reads as "no preference" and leaves `$mfa` exactly as the caller passed it, which is what makes the default safe to adopt: a table that has no `mfa` column at all keeps behaving as it did, and a row that predates the column can never silently drop the second factor. Setting `$mfaField` to `null` turns the override off and hands the decision back to the argument alone.
+
+`generateMfaCode()` issues a code whenever it is called directly, whatever the column says — the override governs `authenticate()`, so a resend path that serves MFA-exempt accounts checks the column itself.
+
+**Previously:** the `$mfa` argument was the only input. Serving both kinds of account meant reading the flag in the application and branching between two `authenticate()` calls at every call site.
 
 ### Transparent password rehashing on `Record\Encoded`
 `verify()` now records whether the hash it just checked was made with an outdated algorithm or cost, so an app can upgrade stored hashes on the next successful login — while it still holds the plaintext.
